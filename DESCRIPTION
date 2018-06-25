@@ -1,0 +1,17 @@
+Package: ATEHonest
+Title: Honest inference for treatment effects under unconfoudedness
+Version: 0.0.0.9000
+Authors@R: 'Michal Kolesar <kolesarmi@googlemail.com> [aut, cre]'
+Description: What the package does (one paragraph).
+Depends: R (>= 3.4.0)
+License: GPL-3
+Imports:
+    Matrix,
+    igraph,
+    MASS
+Suggests:
+    testthat,
+    CVXR
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.0.1
