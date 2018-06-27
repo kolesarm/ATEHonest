@@ -24,14 +24,16 @@ ATTcheck <- function(m, r, mu, D0) {
 
     if (cvxmod-modulus > sqrt(max(cvxdelta2-delta2, 0))) {
         warning("CVX found higher modulus, ", cvxmod, ". Homotopy got ",
-                modulus, ".\n Difference ", cvxmod-modulus)
+                modulus, ".\n Difference ", cvxmod-modulus, " at delta=",
+                sqrt(delta2))
         return(1)
     }
 
     ## Solutions should also be close together
     diff <- max(abs(c(r1-r, m1-m)))
     if (diff > 1e-1) {
-        message("CVX solution differs from homotopy, by ", round(diff, 2), ".")
+        message("CVX solution differs from homotopy, by ", round(diff, 3),
+                " at delta=", sqrt(delta2), ".")
         return(0)
     }
 
@@ -157,9 +159,7 @@ ATTstep <- function(s, tol=.Machine$double.eps*n0*n1) {
 #'
 #' Calculates optimal weights \eqn{m} and \eqn{r} as a function of \eqn{\delta},
 #' or equivalently \eqn{mu}.
-#' @param D0 matrix of distances with dimension \code{[n1 n0]} between untreated
-#'     and treated units, where \code{n0} is number of control units and
-#'     \code{n1} is number of treated units
+#' @template D0
 #' @param maxiter maximum number of steps in the homotopy. If the homotopy has
 #'     less steps than \code{maxiter}, returns the whole solution path.
 #' @param check check at each step that solution matches
@@ -214,7 +214,7 @@ ATTh <- function(D0, s, maxiter=50, check=FALSE,
                   Lam=Matrix::Matrix(0, nrow=n1, ncol=n0),
                   D=D0,
                   r0=r0,
-                  N0=Matrix::Matrix(D0==r0),
+                  N0=Matrix::Matrix(D0<=r0),
                   mu=0)
     }
     res <- matrix(c(2*sqrt(n1*s$mu^2 + sum(s$m0^2)), s$m0, s$r0,

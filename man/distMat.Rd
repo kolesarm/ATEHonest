@@ -2,21 +2,30 @@
 % Please edit documentation in R/att_estimate.R
 \name{distMat}
 \alias{distMat}
-\title{Compute matrix of distances between treated and untreated observations}
+\title{Matrix of distances between observations}
 \usage{
-distMat(x0, x1, Ahalf = diag(ncol(as.matrix(x1))), method = "euclidean")
+distMat(x0, x1, Ahalf = diag(ncol(as.matrix(x1))), method = "euclidean",
+  FullMatrix = FALSE)
 }
 \arguments{
-\item{x0, x1}{Design matrices for treated and control variables with
-dimensions \code{[n0 p]} and \code{n1 p}}
+\item{x0, x1}{Design matrices for treated and untreated units with
+dimensions \code{[n0 p]} and \code{[n1 p]} (if \eqn{p=1} and these are
+vectors, they are converted to a matrix)}
 
-\item{Ahalf}{\eqn{A^{1/2}} weight matrix}
+\item{Ahalf}{\eqn{A^{1/2}} weight matrix so that the distances are computed
+between \eqn{Ax_{0,j}} and \eqn{Ax_{1,i}}.}
 
 \item{method}{the distance measure to be used. This must be one of
     \code{"euclidean"}, \code{"maximum"}, \code{"manhattan"},
     \code{"canberra"}, \code{"binary"} or \code{"minkowski"}.
     Any unambiguous substring can be given.}
+
+\item{FullMatrix}{Indicator for whether to return the full
+\code{n0+n1}-by-\code{n0+n1} distance matrix, or only the
+\code{n1}-by-\code{n0} distance matrix between treated and untreated
+observations}
 }
 \description{
-Compute matrix of distances between treated and untreated observations
+Compute and return the distance matrix using the distance measure in
+\code{method}.
 }

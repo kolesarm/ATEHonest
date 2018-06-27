@@ -2,7 +2,7 @@
 % Please edit documentation in R/att_estimate.R
 \name{nnvar}
 \alias{nnvar}
-\title{Nearest-neighbor}
+\title{Nearest-neighbor variance estimator}
 \usage{
 nnvar(DM, d, y, J = 3)
 }
@@ -16,5 +16,5 @@ nnvar(DM, d, y, J = 3)
 \item{J}{number of nearest neighbors}
 }
 \description{
-Nearest-neighbor
+Nearest-neighbor variance estimator
 }

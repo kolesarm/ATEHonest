@@ -16,6 +16,8 @@ d$ue74 <- d$re74==0
 d$ue75 <- d$re75==0
 ## exclude nodegree, which is not in Abadie and Imbens, 2011, JBES
 d$nodegree <- NULL
+d[, c(2, 3)] <- matrix(as.integer(unname(unlist(
+    d[, c(2, 3)]))), nrow=nrow(d))
 
 ## earnings in 1000s of dollars
 d[, 7:9] <- d[, 7:9]/1000

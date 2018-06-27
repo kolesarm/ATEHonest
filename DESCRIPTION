@@ -9,6 +9,7 @@ Imports:
     Matrix,
     igraph,
     MASS,
+    stats,
     methods
 Suggests:
     testthat,
