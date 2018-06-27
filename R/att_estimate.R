@@ -3,9 +3,10 @@
 #'     dimensions \code{[n0 p]} and \code{n1 p}
 #' @param Ahalf \eqn{A^{1/2}} weight matrix
 #' @inheritParams stats::dist
-distMat <- function(x0, x1, Ahalf=diag(ncol(x1)), method="euclidean") {
-    x0 <- x0 %*% Ahalf
-    x1 <- x1 %*% Ahalf
+#' @export
+distMat <- function(x0, x1, Ahalf=diag(ncol(as.matrix(x1))), method="euclidean") {
+    x0 <- as.matrix(x0) %*% Ahalf
+    x1 <- as.matrix(x1) %*% Ahalf
     Dm <- unname(as.matrix(stats::dist(c(x0, x1), method=method)))
     Dm[(length(x0)+1):(length(x0)+length(x1)), 1:length(x0)]
 }

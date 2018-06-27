@@ -18,6 +18,7 @@ ATTcheck <- function(m, r, mu, D0) {
     cvxs <- ATTbrute(delta2, D0)
     cvxmod <- cvxs[1]
     m1 <- cvxs[2:(ncol(D0)+1)]
+    r1 <- cvxs[(ncol(D0)+2):(n+1)]
     mu1 <- cvxs[n+2]
     cvxdelta2 <- 4*(sum(m1^2)+nrow(D0)*mu1^2)
 
@@ -27,7 +28,13 @@ ATTcheck <- function(m, r, mu, D0) {
         return(1)
     }
 
-    ## TODO: solutions should also be close together
+    ## Solutions should also be close together
+    diff <- max(abs(c(r1-r, m1-m)))
+    if (diff > 1e-1) {
+        message("CVX solution differs from homotopy, by ", round(diff, 2), ".")
+        return(0)
+    }
+
 
     0
 }
@@ -102,7 +109,7 @@ ATTstep <- function(s, tol=.Machine$double.eps*n0*n1) {
                            kronecker(Matrix::Matrix(1, nrow=1, ncol=l0),
                                      Matrix::Diagonal(l1)))
                 A <- as.matrix(A[, as.vector(lN0)])
-                lN0 <- format::as(lN0, "dgCMatrix")
+                lN0 <- methods::as(lN0, "dgCMatrix")
                 ## If some of the sparse elements are zero
                 lN0@x[lN0@x!=0] <- drop(MASS::ginv(A) %*%
                                         c(delta[M0], rep(1, l1)))
@@ -136,11 +143,11 @@ ATTstep <- function(s, tol=.Machine$double.eps*n0*n1) {
         minind <- Matrix::which(d2<=min(d2)+tol, arr.ind=TRUE)
         s$N0[minind] <- FALSE
         s$Lam[minind] <- 0L
-        s$dmin <- 2L
+        s$drop <- TRUE
     } else {
         ## In case multiple join
         s$N0[which(d1<=min(d1)+tol)] <- TRUE
-        s$dmin <- 1L
+        s$drop <- FALSE
     }
     s
 }
@@ -151,7 +158,8 @@ ATTstep <- function(s, tol=.Machine$double.eps*n0*n1) {
 #' Calculates optimal weights \eqn{m} and \eqn{r} as a function of \eqn{\delta},
 #' or equivalently \eqn{mu}.
 #' @param D0 matrix of distances with dimension \code{[n1 n0]} between untreated
-#'     and treated units
+#'     and treated units, where \code{n0} is number of control units and
+#'     \code{n1} is number of treated units
 #' @param maxiter maximum number of steps in the homotopy. If the homotopy has
 #'     less steps than \code{maxiter}, returns the whole solution path.
 #' @param check check at each step that solution matches
@@ -161,8 +169,7 @@ ATTstep <- function(s, tol=.Machine$double.eps*n0*n1) {
 #'     the closest are considered to be active.
 #' @param s Set of state variables at which to start the homotopy. If not
 #'     provided, the homotopy is started at the beginning. The state variables
-#'     are as follows:
-#' \describe{
+#'     are as follows: \describe{
 #'
 #'   \item{m0}{A vector of length \code{n0} of corresponding to \eqn{m}}
 #'   \item{r0}{A vector of length \code{n1} of corresponding to \eqn{r}}
@@ -178,7 +185,9 @@ ATTstep <- function(s, tol=.Machine$double.eps*n0*n1) {
 #'
 #'   \item{res}{A matrix with rows corresponding to steps in the homotopy, so
 #'   that the maximum number of rows is \code{maxiter}, and columns
-#'   corresponding to \eqn{\delta}, \eqn{m}, \eqn{r}, \eqn{\mu}, and \code{drop} }
+#'   corresponding to \eqn{\delta}, \eqn{m}, \eqn{r}, \eqn{\mu}, and
+#'   \code{drop}, an indicator if an observations has been dropped from an
+#'   active set, or added }
 #'
 #'   \item{s}{List of state variables at the last step with the same structure
 #'   as the input \code{s}}
@@ -188,29 +197,34 @@ ATTstep <- function(s, tol=.Machine$double.eps*n0*n1) {
 #' x0 <- c(0, 1, 2, 3)
 #' x1 <- c(1, 4, 5)
 #' D0 <- distMat(x0, x1)
-#' ATTh(D0)
-ATTh <- function(D0, maxiter=50, check=FALSE, tol=.Machine$double.eps*n0*n1) {
+#' r <- ATTh(D0, maxiter=3)
+#' ## Get last, fourth step
+#' ATTh(D0, s=r$s, maxiter=3)
+#' @export
+ATTh <- function(D0, s, maxiter=50, check=FALSE,
+                 tol=.Machine$double.eps*ncol(D0)*nrow(D0)) {
     n0 <- ncol(D0)
     n1 <- nrow(D0)
     n <- n0+n1
 
-    ## TODO---allow it to pass an initial value s
-
     ## Initialize state variables
-    r0 <- apply(D0, 1, min)
-    s <- list(m0=rep(0, n0),
-              Lam=Matrix::Matrix(0, nrow=n1, ncol=n0),
-              D=D0,
-              r0=r0,
-              N0=Matrix::Matrix(D0==r0),
-              mu=0)
-    res <- matrix(c(0, s$m0, s$r0, s$mu, NA), nrow=1)
+    if (missing(s)) {
+        r0 <- apply(D0, 1, min)
+        s <- list(m0=rep(0, n0),
+                  Lam=Matrix::Matrix(0, nrow=n1, ncol=n0),
+                  D=D0,
+                  r0=r0,
+                  N0=Matrix::Matrix(D0==r0),
+                  mu=0)
+    }
+    res <- matrix(c(2*sqrt(n1*s$mu^2 + sum(s$m0^2)), s$m0, s$r0,
+                    s$mu, NA), nrow=1)
     colnames(res) <- c("delta", 1:n, "mu", "drop")
 
     while (sum(s$m0^2)<Inf && nrow(res) <= maxiter) {
-        ## work out directions
         s <- ATTstep(s)
-        res <- rbind(res, c(2*sqrt(sum(s$m0^2)), s$m0, s$r0, s$mu, s$dmin))
+        res <- rbind(res, c(2*sqrt(n1*s$mu^2 + sum(s$m0^2)), s$m0, s$r0, s$mu,
+                            s$drop))
         if (check && max(s$m0)<Inf && ATTcheck(s$m0, s$r0, s$mu, D0))
             stop("Solution doesn't agree with CVX")
     }

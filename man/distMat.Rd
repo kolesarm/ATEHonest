@@ -4,7 +4,7 @@
 \alias{distMat}
 \title{Compute matrix of distances between treated and untreated observations}
 \usage{
-distMat(x0, x1, Ahalf = diag(ncol(x1)), method = "euclidean")
+distMat(x0, x1, Ahalf = diag(ncol(as.matrix(x1))), method = "euclidean")
 }
 \arguments{
 \item{x0, x1}{Design matrices for treated and control variables with

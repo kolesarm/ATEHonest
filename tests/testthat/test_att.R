@@ -2,39 +2,47 @@ context("Check solution path for ATT")
 
 test_that("Solution path for ATT in small examples", {
 
-    distMat <- function(x0, x1) {
-        Dm <- unname(as.matrix(dist(c(x0, x1))))
-        Dm[(length(x0)+1):(length(x0)+length(x1)), 1:length(x0)]
-    }
-
     x0 <- c(3, 4, 7, 7, 9)
     x1 <- c(1, 4, 5, 7)
     expect_silent(t0 <- ATTh(distMat(x0, x1), check=TRUE))
-    expect_lt(nrow(t0), 10)
+    expect_lt(nrow(t0$res), 10)
 
     x0 <- c(1, 7, 7, 8, 9)
     x1 <- c(1, 2, 4, 8)
     expect_silent(t1 <- ATTh(distMat(x0, x1), check=TRUE))
-    expect_lt(nrow(t1), 7)
+    expect_lt(nrow(t1$res), 9)
 
     x0 <- c(2, 3, 7, 7, 7, 7, 8, 10, 10, 10)
     x1 <- c(1, 1, 1, 1, 1, 2, 5, 8, 8, 9, 10)
     expect_silent(t2 <- ATTh(distMat(x0, x1), check=TRUE))
-    expect_lt(nrow(t2), 9)
+    expect_lt(nrow(t2$res), 9)
 
     x0 <- c(1,  1,  3,  3,  4,  6, 17, 17, 21, 22, 23, 23, 26, 30, 36, 37, 47,
             53, 58, 61)
     x1 <- c(9, 15, 26, 27, 28, 31, 32, 40, 51, 52, 56)
-    expect_silent(t3 <- ATTh(distMat(x0, x1), check=TRUE))
+    ## Solution differs, expect message
+    expect_message(t3 <- ATTh(distMat(x0, x1), check=TRUE))
+    expect_lt(nrow(t2$res), 25)
 
 
+    x0 <-  c(-2.19632667892222866, -2.15997868323220610, -1.31097131989365789,
+             -1.16421297762310583, -0.61199606702408638, -0.37223289750184541,
+             -0.35269074554765034, -0.22176143627504877, -0.00749056392427201,
+             0.12011828315494359,  0.18267388345099736,  0.18593160956753849,
+             0.22915318333472903,  0.29678161157067251,  0.42253423096032311,
+             0.67552340069946715,  1.14904473037269139,  1.68623728943529416,
+             1.85267571248565455,  3.17444522610536684)
+    m1 <- c(-0.417160506610267, -0.400400493634091, -0.323482341050380,
+            0.191550650274630, 0.250676837337075,  0.388565760568126,
+            0.478185868404733,  0.525553657035341, 1.044897968992634,
+            1.181192580509525)
 
+    expect_silent(t5 <- ATTh(distMat(x0, x1), check=TRUE, maxiter=100))
+
+    ## TODO: CVX solver fails at more iterations
     set.seed(42)
-    x0 <- rnorm(100)
-    x1 <- rnorm(100)
-    expect_silent(ATTh(distMat(x0, x1), check=TRUE))
-
-
-
+    x0 <- sort(rnorm(100))
+    x1 <- sort(rnorm(100))
+    expect_silent(t4 <- ATTh(distMat(x0, x1), check=TRUE, maxiter=100))
     ## CVXR::installed_solvers()
 })
