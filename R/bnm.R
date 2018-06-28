@@ -3,8 +3,8 @@
 #' Computes the critical value \eqn{cv_{1-alpha}(B)} that is needed to make the
 #' confidence interval \eqn{X\pm cv} have coverage \eqn{1-alpha} if \eqn{X} is
 #' Normally distributed with variance one and maximum bias at most \eqn{B}. The
-#' function is identical to the function \code{\link[RDHonest]{CVb}} in the
-#' \code{\link[RDHonest]{RDHonest}} package.
+#' function is identical to the function \code{CVb} in the
+#' \code{RDHonest} package.
 #'
 #' @param B Maximum bias, vector of non-negative numbers.
 #' @param alpha Determines CI level, \code{1-alpha}. Needs to be between 0 and

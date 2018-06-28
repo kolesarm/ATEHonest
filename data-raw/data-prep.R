@@ -31,3 +31,15 @@ stargazer::stargazer(d[d$treated==FALSE, ], type="text")
 NSW <- d
 
 devtools::use_data(NSW, overwrite=TRUE, internal=FALSE)
+
+
+## 2. Precompute the homotopy in the NSW application
+X <- as.matrix(NSW[, 2:10])
+## weight matrix
+Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
+d <- NSW$treated
+y <- NSW$re78
+## Compute matrix of distances between treated and control units
+D0 <- distMat(X, d, Ahalf, method="manhattan", FullMatrix=FALSE)
+nswhomotopy <- ATTh(D0, maxiter=1500)
+devtools::use_data(nswhomotopy, overwrite=TRUE, internal=FALSE)

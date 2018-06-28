@@ -58,7 +58,8 @@ or equivalently \eqn{mu}.
 \examples{
 x0 <- c(0, 1, 2, 3)
 x1 <- c(1, 4, 5)
-D0 <- distMat(x0, x1)
+d <- c(rep(FALSE, length(x0)), rep(TRUE, length(x1)))
+D0 <- distMat(c(x0, x1), d)
 r <- ATTh(D0, maxiter=3)
 ## Get last, fourth step
 ATTh(D0, s=r$s, maxiter=3)

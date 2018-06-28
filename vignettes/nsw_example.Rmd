@@ -29,6 +29,7 @@ The data is shipped with the package, as a data frame called `NSW`. First we
 extract the design matrix, and the treatment and outcome vectors:
 
 ```{r}
+library("ATEHonest")
 X <- as.matrix(NSW[, 2:10])
 ## weight matrix
 Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
@@ -47,11 +48,12 @@ DMvar <- distMat(X, d, Avar, method="euclidean",
 sigma2 <- nnvar(DMvar, d, y, J=30)
 ```
 
-Now we compute the first 750 steps of the homotopy. This takes about 2mins on a desktop computer:
+The first 1,500 steps of the homotopy can be computed by running `nswhomotopy <-
+ATTh(D0, maxiter=1500)`. Since  this takes about 10mins on
+a desktop computer, the package has a pre-computed solution stored.
 ```{r}
-r <- ATTh(D0, maxiter=750)
 ## throw away the first few steps for which delta is zero
-res <- r$res[r$res[, "delta"]>0, ]
+res <- nswhomotopy$res[nswhomotopy$res[, "delta"]>0, ]
 ## Normalize delta by standard deviation so it's compatible with the paper:
 res[, "delta"] <- res[, "delta"]/sqrt(mean(sigma2))
 
@@ -66,18 +68,30 @@ res[nrow(res), "delta"]
 # Graphs and tables for paper
 
 Now plot like the one in Figure 5:
+
 ```{r fig.width=4.5, fig.height=6.5, fig.cap="Reproduction of Figure 5 in the paper"}
-## See Figure 1 below for output
+## See Figures 1 and 2 below for output
 d1 <- reshape2::melt(rr[, c(1, 2, 3, 4, 7, 8)],
                           id.vars="delta")
-p <- qplot(x=delta, y=value, data=d1, geom="line") +
-     facet_grid( variable ~ ., scales="free_y") +
-     theme_bw()
+
+p <- ggplot2::qplot(x=delta, y=value, data=d1, geom="line") +
+     ggplot2::facet_grid( variable ~ ., scales="free_y") +
+     ggplot2::theme_bw()
+p
+
+## Restrict to delta in [0, 10]
+d2 <- d1[d1$delta<=10,]
+
+p <- ggplot2::qplot(x=delta, y=value, data=d2, geom="line") +
+     ggplot2::facet_grid( variable ~ ., scales="free_y") +
+     ggplot2::theme_bw()
 p
 ```
 
 For now, to find optimal estimator, only look at $\delta$ at knot points (and
-don't consider values between knot points). We should approximately match Table 1. Still need to implement optimal one-sided CI:
+don't consider values between knot points). We should approximately match
+Table 1. Still need to implement optimal one-sided CI:
+
 ```{r}
 res.opt <- res[c(which.min(rr$rmse), which.min(rr$hl)), ]
 ## Homoscedastic errors

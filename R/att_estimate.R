@@ -43,6 +43,7 @@ distMat <- function(X, d, Ahalf=diag(NCOL(X)),
 #' @param y outcome
 #' @param J number of nearest neighbors
 #' @param tol numerical tolerance for finding neighbors
+#' @export
 nnvar <- function(DM, d, y, J=3, tol=0) {
     ehat2 <- vector(length=length(d))
 
@@ -63,6 +64,7 @@ nnvar <- function(DM, d, y, J=3, tol=0) {
 #' @param d vector of treatment indicators
 #' @template D0
 #' @param sigma2 vector of variances
+#' @export
 ATTmatch <- function(M, y, d, D0, sigma2) {
     n1 <- nrow(D0)
     w <- rep(NA, length(y))
@@ -78,9 +80,14 @@ ATTmatch <- function(M, y, d, D0, sigma2) {
     list(w=w, att=sum(w*y), sd=sqrt(sum(w^2*sigma2)))
 }
 
-
-
-
+#' Estimator along the optimal solution path
+#' @param res output of \code{ATTh}
+#' @param y outcome vector
+#' @param d vector of treatment indicators
+#' @param C smoothness constant
+#' @param sigma2 vector of variances
+#' @param alpha CI coverage
+#' @export
 ATTpath <- function(res, d, y, C=1, sigma2, alpha=0.05) {
     n <- length(y)
     n0 <- n-sum(d)

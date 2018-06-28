@@ -26,3 +26,12 @@
 #'
 #' }
 "NSW"
+
+#' Homotopy for the data from Dehejia and Wahba (1999)
+#'
+#' Optimal solution path precomputed using the homotopy algorithm in this
+#' package. It can be recomputed using the \code{ATTh} function, but takes a few
+#' minutes
+#' @format First 1,500 steps of the homotopy
+
+"nswhomotopy"

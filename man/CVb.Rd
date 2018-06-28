@@ -29,7 +29,8 @@ Data frame with the following columns:
 Computes the critical value \eqn{cv_{1-alpha}(B)} that is needed to make the
 confidence interval \eqn{X\pm cv} have coverage \eqn{1-alpha} if \eqn{X} is
 Normally distributed with variance one and maximum bias at most \eqn{B}. The
-function is identical to the function \code{\link[RDHonest]{CVb}}.
+function is identical to the function \code{CVb} in the
+\code{RDHonest} package.
 }
 \examples{
 # 90\% critical value:
