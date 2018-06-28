@@ -8,41 +8,36 @@ Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
 d <- NSW$treated
 y <- NSW$re78
 
-
-
-D0 <- distMat(X[d==0, ], X[d==1, ], Ahalf, method="manhattan", FullMatrix=FALSE)
-r <- ATTh(D0, maxiter=70)
-n1 <- nrow(D0)
-n0 <- ncol(D0)
-
-
-qplot(r$res[, "delta"], ATTEstimate(r$res, n0, y))
-
-
-expect_equal(0, 0)
-
+D0 <- distMat(X, d, Ahalf, method="manhattan", FullMatrix=FALSE)
 
 ## Distance matrix for variance estimation
 Avar <- chol(solve(cov(X)))
-DMvar <- distMat(X[d==0, ], X[d==1, ], Avar, method="euclidean", FullMatrix=TRUE)
-sigmahat <- sqrt(mean(nnvar(DMvar, d, y, J=30)))
+DMvar <- distMat(X, d, Avar, method="euclidean",
+                 FullMatrix=TRUE)
 
-## ## Use same distance matrix for variance estimation, alternative is to use
-## ## Mahalanobis, distmat(X, t(chol(solve(cov(X)))), p=1)
-## ## sigma2 <- nnvar(DM, d, y, J=30)
-## Cvals <- 0.01
+sigma2 <- nnvar(DMvar, d, y, J=30)
 
 
-## compute nearest neighbor residuals for variance estimates
-## uhat=nn_resid(Mvarest,x,d,outcome,dist_weight_mat,dist_p);
-## standard deviation of errors in homoskedastic normal model for
-## computing optimal kernels (will compute optimal kernels using this
-## value and homoskedasticity, then compute confidence intervals that
-## are valid under heteroskedasticity based on this kernel)
-## sigmahat=sqrt(mean(uhat.^2));
+## Check matching against Tim's code
+expect_equal(ATTmatch(M=2, y, d, D0, sigma2)$att, 1.69911476)
+expect_equal(ATTmatch(M=10, y, d, D0, sigma2)$att, 1.64632730)
+expect_equal(ATTmatch(M=1, y, d, D0, sigma2)$att, 1.391618501)
+expect_equal(ATTmatch(M=4, y, d, DMvar[d==1, d==0], sigma2)$att, 1.42077963)
 
-## nonrobust_se = sigmahat*sqrt(sum((optweight.^2)));
-## robust_se = sqrt(sum((optweight.^2).*(uhat.^2)));
+
+
+## r <- ATTh(D0, maxiter=500)
+## res <- r$res[r$res[, "delta"]>0, ]
+## rr <- as.data.frame(ATTpath(res, d, y, C=1, mean(sigma2)))
+## rr$delta <- rr$delta/sqrt(mean(sigma2))
+## ## Plot the results
+## d1 <- reshape2::melt(rr[, c(1, 2, 3, 4, 7, 8)],
+##                           id.vars="delta")
+## qplot(x=delta, y=value, data=d1, geom="line")+facet_grid( variable ~ ., scales="free_y")
+
+## ## Optimal results
+## rr[c(which.min(rr$rmse), which.min(rr$hl)), ]
+
 
 
 

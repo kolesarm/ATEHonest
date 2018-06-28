@@ -4,13 +4,14 @@
 \alias{distMat}
 \title{Matrix of distances between observations}
 \usage{
-distMat(x0, x1, Ahalf = diag(ncol(as.matrix(x1))), method = "euclidean",
+distMat(X, d, Ahalf = diag(NCOL(X)), method = "euclidean",
   FullMatrix = FALSE)
 }
 \arguments{
-\item{x0, x1}{Design matrices for treated and untreated units with
-dimensions \code{[n0 p]} and \code{[n1 p]} (if \eqn{p=1} and these are
-vectors, they are converted to a matrix)}
+\item{X}{Design matrix for control variables with dimension \code{[n p]} (if
+\eqn{p=1} and \code{X} is a vector, then it is converted to a matrix)}
+
+\item{d}{Vector of treatment indicators}
 
 \item{Ahalf}{\eqn{A^{1/2}} weight matrix so that the distances are computed
 between \eqn{Ax_{0,j}} and \eqn{Ax_{1,i}}.}
@@ -24,6 +25,9 @@ between \eqn{Ax_{0,j}} and \eqn{Ax_{1,i}}.}
 \code{n0+n1}-by-\code{n0+n1} distance matrix, or only the
 \code{n1}-by-\code{n0} distance matrix between treated and untreated
 observations}
+}
+\value{
+\code{[n1 n0]} or \code{[n n]} matrix of distances.
 }
 \description{
 Compute and return the distance matrix using the distance measure in

@@ -4,7 +4,7 @@
 \alias{nnvar}
 \title{Nearest-neighbor variance estimator}
 \usage{
-nnvar(DM, d, y, J = 3)
+nnvar(DM, d, y, J = 3, tol = 0)
 }
 \arguments{
 \item{DM}{distance matrix}
@@ -14,6 +14,8 @@ nnvar(DM, d, y, J = 3)
 \item{y}{outcome}
 
 \item{J}{number of nearest neighbors}
+
+\item{tol}{numerical tolerance for finding neighbors}
 }
 \description{
 Nearest-neighbor variance estimator

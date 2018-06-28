@@ -214,7 +214,7 @@ ATTh <- function(D0, s, maxiter=50, check=FALSE,
                   Lam=Matrix::Matrix(0, nrow=n1, ncol=n0),
                   D=D0,
                   r0=r0,
-                  N0=Matrix::Matrix(D0<=r0),
+                  N0=Matrix::Matrix(D0<=r0), # without tol
                   mu=0)
     }
     res <- matrix(c(2*sqrt(n1*s$mu^2 + sum(s$m0^2)), s$m0, s$r0,
@@ -222,7 +222,7 @@ ATTh <- function(D0, s, maxiter=50, check=FALSE,
     colnames(res) <- c("delta", 1:n, "mu", "drop")
 
     while (sum(s$m0^2)<Inf && nrow(res) <= maxiter) {
-        s <- ATTstep(s)
+        s <- ATTstep(s, tol)
         res <- rbind(res, c(2*sqrt(n1*s$mu^2 + sum(s$m0^2)), s$m0, s$r0, s$mu,
                             s$drop))
         if (check && max(s$m0)<Inf && ATTcheck(s$m0, s$r0, s$mu, D0))
