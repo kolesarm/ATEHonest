@@ -4,7 +4,7 @@ author: "Michal Kolesár"
 date: "`r Sys.Date()`"
 output:
   pdf_document:
-    toc: true
+    toc: false
     toc_depth: 2
 vignette: >
   %\VignetteIndexEntry{Inference for Average Treatment Effects}
@@ -40,62 +40,4 @@ y <- NSW$re78
 D0 <- distMat(X, d, Ahalf, method="manhattan", FullMatrix=FALSE)
 ```
 
-Next, compute distance matrix for variance estimation, and compute NN variance estimator:
-```{r}
-Avar <- chol(solve(cov(X)))
-DMvar <- distMat(X, d, Avar, method="euclidean",
-                 FullMatrix=TRUE)
-sigma2 <- nnvar(DMvar, d, y, J=30)
-```
-
-The first 1,500 steps of the homotopy can be computed by running `nswhomotopy <-
-ATTh(D0, maxiter=1500)`. Since  this takes about 10mins on
-a desktop computer, the package has a pre-computed solution stored.
-```{r}
-## throw away the first few steps for which delta is zero
-res <- nswhomotopy$res[nswhomotopy$res[, "delta"]>0, ]
-## Normalize delta by standard deviation so it's compatible with the paper:
-res[, "delta"] <- res[, "delta"]/sqrt(mean(sigma2))
-
-## res contains the optimal weights, use them to compute the estimator and CIs:
-rr <- as.data.frame(ATTpath(res, d, y, C=1, mean(sigma2)))
-```
-At the last step the value of $\delta$ is given by
-```{r}
-res[nrow(res), "delta"]
-```
-
-# Graphs and tables for paper
-
-Now plot like the one in Figure 5:
-
-```{r fig.width=4.5, fig.height=6.5, fig.cap="Reproduction of Figure 5 in the paper"}
-## See Figures 1 and 2 below for output
-d1 <- reshape2::melt(rr[, c(1, 2, 3, 4, 7, 8)],
-                          id.vars="delta")
-
-p <- ggplot2::qplot(x=delta, y=value, data=d1, geom="line") +
-     ggplot2::facet_grid( variable ~ ., scales="free_y") +
-     ggplot2::theme_bw()
-p
-
-## Restrict to delta in [0, 10]
-d2 <- d1[d1$delta<=10,]
-
-p <- ggplot2::qplot(x=delta, y=value, data=d2, geom="line") +
-     ggplot2::facet_grid( variable ~ ., scales="free_y") +
-     ggplot2::theme_bw()
-p
-```
-
-For now, to find optimal estimator, only look at $\delta$ at knot points (and
-don't consider values between knot points). We should approximately match
-Table 1. Still need to implement optimal one-sided CI:
-
-```{r}
-res.opt <- res[c(which.min(rr$rmse), which.min(rr$hl)), ]
-## Homoscedastic errors
-as.data.frame(ATTpath(res.opt, d, y, C=1, mean(sigma2)))
-## Heteroscedastic errors
-as.data.frame(ATTpath(res.opt, d, y, C=1, sigma2))
-```
+TODO: finish

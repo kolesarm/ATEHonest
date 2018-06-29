@@ -80,33 +80,116 @@ ATTmatch <- function(M, y, d, D0, sigma2) {
     list(w=w, att=sum(w*y), sd=sqrt(sum(w^2*sigma2)))
 }
 
-#' Estimator along the optimal solution path
+#' build optimal estimator given a solution path
 #' @param res output of \code{ATTh}
 #' @param y outcome vector
 #' @param d vector of treatment indicators
 #' @param C smoothness constant
 #' @param sigma2 vector of variances
 #' @param alpha CI coverage
+#' @param beta quantile of excess length
 #' @export
-ATTpath <- function(res, d, y, C=1, sigma2, alpha=0.05) {
+ATTEstimatePath <- function(res, d, y, C=1, sigma2,
+                            alpha=0.05, beta=0.8) {
     n <- length(y)
     n0 <- n-sum(d)
     if (length(sigma2)==1) sigma2 <- sigma2*rep(1, n)
 
-    ms <- res[, 2:(n0+1)]
-    rs <- res[, (n0+2): (n+1)]
-
-    att <- mean(y[d==1]) - drop(ms %*% y[d==0]) / rowSums(ms)
-    maxbias <- rowMeans(rs) - apply(ms, 1, function(x) sum(x^2)) / rowSums(ms)
-    sd <- sqrt(mean(sigma2[d==1])/sum(d) +
-               apply(ms, 1, function(x) sum(x^2*sigma2[d==0])) / rowSums(ms)^2)
+    if (length(dim(res)) > 1L) {
+        m <- res[, 2:(n0+1)]
+        r <- res[, (n0+2):(n+1)]
+        mu <- res[, "mu"]
+        delta <- res[, "delta"]
+        att <- mean(y[d==1]) - drop(m %*% y[d==0]) / rowSums(m)
+        maxbias <- rowMeans(r) - apply(m, 1, function(x) sum(x^2)) / rowSums(m)
+        sd <- sqrt(mean(sigma2[d==1])/sum(d) + apply(m, 1, function(x)
+            sum(x^2*sigma2[d==0])) / rowSums(m)^2)
+        omega <- 2*(mu+rowMeans(r))
+    } else {
+        ## It's a vector
+        m <- res[2:(n0+1)]
+        r <- res[(n0+2):(n+1)]
+        mu <- res["mu"]
+        delta <- res["delta"]
+        att <- mean(y[d==1]) - sum(m * y[d==0]) / sum(m)
+        maxbias <- mean(r) -  sum(m^2) / sum(m)
+        sd <- sqrt(mean(sigma2[d==1])/sum(d) + sum(m^2*sigma2[d==0]) / sum(m)^2)
+        omega <- 2*(mu+mean(r))
+    }
+    maxbias <- C*maxbias
     hl <- CVb(maxbias/sd, alpha)$cv * sd
     lower <- att - maxbias - stats::qnorm(1-alpha)*sd
     upper <- att + maxbias + stats::qnorm(1-alpha)*sd
-    omega <- 2*(res[, "mu"]+rowMeans(rs))
+    ## worst-case quantile of excess length
+    maxel <- 2*maxbias + sd * (stats::qnorm(1-alpha)+stats::qnorm(beta))
 
+    data.frame(att=att, maxbias=maxbias, sd=sd, lower=lower, upper=upper, hl=hl,
+               rmse=sqrt(sd^2+maxbias^2), maxel=maxel, omega=unname(omega),
+               delta=unname(delta))
+}
 
-    list(att=att, maxbias=C*maxbias, sd=sd, rmse=sqrt(sd^2+C*maxbias^2),
-         lower=lower, upper=upper, hl=hl, delta=res[, "delta"],
-         omega=omega)
+#' build optimal estimator given a solution path
+#' @param res output of \code{ATTh}
+#' @param ep output of \code{ATTEstimatePath}
+#' @param y outcome vector
+#' @param d vector of treatment indicators
+#' @param C smoothness constant
+#' @param sigma2 vector of variances
+#' @param sigma2final vector of variances for final variance.
+#' @param alpha CI coverage
+#' @param beta quantile of excess length
+#' @param opt.criterion One of \code{"RMSE"}, \code{"OCI"},  \code{"FLCI"}
+#' @param UpdateC Update C that's assumed in \code{ep}?
+#' @export
+ATTOptEstimate <- function(res, ep, d, y, C=1, sigma2,
+                           sigma2final=sigma2, alpha=0.05, beta=0.8,
+                           opt.criterion="RMSE", UpdateC=TRUE) {
+    ## Update estimate path with new value of C
+    ep$maxbias <- C*ep$maxbias
+    ep[, c("rmse", "lower", "upper", "hl", "maxel")] <-
+        cbind(sqrt(ep$sd^2+ep$maxbias^2),
+              ep$att - ep$maxbias - stats::qnorm(1-alpha)*ep$sd,
+              ep$att + ep$maxbias + stats::qnorm(1-alpha)*ep$sd,
+              CVb(ep$maxbias/ep$sd, alpha)$cv * ep$sd,
+              2*ep$maxbias + ep$sd * (stats::qnorm(1-alpha)+stats::qnorm(beta)))
+
+    ## Index of criterion to optimize
+    idx <- if (opt.criterion=="RMSE") {
+               which.max(names(ep)=="rmse")
+           } else if (opt.criterion=="OCI") {
+               which.max(names(ep)=="maxel")
+           } else if (opt.criterion=="FLCI") {
+               which.max(names(ep)=="hl")
+           }
+    i <- which.min(ep[[idx]])
+    ## Assume minimum is either in [i, i+1] or [i-1, i], which is true if
+    ## criterion is convex
+    if (i<nrow(res)) {
+        f1 <- function(w)
+            ATTEstimatePath((1-w)*res[i, ]+w*res[i+1, ], d, y, C,
+                            sigma2, alpha, beta)[[idx]]
+        opt1 <- stats::optimize(f1, interval=c(0, 1))
+    } else {
+        opt1 <- list(minimum=0, objective=Inf)
+    }
+
+    if (i>1) {
+        f0 <- function(w)
+            ATTEstimatePath((1-w)*res[i-1, ]+w*res[i, ], d, y, C,
+                            sigma2, alpha, beta)[[idx]]
+        opt0 <- stats::optimize(f0, interval=c(0, 1))
+    } else {
+        opt0 <- list(minimum=1, objective=Inf)
+    }
+
+    if (opt1$objective < opt0$objective) {
+        resopt <- (1-opt1$minimum)*res[i, ]+opt1$minimum*res[i+1, ]
+    } else {
+        resopt <- (1-opt0$minimum)*res[i-1, ]+opt0$minimum*res[i, ]
+    }
+
+    r1 <- ATTEstimatePath(resopt, d, y, C, sigma2, alpha, beta)
+    r2 <- ATTEstimatePath(resopt, d, y, C, sigma2final, alpha, beta)
+    cbind(r1, data.frame(rsd=r2$sd, rlower=r2$lower, rupper=r2$upper,
+         rhl=r2$hl, rrmse=r2$rmse, rmaxel=r2$maxel))
 }
