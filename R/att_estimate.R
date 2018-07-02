@@ -163,14 +163,19 @@ ATTOptEstimate <- function(res, ep, d, y, C=1, sigma2,
            }
     i <- which.min(ep[[idx]])
     ## Assume minimum is either in [i, i+1] or [i-1, i], which is true if
-    ## criterion is convex
-    if (i<nrow(res)) {
+    ## criterion is convex. Sometimes solution can be stuck, so not enough to
+    ## take i+1 (but since whcih.min takes first minimum, we can always take i-1)
+    ip <- i+1
+    while(ip<=nrow(res) & ep$delta[i]==ep$delta[ip])
+        ip <- ip+1
+
+    if (ip<=nrow(res)) {
         f1 <- function(w)
             ATTEstimatePath((1-w)*res[i, ]+w*res[i+1, ], d, y, C,
                             sigma2, alpha, beta)[[idx]]
         opt1 <- stats::optimize(f1, interval=c(0, 1))
     } else {
-        opt1 <- list(minimum=0, objective=Inf)
+        opt1 <- list(minimum=0, objective=min(ep[[idx]]))
     }
 
     if (i>1) {
@@ -179,17 +184,20 @@ ATTOptEstimate <- function(res, ep, d, y, C=1, sigma2,
                             sigma2, alpha, beta)[[idx]]
         opt0 <- stats::optimize(f0, interval=c(0, 1))
     } else {
-        opt0 <- list(minimum=1, objective=Inf)
+        opt0 <- list(minimum=1, objective=min(ep[[idx]]))
     }
 
     if (opt1$objective < opt0$objective) {
-        resopt <- (1-opt1$minimum)*res[i, ]+opt1$minimum*res[i+1, ]
+        resopt <- (1-opt1$minimum)*res[i, ] +
+            opt1$minimum*res[min(i+1, nrow(res)), ]
     } else {
-        resopt <- (1-opt0$minimum)*res[i-1, ]+opt0$minimum*res[i, ]
+        resopt <- (1-opt0$minimum)*res[max(i-1, 1), ]+opt0$minimum*res[i, ]
     }
 
     r1 <- ATTEstimatePath(resopt, d, y, C, sigma2, alpha, beta)
     r2 <- ATTEstimatePath(resopt, d, y, C, sigma2final, alpha, beta)
+    if (r1$delta==max(ep$delta))
+        warning("Optimum found at end of path")
     cbind(r1, data.frame(rsd=r2$sd, rlower=r2$lower, rupper=r2$upper,
-         rhl=r2$hl, rrmse=r2$rmse, rmaxel=r2$maxel))
+         rhl=r2$hl, rrmse=r2$rmse, rmaxel=r2$maxel, C=C))
 }
