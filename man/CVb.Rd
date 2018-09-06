@@ -7,33 +7,21 @@
 CVb(B, alpha = 0.05)
 }
 \arguments{
-\item{B}{Maximum bias, vector of non-negative numbers.}
+\item{B}{Maximum bias, a non-negative number.}
 
 \item{alpha}{Determines CI level, \code{1-alpha}. Needs to be between 0 and
 1. Can be a vector of values.}
 }
 \value{
-Data frame with the following columns:
-
-\describe{
-
-\item{bias}{Value of bias as specfied by \code{bs}}
-
-\item{alpha}{Value of \eqn{\alpha} as specified by \code{alpha}}
-
-\item{cv}{Critical value}
-
-\item{TeXDescription}{LaTeX-friendly description of current row}}
+Critical value
 }
 \description{
 Computes the critical value \eqn{cv_{1-alpha}(B)} that is needed to make the
 confidence interval \eqn{X\pm cv} have coverage \eqn{1-alpha} if \eqn{X} is
-Normally distributed with variance one and maximum bias at most \eqn{B}. The
-function is identical to the function \code{CVb} in the
-\code{RDHonest} package.
+normally distributed with variance one and maximum bias at most \eqn{B}.
 }
 \examples{
 # 90\% critical value:
 CVb(B = 1, alpha = 0.1)
-CVb(B = c(0, 0.5, 1), alpha = c(0.05, 0.1))
+CVb(B = 1, alpha = c(0.05, 0.1))
 }

@@ -164,7 +164,8 @@ ATTOptEstimate <- function(res, ep, d, y, C=1, sigma2,
     i <- which.min(ep[[idx]])
     ## Assume minimum is either in [i, i+1] or [i-1, i], which is true if
     ## criterion is convex. Sometimes solution can be stuck, so not enough to
-    ## take i+1 (but since whcih.min takes first minimum, we can always take i-1)
+    ## take i+1 (but since which.min takes first minimum, we can always take
+    ## i-1)
     ip <- i+1
     while(ip<=nrow(res) & ep$delta[i]==ep$delta[ip])
         ip <- ip+1
