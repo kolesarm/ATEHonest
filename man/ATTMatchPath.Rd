@@ -4,7 +4,7 @@
 \alias{ATTMatchPath}
 \title{Matching estimator for the ATT}
 \usage{
-ATTMatchPath(y, d, sigma2, D0, C, M, alpha = 0.05, beta = 0.8)
+ATTMatchPath(y, d, sigma2, D0, C = 1, M, alpha = 0.05, beta = 0.8)
 }
 \arguments{
 \item{y}{outcome vector with length \code{n}}
@@ -19,7 +19,7 @@ and treated units, where \code{n0} is number of untreated units and
 
 \item{C}{Lipschitz smoothness constant}
 
-\item{M}{number of matches}
+\item{M}{number of matches, vector}
 
 \item{alpha}{Level of confidence interval, \code{1-alpha}.}
 
