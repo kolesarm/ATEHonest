@@ -52,8 +52,8 @@ A list with two elements:
 }
 }
 \description{
-Calculates optimal weights \eqn{m} and \eqn{r} as a function of \eqn{\delta},
-or equivalently \eqn{mu}.
+Calculates optimal weights \eqn{m} and \eqn{r} for the control and treated
+observations as a function of \eqn{\delta}, or equivalently \eqn{mu}.
 }
 \examples{
 x0 <- c(0, 1, 2, 3)

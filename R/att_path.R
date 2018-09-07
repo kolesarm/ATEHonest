@@ -157,8 +157,8 @@ ATTstep <- function(s, tol=.Machine$double.eps*n0*n1) {
 
 #' Homotopy for average treatment effect for the treated
 #'
-#' Calculates optimal weights \eqn{m} and \eqn{r} as a function of \eqn{\delta},
-#' or equivalently \eqn{mu}.
+#' Calculates optimal weights \eqn{m} and \eqn{r} for the control and treated
+#' observations as a function of \eqn{\delta}, or equivalently \eqn{mu}.
 #' @template D0
 #' @param maxiter maximum number of steps in the homotopy. If the homotopy has
 #'     less steps than \code{maxiter}, returns the whole solution path.
