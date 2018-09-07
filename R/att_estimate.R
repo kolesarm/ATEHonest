@@ -1,13 +1,9 @@
 #' Matching estimator for the ATT
 #' @param M number of matches
-#' @param y outcome vector
-#' @param d vector of treatment indicators
-#' @param C smoothness constant
-#' @param alpha CI coverage
 #' @template D0
-#' @param sigma2 vector of variances
+#' @template data
 #' @export
-ATTMatchPath <- function(M, y, d, D0, sigma2, C, alpha=0.05, beta=0.8) {
+ATTMatchPath <- function(y, d, sigma2, D0, C, M, alpha=0.05, beta=0.8) {
     n1 <- nrow(D0)
     w <- rep(NA, length(y))
     w0 <- rep(0, ncol(D0))
@@ -45,8 +41,8 @@ ATTbias <- function(w, D0) {
     n0 <- ncol(D0)
 
     ## CVX method
-    ## mb <- CVXR::Variable(n0)
-    ## rb <- CVXR::Variable(n1)
+    ## mb <- CVXR::Variable(n0) # untreated
+    ## rb <- CVXR::Variable(n1) # treated
     ## ob <- CVXR::Maximize(mean(rb) + sum(w0*mb))
     ## ## outer(r, m, "-")<=D0 using kronecker
     ## con <- list(kronecker(t(rep(1, n0)), rb) -
@@ -59,11 +55,11 @@ ATTbias <- function(w, D0) {
     f.rhs <- as.vector(D0)
     f.dir <- rep("<=", length(f.rhs))
     ## Constraint number, column number, value
-    f.con.d <- cbind(rep(1:length(f.rhs), each=2),
-                      as.vector(t(expand.grid((n0+1):(n0+n1), 1:n0))),
-                      rep(c(1, -1), length(f.rhs)))
+    f.con <- cbind(rep(1:length(f.rhs), each=2),
+                   as.vector(t(expand.grid((n0+1):(n0+n1), 1:n0))),
+                   rep(c(1, -1), length(f.rhs)))
 
-    r <- lpSolve::lp("max", f.obj, , f.dir, f.rhs, dense.const=f.con.d)
+    r <- lpSolve::lp("max", f.obj, , f.dir, f.rhs, dense.const=f.con)
     r$objval
 }
 
@@ -72,15 +68,9 @@ ATTbias <- function(w, D0) {
 
 #' build optimal estimator given a solution path
 #' @param res output of \code{ATTh}
-#' @param y outcome vector
-#' @param d vector of treatment indicators
-#' @param C smoothness constant
-#' @param sigma2 vector of variances
-#' @param alpha CI coverage
-#' @param beta quantile of excess length
+#' @template data
 #' @export
-ATTOptPath <- function(res, d, y, C=1, sigma2,
-                            alpha=0.05, beta=0.8) {
+ATTOptPath <- function(res, y, d, sigma2, C=1, alpha=0.05, beta=0.8) {
     n <- length(y)
     n0 <- n-sum(d)
     if (length(sigma2)==1) sigma2 <- sigma2*rep(1, n)
@@ -107,7 +97,7 @@ ATTOptPath <- function(res, d, y, C=1, sigma2,
         omega <- 2*(mu+mean(r))
     }
     maxbias <- C*maxbias
-    hl <- cv(maxbias/sd, alpha)$cv * sd
+    hl <- cv(maxbias/sd, alpha) * sd
     lower <- att - maxbias - stats::qnorm(1-alpha)*sd
     upper <- att + maxbias + stats::qnorm(1-alpha)*sd
     ## worst-case quantile of excess length
@@ -119,28 +109,33 @@ ATTOptPath <- function(res, d, y, C=1, sigma2,
 }
 
 #' build optimal estimator given a solution path
-#' @param res output of \code{ATTh}
-#' @param ep output of \code{ATTEstimatePath}
-#' @param y outcome vector
-#' @param d vector of treatment indicators
-#' @param C smoothness constant
-#' @param sigma2 vector of variances
-#' @param sigma2final vector of variances for final variance.
-#' @param alpha CI coverage
-#' @param beta quantile of excess length
-#' @param opt.criterion One of \code{"RMSE"}, \code{"OCI"},  \code{"FLCI"}
-#' @param UpdateC Update C that's assumed in \code{ep}?
+#' @param res The \code{res} element of the output of \code{ATTh} on which to
+#'     base the estimate
+#' @param ep Output of \code{ATTOptPath} at \code{C=1}. This parameter is
+#'     optional, if supplied, it will speed up the calculation.
+#' @template data
+#' @param sigma2final vector of variance estimates with length{n} for
+#'     determining standard error of the optimal estimators. In contrast,
+#'     \code{sigma2} is used only for determining the optimal tuning parameter.
+#' @param opt.criterion One of \code{"RMSE"}, \code{"OCI"}, \code{"FLCI"}
 #' @export
-ATTOptEstimate <- function(res, ep, d, y, C=1, sigma2,
+ATTOptEstimate <- function(res, ep=NULL, y, d, sigma2, C=1,
                            sigma2final=sigma2, alpha=0.05, beta=0.8,
-                           opt.criterion="RMSE", UpdateC=TRUE) {
+                           opt.criterion="RMSE") {
+    if (is.null(ep))
+        ep <- ATTOptPath(res, y, d, sigma2, C=1, alpha, beta)
+    ## Drop delta=0
+    keep <- res[,"delta"]>0
+    res <- res[keep, ]
+    ep <- ep[keep, ]
+
     ## Update estimate path with new value of C
     ep$maxbias <- C*ep$maxbias
     ep[, c("rmse", "lower", "upper", "hl", "maxel")] <-
         cbind(sqrt(ep$sd^2+ep$maxbias^2),
               ep$att - ep$maxbias - stats::qnorm(1-alpha)*ep$sd,
               ep$att + ep$maxbias + stats::qnorm(1-alpha)*ep$sd,
-              cv(ep$maxbias/ep$sd, alpha)$cv * ep$sd,
+              cv(ep$maxbias/ep$sd, alpha) * ep$sd,
               2*ep$maxbias + ep$sd * (stats::qnorm(1-alpha)+stats::qnorm(beta)))
 
     ## Index of criterion to optimize
@@ -162,8 +157,8 @@ ATTOptEstimate <- function(res, ep, d, y, C=1, sigma2,
 
     if (ip<=nrow(res)) {
         f1 <- function(w)
-            ATTEstimatePath((1-w)*res[i, ]+w*res[i+1, ], d, y, C,
-                            sigma2, alpha, beta)[[idx]]
+            ATTOptPath((1-w)*res[i, ]+w*res[i+1, ], y, d,
+                            sigma2, C, alpha, beta)[[idx]]
         opt1 <- stats::optimize(f1, interval=c(0, 1))
     } else {
         opt1 <- list(minimum=0, objective=min(ep[[idx]]))
@@ -171,8 +166,8 @@ ATTOptEstimate <- function(res, ep, d, y, C=1, sigma2,
 
     if (i>1) {
         f0 <- function(w)
-            ATTEstimatePath((1-w)*res[i-1, ]+w*res[i, ], d, y, C,
-                            sigma2, alpha, beta)[[idx]]
+            ATTOptPath((1-w)*res[i-1, ]+w*res[i, ], y, d,
+                            sigma2, C, alpha, beta)[[idx]]
         opt0 <- stats::optimize(f0, interval=c(0, 1))
     } else {
         opt0 <- list(minimum=1, objective=min(ep[[idx]]))
@@ -185,10 +180,15 @@ ATTOptEstimate <- function(res, ep, d, y, C=1, sigma2,
         resopt <- (1-opt0$minimum)*res[max(i-1, 1), ]+opt0$minimum*res[i, ]
     }
 
-    r1 <- ATTEstimatePath(resopt, d, y, C, sigma2, alpha, beta)
-    r2 <- ATTEstimatePath(resopt, d, y, C, sigma2final, alpha, beta)
+    r1 <- ATTOptPath(resopt, y, d, sigma2, C, alpha, beta)
+    r2 <- ATTOptPath(resopt, y, d, sigma2final, C, alpha, beta)
     if (r1$delta==max(ep$delta))
         warning("Optimum found at end of path")
-    cbind(r1, data.frame(rsd=r2$sd, rlower=r2$lower, rupper=r2$upper,
-         rhl=r2$hl, rrmse=r2$rmse, rmaxel=r2$maxel, C=C))
+
+    ## Get weights on untreated
+    m <- resopt[2:(sum(d==0)+1)]
+
+    structure(list(e=cbind(r1, data.frame(rsd=r2$sd, rlower=r2$lower, rupper=r2$upper,
+         rhl=r2$hl, rrmse=r2$rmse, rmaxel=r2$maxel, C=C)),
+         res=resopt, w=-m/sum(m)), class="ATTEstimate")
 }

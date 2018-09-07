@@ -74,7 +74,7 @@ distMat <- function(X, d, Ahalf=diag(NCOL(X)),
 #' using a nearest-neighbor esitmator among observations with the same treatment
 #' status \code{d}.
 #' @param DM distance matrix with dimension \code{[n n]}.
-#' @param d vector of treatment status indicators withg length \code{n}
+#' @param d vector of treatment status indicators with length \code{n}
 #' @param y outcome vector with length \code{n}
 #' @param J number of nearest neighbors to average over
 #' @param tol numerical tolerance for determining neighbors

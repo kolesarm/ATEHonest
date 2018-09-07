@@ -30,15 +30,37 @@ test_that("Solution path for ATT in small examples", {
 
     tt <- list()
     for (j in 1:length(x0)) {
+        d <- dd(x0[[j]], x1[[j]])
+        D0 <- distMat(c(x0[[j]], x1[[j]]), d)
         if (j != 4) {
-            expect_silent(tt[[j]] <- ATTh(distMat(c(x0[[j]], x1[[j]]),
-                                              dd(x0[[j]], x1[[j]])),
-                                      check=TRUE)$res)
+            expect_silent(tt[[j]] <- ATTh(D0, check=TRUE)$res)
         } else {
-            expect_message(tt[[j]] <- ATTh(distMat(c(x0[[j]], x1[[j]]),
-                                              dd(x0[[j]], x1[[j]])),
-                                      check=TRUE)$res)
+            expect_message(tt[[j]] <- ATTh(D0, check=TRUE)$res)
         }
+        y <- d
+        ## Check maximum bias matches that from LP
+        res <- tt[[j]][tt[[j]][, "delta"]!=0, ]
+        r0 <- ATTOptEstimate(res, , y, d, sigma2=1, C=0.5)
+        expect_equal(0.5*ATTbias(r0$w, D0), r0$e$maxbias)
+        r1 <- ATTOptEstimate(res, , y, d, sigma2=1, C=1)
+        expect_equal(ATTbias(r1$w, D0), r1$e$maxbias)
+        ## Check optimum matches CVX
+        rmse <- function(delta, C)
+            ATTOptPath(res=ATTbrute(delta2=delta^2, D0), y, d, sigma2=1,
+                       C=C)$rmse
+
+        cvx0 <- unlist(optimize(function(d)
+            rmse(d, 0.5), c(min(res[, "delta"]), max(res[, "delta"]))))
+        cvx1 <- unlist(optimize(function(d)
+            rmse(d, 1), c(min(res[, "delta"]), max(res[, "delta"]))))
+        hom0 <- unlist(r0$e[, c("delta", "rmse")])
+        hom1 <- unlist(r1$e[, c("delta", "rmse")])
+
+        expect_lt(abs(cvx1[2]-hom1[2]), 1e-3)
+        expect_lt(abs(cvx0[2]-hom0[2]), 1e-3)
+        ## The deltas sometimes differ
+        ## expect_lt(abs(cvx1[1]-hom1[1]), 1e-4)
+        ## expect_lt(abs(cvx0[1]-hom0[1]), 1e-4)
     }
 
     expect_lt(nrow(tt[[1]]), 8)

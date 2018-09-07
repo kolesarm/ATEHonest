@@ -4,31 +4,35 @@
 \alias{ATTOptEstimate}
 \title{build optimal estimator given a solution path}
 \usage{
-ATTOptEstimate(res, ep, d, y, C = 1, sigma2, sigma2final = sigma2,
-  alpha = 0.05, beta = 0.8, opt.criterion = "RMSE", UpdateC = TRUE)
+ATTOptEstimate(res, ep = NULL, y, d, sigma2, C = 1,
+  sigma2final = sigma2, alpha = 0.05, beta = 0.8,
+  opt.criterion = "RMSE")
 }
 \arguments{
-\item{res}{output of \code{ATTh}}
+\item{res}{The \code{res} element of the output of \code{ATTh} on which to
+base the estimate}
 
-\item{ep}{output of \code{ATTEstimatePath}}
+\item{ep}{Output of \code{ATTOptPath} at \code{C=1}. This parameter is
+optional, if supplied, it will speed up the calculation.}
 
-\item{d}{vector of treatment indicators}
+\item{y}{outcome vector with length \code{n}}
 
-\item{y}{outcome vector}
+\item{d}{Vector of treatment indicators with length \code{n}}
 
-\item{C}{smoothness constant}
+\item{sigma2}{vector of variance estimates with length \code{n}}
 
-\item{sigma2}{vector of variances}
+\item{C}{Lipschitz smoothness constant}
 
-\item{sigma2final}{vector of variances for final variance.}
+\item{sigma2final}{vector of variance estimates with length{n} for
+determining standard error of the optimal estimators. In contrast,
+\code{sigma2} is used only for determining the optimal tuning parameter.}
 
-\item{alpha}{CI coverage}
+\item{alpha}{Level of confidence interval, \code{1-alpha}.}
 
-\item{beta}{quantile of excess length}
+\item{beta}{The quantile \code{beta} of excecss length for
+determining performance of one-sided CIs.}
 
-\item{opt.criterion}{One of \code{"RMSE"}, \code{"OCI"},  \code{"FLCI"}}
-
-\item{UpdateC}{Update C that's assumed in \code{ep}?}
+\item{opt.criterion}{One of \code{"RMSE"}, \code{"OCI"}, \code{"FLCI"}}
 }
 \description{
 build optimal estimator given a solution path

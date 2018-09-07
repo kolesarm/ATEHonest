@@ -4,22 +4,23 @@
 \alias{ATTOptPath}
 \title{build optimal estimator given a solution path}
 \usage{
-ATTOptPath(res, d, y, C = 1, sigma2, alpha = 0.05, beta = 0.8)
+ATTOptPath(res, y, d, sigma2, C = 1, alpha = 0.05, beta = 0.8)
 }
 \arguments{
 \item{res}{output of \code{ATTh}}
 
-\item{d}{vector of treatment indicators}
+\item{y}{outcome vector with length \code{n}}
 
-\item{y}{outcome vector}
+\item{d}{Vector of treatment indicators with length \code{n}}
 
-\item{C}{smoothness constant}
+\item{sigma2}{vector of variance estimates with length \code{n}}
 
-\item{sigma2}{vector of variances}
+\item{C}{Lipschitz smoothness constant}
 
-\item{alpha}{CI coverage}
+\item{alpha}{Level of confidence interval, \code{1-alpha}.}
 
-\item{beta}{quantile of excess length}
+\item{beta}{The quantile \code{beta} of excecss length for
+determining performance of one-sided CIs.}
 }
 \description{
 build optimal estimator given a solution path

@@ -18,8 +18,11 @@ DMvar <- distMat(X, d, Avar, method="euclidean",
 sigma2 <- nnvar(DMvar, d, y, J=30)
 
 ## Check matching against Tim's code
-expect_equal(ATTmatch(M=2, y, d, D0, sigma2)$att, 1.69911476)
-expect_equal(ATTmatch(M=10, y, d, D0, sigma2)$att, 1.64632730)
-expect_equal(ATTmatch(M=1, y, d, D0, sigma2)$att, 1.391618501)
-expect_equal(ATTmatch(M=4, y, d, DMvar[d==1, d==0], sigma2)$att, 1.42077963)
+attm <- function(M, D0)
+    unname(unlist(ATTMatchPath(y, d, sigma2, D0, C=1, M)[, c("att", "maxbias")]))
+
+expect_equal(attm(M= 1, D0), c(1.391618501, 1.48333929))
+expect_equal(attm(M= 2, D0), c(1.69911476, 1.61376836))
+expect_equal(attm(M=10, D0), c(1.64632730, 1.98280592))
+expect_equal(attm(M=4, DMvar[d==1, d==0]), c(1.42077963, 0.96131554))
 })

@@ -9,7 +9,7 @@ nnvar(DM, d, y, J = 3, tol = 0)
 \arguments{
 \item{DM}{distance matrix with dimension \code{[n n]}.}
 
-\item{d}{vector of treatment status indicators withg length \code{n}}
+\item{d}{vector of treatment status indicators with length \code{n}}
 
 \item{y}{outcome vector with length \code{n}}
 

@@ -1,4 +1,4 @@
-#' Check solution validity
+#' Check solution validity using CVX
 #' @param m values for untreated observations
 #' @param r values for treated observations
 #' @inheritParams ATTh

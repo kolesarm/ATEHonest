@@ -2,7 +2,7 @@
 % Please edit documentation in R/att_path.R
 \name{ATTcheck}
 \alias{ATTcheck}
-\title{Check solution validity}
+\title{Check solution validity using CVX}
 \usage{
 ATTcheck(m, r, mu, D0)
 }
@@ -16,6 +16,6 @@ and treated units, where \code{n0} is number of untreated units and
 \code{n1} is number of treated units}
 }
 \description{
-Check solution validity
+Check solution validity using CVX
 }
 \keyword{internal}

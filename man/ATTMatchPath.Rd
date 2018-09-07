@@ -4,24 +4,27 @@
 \alias{ATTMatchPath}
 \title{Matching estimator for the ATT}
 \usage{
-ATTMatchPath(M, y, d, D0, sigma2, C, alpha = 0.05, beta = 0.8)
+ATTMatchPath(y, d, sigma2, D0, C, M, alpha = 0.05, beta = 0.8)
 }
 \arguments{
-\item{M}{number of matches}
+\item{y}{outcome vector with length \code{n}}
 
-\item{y}{outcome vector}
+\item{d}{Vector of treatment indicators with length \code{n}}
 
-\item{d}{vector of treatment indicators}
+\item{sigma2}{vector of variance estimates with length \code{n}}
 
 \item{D0}{matrix of distances with dimension \code{[n1 n0]} between untreated
 and treated units, where \code{n0} is number of untreated units and
 \code{n1} is number of treated units}
 
-\item{sigma2}{vector of variances}
+\item{C}{Lipschitz smoothness constant}
 
-\item{C}{smoothness constant}
+\item{M}{number of matches}
 
-\item{alpha}{CI coverage}
+\item{alpha}{Level of confidence interval, \code{1-alpha}.}
+
+\item{beta}{The quantile \code{beta} of excecss length for
+determining performance of one-sided CIs.}
 }
 \description{
 Matching estimator for the ATT
