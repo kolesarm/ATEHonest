@@ -17,9 +17,21 @@
 #' # 96 and 90% critical values
 #' cv(B = 1, alpha = c(0.05, 0.1))
 #' @export
-cv <- function(B, alpha=0.05)
-    sqrt(stats::qchisq(1-alpha, df = 1, ncp = B^2))
-
+cv <- function(B, alpha=0.05) {
+    if (length(B)>1) {
+        r <- vector(length=length(B))
+        r[is.na(B)] <- NA
+        idx <- B<10 & !is.na(B)
+        r[idx] <- sqrt(stats::qchisq(1-alpha, df = 1, ncp = B[idx]^2))
+        r[!idx] <- B[!idx]+stats::qnorm(1-alpha)
+        return(r)
+    } else {
+        if (B<10)
+            return(sqrt(stats::qchisq(1-alpha, df = 1, ncp = B^2)))
+        else
+            return(B+stats::qnorm(1-alpha))
+    }
+}
 
 #' Matrix of distances between observations
 #'

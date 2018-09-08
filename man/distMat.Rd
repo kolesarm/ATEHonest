@@ -17,7 +17,7 @@ distMat(X, d, Ahalf = diag(NCOL(X)), method = "euclidean",
 \item{Ahalf}{\eqn{A^{1/2}} weight matrix so that the distances are computed
 between \eqn{Ax_{0,j}} and \eqn{Ax_{1,i}}.}
 
-\item{method}{the distance measure to be used. This must be one of
+\item{method}{the distance measure to be used.  This must be one of
     \code{"euclidean"}, \code{"maximum"}, \code{"manhattan"},
     \code{"canberra"}, \code{"binary"} or \code{"minkowski"}.
     Any unambiguous substring can be given.}

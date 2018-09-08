@@ -2,11 +2,11 @@
 % Please edit documentation in R/att_estimate.R
 \name{ATTMatchW}
 \alias{ATTMatchW}
-\title{Matching weights}
+\title{Matching weights for untreated}
 \usage{
 ATTMatchW(D0, M)
 }
 \description{
-Matching weights
+Matching weights for untreated
 }
 \keyword{internal}

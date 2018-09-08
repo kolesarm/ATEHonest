@@ -19,7 +19,7 @@ sigma2 <- nnvar(DMvar, d, y, J=30)
 
 ## Check matching against Tim's code
 attm <- function(M, D0)
-    unname(unlist(ATTMatchPath(y, d, sigma2, D0, C=1, M)[, c("att", "maxbias")]))
+    unname(unlist(ATTMatchPath(y, d, sigma2, D0, C=1, M)$ep[, c("att", "maxbias")]))
 
 expect_equal(attm(M= 1, D0), c(1.391618501, 1.48333929))
 expect_equal(attm(M= 2, D0), c(1.69911476, 1.61376836))

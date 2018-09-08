@@ -1,4 +1,4 @@
-#' Matching weights
+#' Matching weights for untreated
 #' @keywords internal
 ATTMatchW <- function(D0, M) {
     w0 <- rep(0, ncol(D0))
@@ -10,6 +10,24 @@ ATTMatchW <- function(D0, M) {
     -w0/nrow(D0)
 }
 
+
+#' update estimation path with new C or new variance
+#' @keywords internal
+UpdatePath <- function(ep, resw, C, sigma2, alpha, beta) {
+    if (length(sigma2)==1) sigma2 <- rep(sigma2, ncol(resw))
+    ep$maxbias <- C*ep$maxbias
+    ep$sd <- sqrt(drop(resw^2 %*% sigma2))
+    ep$hl <- cv(ep$maxbias/ep$sd, alpha) * ep$sd
+    ep$lower <- ep$att - ep$maxbias - stats::qnorm(1-alpha)*ep$sd
+    ep$upper <- ep$att + ep$maxbias + stats::qnorm(1-alpha)*ep$sd
+    ## worst-case quantile of excess length
+    ep$maxel <- 2*ep$maxbias +
+        ep$sd * (stats::qnorm(1-alpha)+stats::qnorm(beta))
+    ep$rmse <- sqrt(ep$sd^2+ep$maxbias^2)
+    ep
+}
+
+
 #' Matching estimator for the ATT
 #' @param M number of matches, vector
 #' @template D0
@@ -17,31 +35,24 @@ ATTMatchW <- function(D0, M) {
 #' @export
 ATTMatchPath <- function(y, d, sigma2, D0, C=1, M, alpha=0.05, beta=0.8) {
     n1 <- nrow(D0)
-    att <- maxbias <- sd <- vector(length=length(M))
+    att <- maxbias <- vector(length=length(M))
+    resw <- matrix(nrow=length(M), ncol=(ncol(D0)+n1))
+    resw[, d==1] <- 1/n1
 
     for (j in seq_along(att)) {
-        w <- rep(1/n1, n1+ncol(D0))
-        w[d==0] <- ATTMatchW(D0, M[j])
-        att[j] <- sum(w*y)
-        maxbias[j] <- C*ATTbias(w[d==0], D0)
-        sd[j] <- sqrt(sum(w^2*sigma2))
+        resw[j, d==0] <- ATTMatchW(D0, M[j])
+        att[j] <- sum(resw[j, ]*y)
+        maxbias[j] <- C*ATTbias(resw[j, d==0], D0)
     }
+    ep <- UpdatePath(data.frame(att=att, maxbias=maxbias, M=M),
+                     resw, C, sigma2, alpha, beta)
 
-    hl <- cv(maxbias/sd, alpha) * sd
-    lower <- att - maxbias - stats::qnorm(1-alpha)*sd
-    upper <- att + maxbias + stats::qnorm(1-alpha)*sd
-    ## worst-case quantile of excess length
-    maxel <- 2*maxbias + sd * (stats::qnorm(1-alpha)+stats::qnorm(beta))
-
-    data.frame(att=att, maxbias=maxbias, sd=sd, lower=lower, upper=upper, hl=hl,
-               rmse=sqrt(sd^2+maxbias^2), maxel=maxel, M=M)
-
+    list(ep=ep, resw=resw)
 }
 
 
-
 #' build optimal estimator given a solution path
-#' @param ep Output of \code{ATTMatchPath} at \code{C=1} for \code{M=1:Mmax}.
+#' @param mp Output of \code{ATTMatchPath} at \code{C=1} for \code{M=Mrangesx}.
 #'     This parameter is optional, if supplied, it will speed up the
 #'     calculation.
 #' @template data
@@ -49,45 +60,40 @@ ATTMatchPath <- function(y, d, sigma2, D0, C=1, M, alpha=0.05, beta=0.8) {
 #' @param sigma2final vector of variance estimates with length{n} for
 #'     determining standard error of the optimal estimators. In contrast,
 #'     \code{sigma2} is used only for determining the optimal tuning parameter.
-#' @param opt.criterion One of \code{"RMSE"}, \code{"OCI"}, \code{"FLCI"}, or
-#'     give number of matches
-#' @param Mmax Mmax
+#' @param opt.criterion One of \code{"RMSE"}, \code{"OCI"}, \code{"FLCI"}
+#' @param Mrange Range of Ms
 #' @export
-ATTMatchEstimate <- function(D0, ep=NULL, y, d, sigma2, C=1,
+ATTMatchEstimate <- function(D0, mp=NULL, y, d, sigma2, C=1,
                              sigma2final=sigma2, alpha=0.05, beta=0.8,
-                             opt.criterion="RMSE", Mmax) {
-    if (is.null(ep))
-        ep <- ATTMatchPath(y, d, sigma2, D0, C=1, M=1:Mmax, alpha, beta)
-
-    ## Update estimate path with new value of C
-    ep$maxbias <- C*ep$maxbias
-    ep[, c("rmse", "lower", "upper", "hl", "maxel")] <-
-        cbind(sqrt(ep$sd^2+ep$maxbias^2),
-              ep$att - ep$maxbias - stats::qnorm(1-alpha)*ep$sd,
-              ep$att + ep$maxbias + stats::qnorm(1-alpha)*ep$sd,
-              cv(ep$maxbias/ep$sd, alpha) * ep$sd,
-              2*ep$maxbias + ep$sd * (stats::qnorm(1-alpha)+stats::qnorm(beta)))
+                             opt.criterion="RMSE", Mrange=1:25) {
+    if (is.null(mp)) {
+        mp <- ATTMatchPath(y, d, sigma2, D0, C=C, M=Mrange, alpha, beta)
+    } else {
+        ## Update estimate path with new value of C
+        mp$ep <- UpdatePath(mp$ep, mp$resw, C, sigma2, alpha, beta)
+    }
 
     ## Index of criterion to optimize
     idx <- if (opt.criterion=="RMSE") {
-               which.max(names(ep)=="rmse")
+               which.max(names(mp$ep)=="rmse")
            } else if (opt.criterion=="OCI") {
-               which.max(names(ep)=="maxel")
+               which.max(names(mp$ep)=="maxel")
            } else if (opt.criterion=="FLCI") {
-               which.max(names(ep)=="hl")
+               which.max(names(mp$ep)=="hl")
            }
-    i <- which.min(ep[[idx]])
-    if (i==nrow(ep))
+    i <- which.min(mp$ep[[idx]])
+    if (i==nrow(mp$ep))
         warning("Optimum found at end of path")
 
     ## Robust se
-    r2 <- ATTMatchPath(y, d, sigma2final, D0, C=C, M=ep$M[i], alpha, beta)
+    er <- UpdatePath(mp$ep[i, ], mp$resw[i, ], C, sigma2final, alpha, beta)
 
-    structure(list(e=cbind(ep[i, ], data.frame(rsd=r2$sd, rlower=r2$lower, rupper=r2$upper,
-         rhl=r2$hl, rrmse=r2$rmse, rmaxel=r2$maxel, C=C)),
-         w=ATTMatchW(D0, ep$M[i])), class="ATTEstimate")
+    structure(list(e=cbind(mp$ep[i, ],
+                           data.frame(rsd=er$sd, rlower=er$lower,
+                                      rupper=er$upper, rhl=er$hl, rrmse=er$rmse,
+                                      rmaxel=er$maxel, C=C)),
+                   w=mp$resw[i, d==0]), class="ATTEstimate")
 }
-
 
 
 #' Compute worst-case bias
@@ -249,7 +255,8 @@ ATTOptEstimate <- function(res, ep=NULL, y, d, sigma2, C=1,
     ## Get weights on untreated
     m <- resopt[2:(sum(d==0)+1)]
 
-    structure(list(e=cbind(r1, data.frame(rsd=r2$sd, rlower=r2$lower, rupper=r2$upper,
+    structure(list(e=cbind(r1, data.frame(rsd=r2$sd, rlower=r2$lower,
+                                          rupper=r2$upper,
          rhl=r2$hl, rrmse=r2$rmse, rmaxel=r2$maxel, C=C)),
          res=resopt, w=-m/sum(m)), class="ATTEstimate")
 }
