@@ -84,8 +84,8 @@ ATTMatchEstimate <- function(D0, mp=NULL, y, d, sigma2, C=1,
     if (i==nrow(mp$ep))
         warning("Optimum found at end of path")
 
-    ## Robust se
-    er <- UpdatePath(mp$ep[i, ], mp$resw[i, ], C, sigma2final, alpha, beta)
+    ## Robust se, C=1 to keep bias the same
+    er <- UpdatePath(mp$ep[i, ], mp$resw[i, ], C=1, sigma2final, alpha, beta)
 
     structure(list(e=cbind(mp$ep[i, ],
                            data.frame(rsd=er$sd, rlower=er$lower,
@@ -221,7 +221,8 @@ ATTOptEstimate <- function(res, ep=NULL, y, d, sigma2, C=1,
 
     r1 <- ATTOptPath(resopt, y, d, sigma2, C, alpha, beta)
     resw1 <- ATTOptW(resopt, d)
-    r2 <- UpdatePath(r1, resw1, C, sigma2final, alpha, beta)
+    ## C=1 to kep bias the same
+    r2 <- UpdatePath(r1, resw1, C=1, sigma2final, alpha, beta)
 
     if (r1$delta==max(ep$delta))
         warning("Optimum found at end of path")
