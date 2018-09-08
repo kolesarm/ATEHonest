@@ -41,10 +41,9 @@ ATTMatchPath <- function(y, d, sigma2, D0, C=1, M, alpha=0.05, beta=0.8) {
 
     for (j in seq_along(att)) {
         resw[j, d==0] <- ATTMatchW(D0, M[j])
-        att[j] <- sum(resw[j, ]*y)
         maxbias[j] <- C*ATTbias(resw[j, d==0], D0)
     }
-    ep <- UpdatePath(data.frame(att=att, maxbias=maxbias, M=M),
+    ep <- UpdatePath(data.frame(att=drop(resw %*% y), maxbias=maxbias, M=M),
                      resw, C, sigma2, alpha, beta)
 
     list(ep=ep, resw=resw)
@@ -140,39 +139,21 @@ ATTbias <- function(w, D0) {
 ATTOptPath <- function(res, y, d, sigma2, C=1, alpha=0.05, beta=0.8) {
     n <- length(y)
     n0 <- n-sum(d)
-    if (length(sigma2)==1) sigma2 <- sigma2*rep(1, n)
+    ## Vector or matrix?
+    if (!is.matrix(res))
+        stop("res needs to be a matrix")
 
-    if (length(dim(res)) > 1L) {
-        m <- res[, 2:(n0+1)]
-        r <- res[, (n0+2):(n+1)]
-        mu <- res[, "mu"]
-        delta <- res[, "delta"]
-        att <- mean(y[d==1]) - drop(m %*% y[d==0]) / rowSums(m)
-        maxbias <- rowMeans(r) - apply(m, 1, function(x) sum(x^2)) / rowSums(m)
-        sd <- sqrt(mean(sigma2[d==1])/sum(d) + apply(m, 1, function(x)
-            sum(x^2*sigma2[d==0])) / rowSums(m)^2)
-        omega <- 2*(mu+rowMeans(r))
-    } else {
-        ## It's a vector
-        m <- res[2:(n0+1)]
-        r <- res[(n0+2):(n+1)]
-        mu <- res["mu"]
-        delta <- res["delta"]
-        att <- mean(y[d==1]) - sum(m * y[d==0]) / sum(m)
-        maxbias <- mean(r) -  sum(m^2) / sum(m)
-        sd <- sqrt(mean(sigma2[d==1])/sum(d) + sum(m^2*sigma2[d==0]) / sum(m)^2)
-        omega <- 2*(mu+mean(r))
-    }
-    maxbias <- C*maxbias
-    hl <- cv(maxbias/sd, alpha) * sd
-    lower <- att - maxbias - stats::qnorm(1-alpha)*sd
-    upper <- att + maxbias + stats::qnorm(1-alpha)*sd
-    ## worst-case quantile of excess length
-    maxel <- 2*maxbias + sd * (stats::qnorm(1-alpha)+stats::qnorm(beta))
+    m <- res[, 2:(n0+1), drop=FALSE]
+    r <- res[, (n0+2):(n+1), drop=FALSE]
+    resw <- matrix(1/sum(d), nrow=nrow(res), ncol=n)
+    resw[, d==0] <- -m/rowSums(m)
 
-    data.frame(att=att, maxbias=maxbias, sd=sd, lower=lower, upper=upper, hl=hl,
-               rmse=sqrt(sd^2+maxbias^2), maxel=maxel, omega=unname(omega),
-               delta=unname(delta))
+    maxbias <- rowMeans(r) - apply(m, 1, function(x) sum(x^2)) / rowSums(m)
+
+    UpdatePath(data.frame(att=drop(resw %*% y), maxbias=maxbias,
+                          delta=unname(res[, 1]),
+                          omega=unname(2*(res[, n+2]+rowMeans(r)))),
+               resw, C, sigma2, alpha, beta)
 }
 
 #' build optimal estimator given a solution path
@@ -189,21 +170,18 @@ ATTOptPath <- function(res, y, d, sigma2, C=1, alpha=0.05, beta=0.8) {
 ATTOptEstimate <- function(res, ep=NULL, y, d, sigma2, C=1,
                            sigma2final=sigma2, alpha=0.05, beta=0.8,
                            opt.criterion="RMSE") {
-    if (is.null(ep))
-        ep <- ATTOptPath(res, y, d, sigma2, C=1, alpha, beta)
-    ## Drop delta=0
-    keep <- res[,"delta"]>0
-    res <- res[keep, ]
-    ep <- ep[keep, ]
+    ## Drop delta=0, back out weights
+    keep <- res[, "delta"]>0
+    res <- res[keep, , drop=FALSE]
 
-    ## Update estimate path with new value of C
-    ep$maxbias <- C*ep$maxbias
-    ep[, c("rmse", "lower", "upper", "hl", "maxel")] <-
-        cbind(sqrt(ep$sd^2+ep$maxbias^2),
-              ep$att - ep$maxbias - stats::qnorm(1-alpha)*ep$sd,
-              ep$att + ep$maxbias + stats::qnorm(1-alpha)*ep$sd,
-              cv(ep$maxbias/ep$sd, alpha) * ep$sd,
-              2*ep$maxbias + ep$sd * (stats::qnorm(1-alpha)+stats::qnorm(beta)))
+    if (is.null(ep)) {
+        ep <- ATTOptPath(res, y, d, sigma2, C=C, alpha, beta)
+    } else {
+        m <- res[, 2:(length(d)-sum(d)+1), drop=FALSE]
+        resw <- matrix(1/sum(d), nrow=nrow(res), ncol=length(d))
+        resw[, d==0] <- -m/rowSums(m)
+        ep <- UpdatePath(ep[keep, ], resw, C, sigma2, alpha, beta)
+    }
 
     ## Index of criterion to optimize
     idx <- if (opt.criterion=="RMSE") {
@@ -224,8 +202,8 @@ ATTOptEstimate <- function(res, ep=NULL, y, d, sigma2, C=1,
 
     if (ip<=nrow(res)) {
         f1 <- function(w)
-            ATTOptPath((1-w)*res[i, ]+w*res[i+1, ], y, d,
-                            sigma2, C, alpha, beta)[[idx]]
+            ATTOptPath((1-w)*res[i, , drop=FALSE]+w*res[i+1, , drop=FALSE],
+                       y, d, sigma2, C, alpha, beta)[[idx]]
         opt1 <- stats::optimize(f1, interval=c(0, 1))
     } else {
         opt1 <- list(minimum=0, objective=min(ep[[idx]]))
@@ -233,27 +211,29 @@ ATTOptEstimate <- function(res, ep=NULL, y, d, sigma2, C=1,
 
     if (i>1) {
         f0 <- function(w)
-            ATTOptPath((1-w)*res[i-1, ]+w*res[i, ], y, d,
-                            sigma2, C, alpha, beta)[[idx]]
+            ATTOptPath((1-w)*res[i-1, , drop=FALSE]+w*res[i, , drop=FALSE],
+                       y, d, sigma2, C, alpha, beta)[[idx]]
         opt0 <- stats::optimize(f0, interval=c(0, 1))
     } else {
         opt0 <- list(minimum=1, objective=min(ep[[idx]]))
     }
 
     if (opt1$objective < opt0$objective) {
-        resopt <- (1-opt1$minimum)*res[i, ] +
-            opt1$minimum*res[min(i+1, nrow(res)), ]
+        resopt <- (1-opt1$minimum)*res[i, , drop=FALSE] +
+            opt1$minimum*res[min(i+1, nrow(res)), , drop=FALSE]
     } else {
-        resopt <- (1-opt0$minimum)*res[max(i-1, 1), ]+opt0$minimum*res[i, ]
+        resopt <- (1-opt0$minimum)*res[max(i-1, 1), , drop=FALSE] +
+            opt0$minimum*res[i, , drop=FALSE]
     }
 
     r1 <- ATTOptPath(resopt, y, d, sigma2, C, alpha, beta)
-    r2 <- ATTOptPath(resopt, y, d, sigma2final, C, alpha, beta)
+    r2 <- UpdatePath(r1, resopt, C, sigma2final, alpha, beta)
+
     if (r1$delta==max(ep$delta))
         warning("Optimum found at end of path")
 
     ## Get weights on untreated
-    m <- resopt[2:(sum(d==0)+1)]
+    m <- resopt[, 2:(sum(d==0)+1)]
 
     structure(list(e=cbind(r1, data.frame(rsd=r2$sd, rlower=r2$lower,
                                           rupper=r2$upper,

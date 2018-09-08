@@ -46,8 +46,8 @@ test_that("Solution path for ATT in small examples", {
         expect_equal(ATTbias(r1$w, D0), r1$e$maxbias)
         ## Check optimum matches CVX
         rmse <- function(delta, C)
-            ATTOptPath(res=ATTbrute(delta2=delta^2, D0), y, d, sigma2=1,
-                       C=C)$rmse
+            ATTOptPath(res=matrix(ATTbrute(delta2=delta^2, D0), nrow=1), y, d,
+                       sigma2=1, C=C)$rmse
 
         cvx0 <- unlist(optimize(function(d)
             rmse(d, 0.5), c(min(res[, "delta"]), max(res[, "delta"]))))
