@@ -106,16 +106,6 @@ ATTbias <- function(w, D0) {
     n1 <- nrow(D0)
     n0 <- ncol(D0)
 
-    ## CVX method
-    ## mb <- CVXR::Variable(n0) # untreated
-    ## rb <- CVXR::Variable(n1) # treated
-    ## ob <- CVXR::Maximize(mean(rb) + sum(w0*mb))
-    ## ## outer(r, m, "-")<=D0 using kronecker
-    ## con <- list(kronecker(t(rep(1, n0)), rb) -
-    ##             t(kronecker(t(rep(1, n1)), mb)) <= D0)
-    ## s <- solve(CVXR::Problem(ob, con))
-    ## return(s$value)
-
     ## Use LP
     f.obj <- c(w0, rep(1, n1)/n1)
     f.rhs <- as.vector(D0)
@@ -130,6 +120,15 @@ ATTbias <- function(w, D0) {
 }
 
 
+#' Weights from solution path
+#' @keywords internal
+ATTOptW <- function(res, d) {
+    n0 <- length(d)-sum(d)
+    m <- res[, 2:(n0+1), drop=FALSE]
+    resw <- matrix(1/sum(d), nrow=nrow(res), ncol=length(d))
+    resw[, d==0] <- -m/rowSums(m)
+    resw
+}
 
 
 #' build optimal estimator given a solution path
@@ -142,17 +141,14 @@ ATTOptPath <- function(res, y, d, sigma2, C=1, alpha=0.05, beta=0.8) {
     ## Vector or matrix?
     if (!is.matrix(res))
         stop("res needs to be a matrix")
-
+    rmean <- rowMeans(res[, (n0+2):(n+1), drop=FALSE])
     m <- res[, 2:(n0+1), drop=FALSE]
-    r <- res[, (n0+2):(n+1), drop=FALSE]
-    resw <- matrix(1/sum(d), nrow=nrow(res), ncol=n)
-    resw[, d==0] <- -m/rowSums(m)
-
-    maxbias <- rowMeans(r) - apply(m, 1, function(x) sum(x^2)) / rowSums(m)
+    maxbias <- rmean - apply(m, 1, function(x) sum(x^2)) / rowSums(m)
+    resw <- ATTOptW(res, d)
 
     UpdatePath(data.frame(att=drop(resw %*% y), maxbias=maxbias,
                           delta=unname(res[, 1]),
-                          omega=unname(2*(res[, n+2]+rowMeans(r)))),
+                          omega=unname(2*(res[, n+2]+rmean))),
                resw, C, sigma2, alpha, beta)
 }
 
@@ -174,14 +170,11 @@ ATTOptEstimate <- function(res, ep=NULL, y, d, sigma2, C=1,
     keep <- res[, "delta"]>0
     res <- res[keep, , drop=FALSE]
 
-    if (is.null(ep)) {
-        ep <- ATTOptPath(res, y, d, sigma2, C=C, alpha, beta)
-    } else {
-        m <- res[, 2:(length(d)-sum(d)+1), drop=FALSE]
-        resw <- matrix(1/sum(d), nrow=nrow(res), ncol=length(d))
-        resw[, d==0] <- -m/rowSums(m)
-        ep <- UpdatePath(ep[keep, ], resw, C, sigma2, alpha, beta)
-    }
+    ep <- if (is.null(ep)) {
+              ATTOptPath(res, y, d, sigma2, C=C, alpha, beta)
+          } else {
+              UpdatePath(ep[keep, ], ATTOptW(res, d), C, sigma2, alpha, beta)
+          }
 
     ## Index of criterion to optimize
     idx <- if (opt.criterion=="RMSE") {
@@ -227,16 +220,15 @@ ATTOptEstimate <- function(res, ep=NULL, y, d, sigma2, C=1,
     }
 
     r1 <- ATTOptPath(resopt, y, d, sigma2, C, alpha, beta)
-    r2 <- UpdatePath(r1, resopt, C, sigma2final, alpha, beta)
+    resw1 <- ATTOptW(resopt, d)
+    r2 <- UpdatePath(r1, resw1, C, sigma2final, alpha, beta)
 
     if (r1$delta==max(ep$delta))
         warning("Optimum found at end of path")
 
-    ## Get weights on untreated
-    m <- resopt[, 2:(sum(d==0)+1)]
-
     structure(list(e=cbind(r1, data.frame(rsd=r2$sd, rlower=r2$lower,
-                                          rupper=r2$upper,
-         rhl=r2$hl, rrmse=r2$rmse, rmaxel=r2$maxel, C=C)),
-         res=resopt, w=-m/sum(m)), class="ATTEstimate")
+                                          rupper= r2$ upper, rhl=r2$hl,
+                                          rrmse=r2$rmse, rmaxel=r2$maxel, C=C)),
+                   res=resopt, w=resw1[, d==0]),
+              class="ATTEstimate")
 }
