@@ -1,7 +1,11 @@
 #' Matching weights for untreated
 #' @keywords internal
 ATTMatchW <- function(D0, M) {
-    w0 <- rep(0, ncol(D0))
+    n0 <- ncol(D0)
+    w0 <- rep(0, n0)
+    if (M==Inf)
+        return(-(w0+1)/n0)
+
     for (i in 1:nrow(D0)) {
         ## Find NN of i
         idx <- D0[i, ] <= sort(D0[i, ])[M]
@@ -29,7 +33,8 @@ UpdatePath <- function(ep, resw, C, sigma2, alpha, beta) {
 
 
 #' Matching estimator for the ATT
-#' @param M number of matches, vector
+#' @param M number of matches, vector. If \code{Inf}, then use simple difference
+#'     in means
 #' @template D0
 #' @template data
 #' @export
@@ -51,7 +56,7 @@ ATTMatchPath <- function(y, d, sigma2, D0, C=1, M, alpha=0.05, beta=0.8) {
 
 
 #' build optimal estimator given a solution path
-#' @param mp Output of \code{ATTMatchPath} at \code{C=1} for \code{M=Mrangesx}.
+#' @param mp Output of \code{ATTMatchPath} at \code{C=1} for \code{M=Mrange}.
 #'     This parameter is optional, if supplied, it will speed up the
 #'     calculation.
 #' @template data
