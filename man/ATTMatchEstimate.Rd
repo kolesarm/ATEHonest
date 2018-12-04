@@ -4,22 +4,11 @@
 \alias{ATTMatchEstimate}
 \title{build optimal estimator given a solution path}
 \usage{
-ATTMatchEstimate(D0, mp = NULL, y, d, sigma2, C = 1,
-  sigma2final = sigma2, alpha = 0.05, beta = 0.8,
-  opt.criterion = "RMSE", Mrange = 1:25)
+ATTMatchEstimate(mp, sigma2, C = 1, sigma2final = sigma2,
+  alpha = 0.05, beta = 0.8, opt.criterion = "RMSE")
 }
 \arguments{
-\item{D0}{matrix of distances with dimension \code{[n1 n0]} between untreated
-and treated units, where \code{n0} is number of untreated units and
-\code{n1} is number of treated units}
-
-\item{mp}{Output of \code{ATTMatchPath} at \code{C=1} for \code{M=Mrangesx}.
-This parameter is optional, if supplied, it will speed up the
-calculation.}
-
-\item{y}{outcome vector with length \code{n}}
-
-\item{d}{Vector of treatment indicators with length \code{n}}
+\item{mp}{Output of \code{ATTMatchPath}}
 
 \item{sigma2}{vector of variance estimates with length \code{n}}
 
@@ -35,6 +24,14 @@ determining standard error of the optimal estimators. In contrast,
 determining performance of one-sided CIs.}
 
 \item{opt.criterion}{One of \code{"RMSE"}, \code{"OCI"}, \code{"FLCI"}}
+
+\item{y}{outcome vector with length \code{n}}
+
+\item{d}{Vector of treatment indicators with length \code{n}}
+
+\item{D0}{matrix of distances with dimension \code{[n1 n0]} between untreated
+and treated units, where \code{n0} is number of untreated units and
+\code{n1} is number of treated units}
 
 \item{Mrange}{Range of Ms}
 }

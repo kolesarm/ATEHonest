@@ -39,21 +39,19 @@ cv <- function(B, alpha=0.05) {
 #' \code{method}.
 #' @param X Design matrix for control variables with dimension \code{[n p]} (if
 #'     \eqn{p=1} and \code{X} is a vector, then it is converted to a matrix)
-#' @param d Vector of treatment indicators, needed only when
-#'     \code{FullMatrix==FALSE}
+#' @param d Vector of treatment indicators. If supplied, return the
+#'     \code{n1}-by-\code{n0} distance matrix between treated and untreated
+#'     observations, otherwise  return the full distance matrix
 #' @param Ahalf \eqn{A^{1/2}} weight matrix so that the distances are computed
 #'     between \eqn{Ax_{0,j}} and \eqn{Ax_{1,i}}.
-#' @param FullMatrix Indicator for whether to return the full
-#'     \code{n0+n1}-by-\code{n0+n1} distance matrix, or only the
-#'     \code{n1}-by-\code{n0} distance matrix between treated and untreated
-#'     observations
 #' @return \code{[n1 n0]} or \code{[n n]} matrix of distances.
 #' @inheritParams stats::dist
 #' @export
-distMat <- function(X, d, Ahalf=diag(NCOL(X)),
-                    method="euclidean", FullMatrix=FALSE, p=2) {
+distMat <- function(X, Ahalf=diag(NCOL(X)),
+                    method="euclidean", d=NULL, p=2) {
     if (class(X)!= "matrix")
         X <- as.matrix(X)
+    X <- X %*% t(Ahalf)
 
     if (nrow(X)>500) {
         Dm <- matrix(nrow=nrow(X), ncol=nrow(X))
@@ -66,15 +64,15 @@ distMat <- function(X, d, Ahalf=diag(NCOL(X)),
              else stop("Method '", method, "' not yet implemented for large X")
         for (i in 1:nrow(X)) {
             Dm[i, ] <- if (p != Inf)
-                           colSums((abs(Ahalf %*% (X[i, ] - t(X))))^p)^(1/p)
+                           colSums(abs(X[i, ] - t(X))^p)^(1/p)
                        else
-                           apply(abs(Ahalf %*% (X[i, ] - t(X))), 2, max)
+                           apply(abs(X[i, ] - t(X)), 2, max)
         }
     } else {
         Dm <- unname(as.matrix(stats::dist(X, method=method)))
     }
 
-    if (!FullMatrix)
+    if (!is.null(d))
         Dm <- Dm[d==1, d==0]
     Dm
 }

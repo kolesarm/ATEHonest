@@ -1,14 +1,14 @@
 #' Matching weights for untreated
 #' @keywords internal
-ATTMatchW <- function(D0, M) {
+ATTMatchW <- function(D0, M, tol) {
     n0 <- ncol(D0)
     w0 <- rep(0, n0)
     if (M==Inf)
         return(-(w0+1)/n0)
 
     for (i in 1:nrow(D0)) {
-        ## Find NN of i
-        idx <- D0[i, ] <= sort(D0[i, ])[M]
+        ## Find NN of i, within tolerance
+        idx <- D0[i, ] <= sort(D0[i, ])[M]+tol
         w0[idx] <- w0[idx] + 1/sum(idx)
     }
     -w0/nrow(D0)
@@ -17,9 +17,9 @@ ATTMatchW <- function(D0, M) {
 
 #' update estimation path with new C or new variance
 #' @keywords internal
-UpdatePath <- function(ep, resw, C, sigma2, alpha, beta) {
+UpdatePath <- function(ep, resw, Cratio, sigma2, alpha, beta) {
     if (length(sigma2)==1) sigma2 <- rep(sigma2, ncol(resw))
-    ep$maxbias <- C*ep$maxbias
+    ep$maxbias <- Cratio*ep$maxbias
     ep$sd <- sqrt(drop(resw^2 %*% sigma2))
     ep$hl <- cv(ep$maxbias/ep$sd, alpha) * ep$sd
     ep$lower <- ep$att - ep$maxbias - stats::qnorm(1-alpha)*ep$sd
@@ -37,28 +37,25 @@ UpdatePath <- function(ep, resw, C, sigma2, alpha, beta) {
 #'     in means
 #' @template D0
 #' @template data
+#' @param tol numerical tolerance for determining neighbors
 #' @export
-ATTMatchPath <- function(y, d, sigma2, D0, C=1, M, alpha=0.05, beta=0.8) {
+ATTMatchPath <- function(y, d, D0, M=1:25, tol=1e-12) {
     n1 <- nrow(D0)
-    att <- maxbias <- vector(length=length(M))
+    maxbias <- vector(length=length(M))
     resw <- matrix(nrow=length(M), ncol=(ncol(D0)+n1))
     resw[, d==1] <- 1/n1
 
-    for (j in seq_along(att)) {
-        resw[j, d==0] <- ATTMatchW(D0, M[j])
-        maxbias[j] <- C*ATTbias(resw[j, d==0], D0)
+    for (j in seq_along(M)) {
+        resw[j, d==0] <- ATTMatchW(D0, M[j], tol)
+        maxbias[j] <- ATTbias(resw[j, d==0], D0)
     }
-    ep <- UpdatePath(data.frame(att=drop(resw %*% y), maxbias=maxbias, M=M),
-                     resw, C, sigma2, alpha, beta)
-
-    list(ep=ep, resw=resw)
+    list(ep=data.frame(att=drop(resw %*% y), maxbias=maxbias, M=M),
+         resw=resw, d=d)
 }
 
 
 #' build optimal estimator given a solution path
-#' @param mp Output of \code{ATTMatchPath} at \code{C=1} for \code{M=Mrange}.
-#'     This parameter is optional, if supplied, it will speed up the
-#'     calculation.
+#' @param mp Output of \code{ATTMatchPath}
 #' @template data
 #' @template D0
 #' @param sigma2final vector of variance estimates with length{n} for
@@ -67,15 +64,10 @@ ATTMatchPath <- function(y, d, sigma2, D0, C=1, M, alpha=0.05, beta=0.8) {
 #' @param opt.criterion One of \code{"RMSE"}, \code{"OCI"}, \code{"FLCI"}
 #' @param Mrange Range of Ms
 #' @export
-ATTMatchEstimate <- function(D0, mp=NULL, y, d, sigma2, C=1,
-                             sigma2final=sigma2, alpha=0.05, beta=0.8,
-                             opt.criterion="RMSE", Mrange=1:25) {
-    if (is.null(mp)) {
-        mp <- ATTMatchPath(y, d, sigma2, D0, C=C, M=Mrange, alpha, beta)
-    } else {
-        ## Update estimate path with new value of C
-        mp$ep <- UpdatePath(mp$ep, mp$resw, C, sigma2, alpha, beta)
-    }
+ATTMatchEstimate <- function(mp, sigma2, C=1, sigma2final=sigma2, alpha=0.05,
+                             beta=0.8, opt.criterion="RMSE") {
+    ## Update estimate path with new value of C
+    mp$ep <- UpdatePath(mp$ep, mp$resw, C, sigma2, alpha, beta)
 
     ## Index of criterion to optimize
     idx <- if (opt.criterion=="RMSE") {
@@ -86,17 +78,18 @@ ATTMatchEstimate <- function(D0, mp=NULL, y, d, sigma2, C=1,
                which.max(names(mp$ep)=="hl")
            }
     i <- which.min(mp$ep[[idx]])
-    if (i==nrow(mp$ep))
+    if (i==nrow(mp$ep) & nrow(mp$ep)>1)
         warning("Optimum found at end of path")
 
     ## Robust se, C=1 to keep bias the same
-    er <- UpdatePath(mp$ep[i, ], mp$resw[i, ], C=1, sigma2final, alpha, beta)
+    er <- UpdatePath(mp$ep[i, ], mp$resw[i, ], Cratio=1, sigma2final, alpha,
+                     beta)
 
     structure(list(e=cbind(mp$ep[i, ],
                            data.frame(rsd=er$sd, rlower=er$lower,
                                       rupper=er$upper, rhl=er$hl, rrmse=er$rmse,
                                       rmaxel=er$maxel, C=C)),
-                   w=mp$resw[i, d==0]), class="ATTEstimate")
+                   w=mp$resw[i, mp$d==0]), class="ATTEstimate")
 }
 
 

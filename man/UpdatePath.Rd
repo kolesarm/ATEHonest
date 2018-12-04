@@ -4,7 +4,7 @@
 \alias{UpdatePath}
 \title{update estimation path with new C or new variance}
 \usage{
-UpdatePath(ep, resw, C, sigma2, alpha, beta)
+UpdatePath(ep, resw, Cratio, sigma2, alpha, beta)
 }
 \description{
 update estimation path with new C or new variance

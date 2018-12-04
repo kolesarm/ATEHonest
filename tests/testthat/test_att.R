@@ -31,7 +31,7 @@ test_that("Solution path for ATT in small examples", {
     tt <- list()
     for (j in 1:length(x0)) {
         d <- dd(x0[[j]], x1[[j]])
-        D0 <- distMat(c(x0[[j]], x1[[j]]), d)
+        D0 <- distMat(c(x0[[j]], x1[[j]]), d=d)
         if (j != 4) {
             expect_silent(tt[[j]] <- ATTh(D0, check=TRUE)$res)
         } else {

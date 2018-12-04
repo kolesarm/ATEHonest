@@ -37,7 +37,6 @@ ATTcheck <- function(m, r, mu, D0) {
         return(0)
     }
 
-
     0
 }
 

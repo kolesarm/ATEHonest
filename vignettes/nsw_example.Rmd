@@ -37,7 +37,7 @@ d <- NSW$treated
 y <- NSW$re78
 
 ## Compute matrix of distances between treated and control units
-D0 <- distMat(X, d, Ahalf, method="manhattan", FullMatrix=FALSE)
+D0 <- distMat(X, Ahalf, method="manhattan", d)
 ```
 
 TODO: finish

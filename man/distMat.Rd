@@ -4,15 +4,12 @@
 \alias{distMat}
 \title{Matrix of distances between observations}
 \usage{
-distMat(X, d, Ahalf = diag(NCOL(X)), method = "euclidean",
-  FullMatrix = FALSE, p = 2)
+distMat(X, Ahalf = diag(NCOL(X)), method = "euclidean", d = NULL,
+  p = 2)
 }
 \arguments{
 \item{X}{Design matrix for control variables with dimension \code{[n p]} (if
 \eqn{p=1} and \code{X} is a vector, then it is converted to a matrix)}
-
-\item{d}{Vector of treatment indicators, needed only when
-\code{FullMatrix==FALSE}}
 
 \item{Ahalf}{\eqn{A^{1/2}} weight matrix so that the distances are computed
 between \eqn{Ax_{0,j}} and \eqn{Ax_{1,i}}.}
@@ -22,10 +19,9 @@ between \eqn{Ax_{0,j}} and \eqn{Ax_{1,i}}.}
     \code{"canberra"}, \code{"binary"} or \code{"minkowski"}.
     Any unambiguous substring can be given.}
 
-\item{FullMatrix}{Indicator for whether to return the full
-\code{n0+n1}-by-\code{n0+n1} distance matrix, or only the
+\item{d}{Vector of treatment indicators. If supplied, return the
 \code{n1}-by-\code{n0} distance matrix between treated and untreated
-observations}
+observations, otherwise  return the full distance matrix}
 
 \item{p}{The power of the Minkowski distance.}
 }

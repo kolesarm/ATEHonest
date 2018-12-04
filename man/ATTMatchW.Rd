@@ -4,7 +4,7 @@
 \alias{ATTMatchW}
 \title{Matching weights for untreated}
 \usage{
-ATTMatchW(D0, M)
+ATTMatchW(D0, M, tol)
 }
 \description{
 Matching weights for untreated

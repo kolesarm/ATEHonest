@@ -34,5 +34,10 @@ usethis::use_data(NSW, overwrite=TRUE, internal=FALSE)
 dtr <- read.csv("./nswre74_treated.txt", sep="", header=FALSE)
 dct <- read.csv("./nswre74_control.txt", sep="", header=FALSE)
 NSWexper <- cleandata(rbind(dct, dtr))
+
+## Check we match Abadie and Imbens, 2011, JBES, Table 1
+stargazer::stargazer(NSWexper[NSWexper$treated==TRUE, ], type="text")
+stargazer::stargazer(NSWexper[NSWexper$treated==FALSE, ], type="text")
+
 ## Check we match Abadie and Imbens, 2011, JBES, Table 1
 usethis::use_data(NSWexper, overwrite=TRUE, internal=FALSE)
