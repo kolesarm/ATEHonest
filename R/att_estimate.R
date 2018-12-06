@@ -17,7 +17,7 @@ ATTMatchW <- function(D0, M, tol) {
 
 #' update estimation path with new C or new variance
 #' @keywords internal
-UpdatePath <- function(ep, resw, Cratio, sigma2, alpha, beta) {
+UpdatePath <- function(ep, resw, Cratio, sigma2, alpha=0.05, beta=0.8) {
     if (length(sigma2)==1) sigma2 <- rep(sigma2, ncol(resw))
     ep$maxbias <- Cratio*ep$maxbias
     ep$sd <- sqrt(drop(resw^2 %*% sigma2))
@@ -130,11 +130,12 @@ ATTOptW <- function(res, d) {
 
 
 #' build optimal estimator given a solution path
-#' @param res output of \code{ATTh}
+#' @param res The \code{res} element of the output of \code{ATTh} on which to
+#'     base the estimate
 #' @template data
 #' @export
-ATTOptPath <- function(res, y, d, sigma2, C=1, alpha=0.05, beta=0.8) {
-    n <- length(y)
+ATTOptPath <- function(res, y, d) {
+    n <- length(d)
     n0 <- n-sum(d)
     ## Vector or matrix?
     if (!is.matrix(res))
@@ -144,35 +145,35 @@ ATTOptPath <- function(res, y, d, sigma2, C=1, alpha=0.05, beta=0.8) {
     maxbias <- rmean - apply(m, 1, function(x) sum(x^2)) / rowSums(m)
     resw <- ATTOptW(res, d)
 
-    UpdatePath(data.frame(att=drop(resw %*% y), maxbias=maxbias,
-                          delta=unname(res[, 1]),
-                          omega=unname(2*(res[, n+2]+rmean))),
-               resw, C, sigma2, alpha, beta)
+    list(ep=data.frame(att=drop(resw %*% y), maxbias=maxbias,
+                       delta=unname(res[, 1]),
+                       omega=unname(2*(res[, n+2]+rmean))),
+         resw=resw, y=y, d=d, res=res)
 }
 
 #' build optimal estimator given a solution path
-#' @param res The \code{res} element of the output of \code{ATTh} on which to
-#'     base the estimate
-#' @param ep Output of \code{ATTOptPath} at \code{C=1}. This parameter is
-#'     optional, if supplied, it will speed up the calculation.
+#' @param op Output of \code{ATTOptPath}.
 #' @template data
 #' @param sigma2final vector of variance estimates with length{n} for
 #'     determining standard error of the optimal estimators. In contrast,
 #'     \code{sigma2} is used only for determining the optimal tuning parameter.
 #' @param opt.criterion One of \code{"RMSE"}, \code{"OCI"}, \code{"FLCI"}
 #' @export
-ATTOptEstimate <- function(res, ep=NULL, y, d, sigma2, C=1,
-                           sigma2final=sigma2, alpha=0.05, beta=0.8,
-                           opt.criterion="RMSE") {
+ATTOptEstimate <- function(op, sigma2, C=1, sigma2final=sigma2, alpha=0.05,
+                           beta=0.8, opt.criterion="RMSE") {
     ## Drop delta=0, back out weights
-    keep <- res[, "delta"]>0
-    res <- res[keep, , drop=FALSE]
+    keep <- op$ep$delta > 0
+    res <- op$res[keep, , drop=FALSE]
+    ep <- UpdatePath(op$ep[keep, ], op$resw[keep, , drop=FALSE], C, sigma2, alpha, beta)
 
-    ep <- if (is.null(ep)) {
-              ATTOptPath(res, y, d, sigma2, C=C, alpha, beta)
-          } else {
-              UpdatePath(ep[keep, ], ATTOptW(res, d), C, sigma2, alpha, beta)
-          }
+    up <- function(res) {
+        r <- ATTOptPath(res, op$y, op$d)
+        UpdatePath(r$ep, r$resw, C, sigma2, alpha, beta)
+    }
+
+    if (nrow(res)==1) {
+        resopt <- res
+    } else {
 
     ## Index of criterion to optimize
     idx <- if (opt.criterion=="RMSE") {
@@ -193,8 +194,7 @@ ATTOptEstimate <- function(res, ep=NULL, y, d, sigma2, C=1,
 
     if (ip<=nrow(res)) {
         f1 <- function(w)
-            ATTOptPath((1-w)*res[i, , drop=FALSE]+w*res[i+1, , drop=FALSE],
-                       y, d, sigma2, C, alpha, beta)[[idx]]
+            up((1-w)*res[i, , drop=FALSE]+w*res[i+1, , drop=FALSE])[[idx]]
         opt1 <- stats::optimize(f1, interval=c(0, 1))
     } else {
         opt1 <- list(minimum=0, objective=min(ep[[idx]]))
@@ -202,8 +202,7 @@ ATTOptEstimate <- function(res, ep=NULL, y, d, sigma2, C=1,
 
     if (i>1) {
         f0 <- function(w)
-            ATTOptPath((1-w)*res[i-1, , drop=FALSE]+w*res[i, , drop=FALSE],
-                       y, d, sigma2, C, alpha, beta)[[idx]]
+            up((1-w)*res[i-1, , drop=FALSE]+w*res[i, , drop=FALSE])[[idx]]
         opt0 <- stats::optimize(f0, interval=c(0, 1))
     } else {
         opt0 <- list(minimum=1, objective=min(ep[[idx]]))
@@ -216,18 +215,18 @@ ATTOptEstimate <- function(res, ep=NULL, y, d, sigma2, C=1,
         resopt <- (1-opt0$minimum)*res[max(i-1, 1), , drop=FALSE] +
             opt0$minimum*res[i, , drop=FALSE]
     }
-
-    r1 <- ATTOptPath(resopt, y, d, sigma2, C, alpha, beta)
-    resw1 <- ATTOptW(resopt, d)
+    }
+    r1 <- up(resopt)
+    resw1 <- ATTOptW(resopt, op$d)
     ## C=1 to kep bias the same
-    r2 <- UpdatePath(r1, resw1, C=1, sigma2final, alpha, beta)
+    r2 <- UpdatePath(r1, resw1, Cratio=1, sigma2final, alpha, beta)
 
-    if (r1$delta==max(ep$delta))
+    if (r1$delta==max(ep$delta) & nrow(res)>1)
         warning("Optimum found at end of path")
 
     structure(list(e=cbind(r1, data.frame(rsd=r2$sd, rlower=r2$lower,
                                           rupper= r2$ upper, rhl=r2$hl,
                                           rrmse=r2$rmse, rmaxel=r2$maxel, C=C)),
-                   res=resopt, w=resw1[, d==0]),
+                   res=resopt, w=resw1[, op$d==0]),
               class="ATTEstimate")
 }

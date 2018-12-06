@@ -221,10 +221,19 @@ ATTh <- function(D0, s, maxiter=50, check=FALSE,
                     s$mu, NA), nrow=1)
     colnames(res) <- c("delta", 1:n, "mu", "drop")
 
-    while (sum(s$m0^2)<Inf && nrow(res) <= maxiter) {
-        s <- ATTstep(s, tol)
-        res <- rbind(res, c(2*sqrt(n1*s$mu^2 + sum(s$m0^2)), s$m0, s$r0, s$mu,
-                            s$drop))
+    stopme <- FALSE
+    while (sum(s$m0^2)<Inf && nrow(res) <= maxiter && stopme!=TRUE) {
+        stopme <- tryCatch( {
+            s <- ATTstep(s, tol)
+            res <- rbind(res, c(2*sqrt(n1*s$mu^2 + sum(s$m0^2)),
+                                s$m0, s$r0, s$mu,
+                                s$drop))
+        }, error = function(e) {
+            message(e)
+            message("\nStopping ATTh at step ", nrow(res), "\n")
+            return(TRUE)
+        })
+
         if (check && max(s$m0)<Inf && ATTcheck(s$m0, s$r0, s$mu, D0))
             stop("Solution doesn't agree with CVX")
     }

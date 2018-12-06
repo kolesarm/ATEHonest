@@ -4,20 +4,11 @@
 \alias{ATTOptEstimate}
 \title{build optimal estimator given a solution path}
 \usage{
-ATTOptEstimate(res, ep = NULL, y, d, sigma2, C = 1,
-  sigma2final = sigma2, alpha = 0.05, beta = 0.8,
-  opt.criterion = "RMSE")
+ATTOptEstimate(op, sigma2, C = 1, sigma2final = sigma2, alpha = 0.05,
+  beta = 0.8, opt.criterion = "RMSE")
 }
 \arguments{
-\item{res}{The \code{res} element of the output of \code{ATTh} on which to
-base the estimate}
-
-\item{ep}{Output of \code{ATTOptPath} at \code{C=1}. This parameter is
-optional, if supplied, it will speed up the calculation.}
-
-\item{y}{outcome vector with length \code{n}}
-
-\item{d}{Vector of treatment indicators with length \code{n}}
+\item{op}{Output of \code{ATTOptPath}.}
 
 \item{sigma2}{vector of variance estimates with length \code{n}}
 
@@ -33,6 +24,10 @@ determining standard error of the optimal estimators. In contrast,
 determining performance of one-sided CIs.}
 
 \item{opt.criterion}{One of \code{"RMSE"}, \code{"OCI"}, \code{"FLCI"}}
+
+\item{y}{outcome vector with length \code{n}}
+
+\item{d}{Vector of treatment indicators with length \code{n}}
 }
 \description{
 build optimal estimator given a solution path

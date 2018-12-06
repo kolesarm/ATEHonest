@@ -40,15 +40,17 @@ test_that("Solution path for ATT in small examples", {
         y <- d
         ## Check maximum bias matches that from LP
         res <- tt[[j]][tt[[j]][, "delta"]!=0, ]
-        r0 <- ATTOptEstimate(res, , y, d, sigma2=1, C=0.5)
+        r0 <- ATTOptEstimate(ATTOptPath(res, y, d), sigma2=1, C=0.5)
+        ## r0 <- ATTOptEstimate(res, , y, d, sigma2=1, C=0.5)
         expect_equal(0.5*ATTbias(r0$w, D0), r0$e$maxbias)
-        r1 <- ATTOptEstimate(res, , y, d, sigma2=1, C=1)
+        r1 <- ATTOptEstimate(ATTOptPath(res, y, d), sigma2=1, C=1)
+        ## r1 <- ATTOptEstimate(res, , y, d, sigma2=1, C=1)
         expect_equal(ATTbias(r1$w, D0), r1$e$maxbias)
         ## Check optimum matches CVX
-        rmse <- function(delta, C)
-            ATTOptPath(res=matrix(ATTbrute(delta2=delta^2, D0), nrow=1), y, d,
-                       sigma2=1, C=C)$rmse
-
+        rmse <- function(delta, C) {
+            ATTOptEstimate(ATTOptPath(res=matrix(ATTbrute(delta2=delta^2, D0), nrow=1), y, d), sigma2=1, C=C)$e$rmse
+            ## ATTOptPath(res=, y, d, sigma2=1, C=C)$rmse
+        }
         cvx0 <- unlist(optimize(function(d)
             rmse(d, 0.5), c(min(res[, "delta"]), max(res[, "delta"]))))
         cvx1 <- unlist(optimize(function(d)
