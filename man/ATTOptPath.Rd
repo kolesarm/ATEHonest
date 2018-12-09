@@ -2,7 +2,7 @@
 % Please edit documentation in R/att_estimate.R
 \name{ATTOptPath}
 \alias{ATTOptPath}
-\title{build optimal estimator given a solution path}
+\title{Compute the class of optimal linear estimators for the CATT}
 \usage{
 ATTOptPath(res, y, d)
 }
@@ -13,16 +13,10 @@ base the estimate}
 \item{y}{outcome vector with length \code{n}}
 
 \item{d}{Vector of treatment indicators with length \code{n}}
-
-\item{alpha}{Level of confidence interval, \code{1-alpha}.}
-
-\item{beta}{The quantile \code{beta} of excecss length for
-determining performance of one-sided CIs.}
-
-\item{sigma2}{vector of variance estimates with length \code{n}}
-
-\item{C}{Lipschitz smoothness constant}
 }
 \description{
-build optimal estimator given a solution path
+Computes the class of optimal linear estimators that minimize variance
+subject to a bound on bias, and the optimal weights. The output of this
+function is used by \code{\link{ATTOptEstimate}} for optimal estimation and
+inference on the CATT.
 }

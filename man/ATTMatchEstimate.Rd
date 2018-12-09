@@ -2,7 +2,7 @@
 % Please edit documentation in R/att_estimate.R
 \name{ATTMatchEstimate}
 \alias{ATTMatchEstimate}
-\title{build optimal estimator given a solution path}
+\title{Inference on the CATT using the matching estimator}
 \usage{
 ATTMatchEstimate(mp, sigma2, C = 1, sigma2final = sigma2,
   alpha = 0.05, beta = 0.8, opt.criterion = "RMSE")
@@ -10,7 +10,9 @@ ATTMatchEstimate(mp, sigma2, C = 1, sigma2final = sigma2,
 \arguments{
 \item{mp}{Output of \code{ATTMatchPath}}
 
-\item{sigma2}{vector of variance estimates with length \code{n}}
+\item{sigma2}{vector of variance estimates with length \code{n}. If
+\code{sigma2} is a scalar, it is assumed that the variance is
+homoskedastic.}
 
 \item{C}{Lipschitz smoothness constant}
 
@@ -20,21 +22,26 @@ determining standard error of the optimal estimators. In contrast,
 
 \item{alpha}{Level of confidence interval, \code{1-alpha}.}
 
-\item{beta}{The quantile \code{beta} of excecss length for
-determining performance of one-sided CIs.}
+\item{beta}{The quantile \code{beta} of excecss length for determining
+performance of one-sided CIs.}
 
-\item{opt.criterion}{One of \code{"RMSE"}, \code{"OCI"}, \code{"FLCI"}}
-
-\item{y}{outcome vector with length \code{n}}
-
-\item{d}{Vector of treatment indicators with length \code{n}}
-
-\item{D0}{matrix of distances with dimension \code{[n1 n0]} between untreated
-and treated units, where \code{n0} is number of untreated units and
-\code{n1} is number of treated units}
-
-\item{Mrange}{Range of Ms}
+\item{opt.criterion}{One of \code{"RMSE"} (root mean squared error),
+\code{"OCI"} (one-sided confidence intervals), \code{"FLCI"}
+(fixed-length two-sided confidence intervals)}
 }
 \description{
-build optimal estimator given a solution path
+Computes matching estimator and confidence intervals (CIs) for the CATT. If
+\code{ATTMatchPath} used a single \code{M}, the estimator and CIs are based
+on a matching estimator with this number of matches. Otherwise, optimize the
+numer of matches from the set in \code{M} according to \code{opt.criterion}.
+}
+\examples{
+Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
+D0 <- distMat(NSWexper[, 2:10], Ahalf, method="manhattan", NSWexper$treated)
+mp <- ATTMatchPath(NSWexper$re78, NSWexper$treated, D0, M=c(1, 2), tol=1e-12)
+## Distance matrix for variance estimation
+DM <- distMat(NSWexper[, 2:10], Ahalf, method="manhattan")
+sigma2 <- nnvar(DM, NSWexper$treated, NSWexper$re78, J=3)
+## Estimator and CI based on a single match
+ATTMatchEstimate(mp, mean(sigma2), C=1, sigma2final=sigma2)
 }

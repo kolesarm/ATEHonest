@@ -32,13 +32,22 @@ UpdatePath <- function(ep, resw, Cratio, sigma2, alpha=0.05, beta=0.8) {
 }
 
 
-#' Matching estimator for the ATT
-#' @param M number of matches, vector. If \code{Inf}, then use simple difference
-#'     in means
+#' Compute the matching estimator for the CATT
+#'
+#' Computes the matching estimating and matching weights for a range of matches
+#' \code{M}. The output of this function is used as an input for
+#' \code{\link{ATTMatchEstimate}} for inference on the CATT.
+#' @param M a vector determining the number of matches. If \code{Inf}, then use
+#'     the simple difference in means estimator.
 #' @template D0
 #' @template data
-#' @param tol numerical tolerance for determining neighbors
+#' @param tol numerical tolerance for determining nearest neighbors in
+#'     constructing matches
 #' @export
+#' @examples
+#' Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
+#' D0 <- distMat(NSWexper[, 2:10], Ahalf, method="manhattan", NSWexper$treated)
+#' ATTMatchPath(NSWexper$re78, NSWexper$treated, D0, M=c(1, 2), tol=1e-12)
 ATTMatchPath <- function(y, d, D0, M=1:25, tol=1e-12) {
     n1 <- nrow(D0)
     maxbias <- vector(length=length(M))
@@ -54,16 +63,36 @@ ATTMatchPath <- function(y, d, D0, M=1:25, tol=1e-12) {
 }
 
 
-#' build optimal estimator given a solution path
+#' Inference on the CATT using the matching estimator
+#'
+#' Computes matching estimator and confidence intervals (CIs) for the CATT. If
+#' \code{ATTMatchPath} used a single \code{M}, the estimator and CIs are based
+#' on a matching estimator with this number of matches. Otherwise, optimize the
+#' numer of matches from the set in \code{M} according to \code{opt.criterion}.
 #' @param mp Output of \code{ATTMatchPath}
-#' @template data
-#' @template D0
+#' @param alpha Level of confidence interval, \code{1-alpha}.
+#' @param beta The quantile \code{beta} of excecss length for determining
+#'     performance of one-sided CIs.
+#' @param sigma2 vector of variance estimates with length \code{n}. If
+#'     \code{sigma2} is a scalar, it is assumed that the variance is
+#'     homoskedastic.
+#' @param C Lipschitz smoothness constant
 #' @param sigma2final vector of variance estimates with length{n} for
 #'     determining standard error of the optimal estimators. In contrast,
 #'     \code{sigma2} is used only for determining the optimal tuning parameter.
-#' @param opt.criterion One of \code{"RMSE"}, \code{"OCI"}, \code{"FLCI"}
-#' @param Mrange Range of Ms
+#' @param opt.criterion One of \code{"RMSE"} (root mean squared error),
+#'     \code{"OCI"} (one-sided confidence intervals), \code{"FLCI"}
+#'     (fixed-length two-sided confidence intervals)
 #' @export
+#' @examples
+#' Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
+#' D0 <- distMat(NSWexper[, 2:10], Ahalf, method="manhattan", NSWexper$treated)
+#' mp <- ATTMatchPath(NSWexper$re78, NSWexper$treated, D0, M=c(1, 2), tol=1e-12)
+#' ## Distance matrix for variance estimation
+#' DM <- distMat(NSWexper[, 2:10], Ahalf, method="manhattan")
+#' sigma2 <- nnvar(DM, NSWexper$treated, NSWexper$re78, J=3)
+#' ## Estimator and CI based on a single match
+#' ATTMatchEstimate(mp, mean(sigma2), C=1, sigma2final=sigma2)
 ATTMatchEstimate <- function(mp, sigma2, C=1, sigma2final=sigma2, alpha=0.05,
                              beta=0.8, opt.criterion="RMSE") {
     ## Update estimate path with new value of C
@@ -129,7 +158,12 @@ ATTOptW <- function(res, d) {
 }
 
 
-#' build optimal estimator given a solution path
+#' Compute the class of optimal linear estimators for the CATT
+#'
+#' Computes the class of optimal linear estimators that minimize variance
+#' subject to a bound on bias, and the optimal weights. The output of this
+#' function is used by \code{\link{ATTOptEstimate}} for optimal estimation and
+#' inference on the CATT.
 #' @param res The \code{res} element of the output of \code{ATTh} on which to
 #'     base the estimate
 #' @template data
@@ -151,20 +185,30 @@ ATTOptPath <- function(res, y, d) {
          resw=resw, y=y, d=d, res=res)
 }
 
-#' build optimal estimator given a solution path
+#' Optimal estimation and inference for the CATT
+#'
+#' Computes the estimator and confidence intervals (CIs) for the CATT. The tuning parameter is chosen to optimize \code{opt.criterion} criterion.
 #' @param op Output of \code{ATTOptPath}.
-#' @template data
-#' @param sigma2final vector of variance estimates with length{n} for
-#'     determining standard error of the optimal estimators. In contrast,
-#'     \code{sigma2} is used only for determining the optimal tuning parameter.
-#' @param opt.criterion One of \code{"RMSE"}, \code{"OCI"}, \code{"FLCI"}
+#' @inheritParams ATTMatchEstimate
 #' @export
+#' @examples
+#' Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
+#' D0 <- distMat(NSWexper[, 2:10], Ahalf, method="manhattan", NSWexper$treated)
+#' ## Distance matrix for variance estimation
+#' DM <- distMat(NSWexper[, 2:10], Ahalf, method="manhattan")
+#' sigma2 <- nnvar(DM, NSWexper$treated, NSWexper$re78, J=3)
+#' ## Compute homotopy/solution path, and the class of optimal estimators based
+#' ## on the solution path
+#' op <- ATTOptPath(ATTh(D0, maxiter=200)$res, NSWexper$re78, NSWexper$treated)
+#' ATTOptEstimate(op, mean(sigma2), C=1, sigma2final=sigma2, opt.criterion="RMSE")
+#' ATTOptEstimate(op, mean(sigma2), C=1, sigma2final=sigma2, opt.criterion="FLCI")
 ATTOptEstimate <- function(op, sigma2, C=1, sigma2final=sigma2, alpha=0.05,
                            beta=0.8, opt.criterion="RMSE") {
     ## Drop delta=0, back out weights
     keep <- op$ep$delta > 0
     res <- op$res[keep, , drop=FALSE]
-    ep <- UpdatePath(op$ep[keep, ], op$resw[keep, , drop=FALSE], C, sigma2, alpha, beta)
+    ep <- UpdatePath(op$ep[keep, ], op$resw[keep, , drop=FALSE],
+                     C, sigma2, alpha, beta)
 
     up <- function(res) {
         r <- ATTOptPath(res, op$y, op$d)
@@ -218,7 +262,7 @@ ATTOptEstimate <- function(op, sigma2, C=1, sigma2final=sigma2, alpha=0.05,
     }
     r1 <- up(resopt)
     resw1 <- ATTOptW(resopt, op$d)
-    ## C=1 to kep bias the same
+    ## C=1 to keep bias the same
     r2 <- UpdatePath(r1, resw1, Cratio=1, sigma2final, alpha, beta)
 
     if (r1$delta==max(ep$delta) & nrow(res)>1)
@@ -229,4 +273,20 @@ ATTOptEstimate <- function(op, sigma2, C=1, sigma2final=sigma2, alpha=0.05,
                                           rrmse=r2$rmse, rmaxel=r2$maxel, C=C)),
                    res=resopt, w=resw1[, op$d==0]),
               class="ATTEstimate")
+}
+
+#' @export
+print.ATTEstimate <- function(x, digits = getOption("digits"), ...) {
+
+    fmt <- function(x) format(x, digits=digits, width=digits+1)
+
+    r <- x$e[, c("att", "maxbias", "rsd", "rhl")]
+    r <- cbind(r, l=r$att-r$rhl, u=r$att+r$rhl)
+    r <- fmt(r)
+    r$ci <- paste0("(", r$l, ", ",  r$u, ")")
+    r$rhl <- r$l <- r$u <- NULL
+    names(r) <- c("Estimate", "Max. bias", "SE", "CI")
+    print(knitr::kable(r))
+    cat("\n")
+    invisible(x)
 }

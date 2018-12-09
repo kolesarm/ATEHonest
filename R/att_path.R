@@ -157,14 +157,15 @@ ATTstep <- function(s, tol=.Machine$double.eps*n0*n1) {
 #' Homotopy for average treatment effect for the treated
 #'
 #' Calculates optimal weights \eqn{m} and \eqn{r} for the control and treated
-#' observations as a function of \eqn{\delta}, or equivalently \eqn{mu}.
+#' observations as a function of \eqn{\delta}, or equivalently \eqn{mu}, using
+#' the algorithm describe inthe appendix to Armstrong and Kolesár (2018)
 #' @template D0
 #' @param maxiter maximum number of steps in the homotopy. If the homotopy has
 #'     less steps than \code{maxiter}, returns the whole solution path.
 #' @param check check at each step that solution matches
 #'     \code{\link[CVXR]{CVXR}} (generic convex optimizer) solution.
 #' @param tol numerical tolerance for rounding error when finding the nearest
-#'     neighbor. All observations with effective distance withing \code{tol} of
+#'     neighbor. All observations with effective distance within \code{tol} of
 #'     the closest are considered to be active.
 #' @param s Set of state variables at which to start the homotopy. If not
 #'     provided, the homotopy is started at the beginning. The state variables
@@ -200,6 +201,10 @@ ATTstep <- function(s, tol=.Machine$double.eps*n0*n1) {
 #' r <- ATTh(D0, maxiter=3)
 #' ## Get last, fourth step
 #' ATTh(D0, s=r$s, maxiter=3)
+#'
+#' @references Armstrong, T. B., and M. Kolesár (2018): Finite-Sample Optimal
+#'     Estimation and Inference on Average Treatment Effects Under
+#'     Unconfoundedness, Unpublished manuscript
 #' @export
 ATTh <- function(D0, s, maxiter=50, check=FALSE,
                  tol=.Machine$double.eps*ncol(D0)*nrow(D0)) {
@@ -229,8 +234,8 @@ ATTh <- function(D0, s, maxiter=50, check=FALSE,
                                 s$m0, s$r0, s$mu,
                                 s$drop))
         }, error = function(e) {
-            message(e)
-            message("\nStopping ATTh at step ", nrow(res), "\n")
+            message(conditionMessage(e))
+            cat("Stopping ATTh at step ", nrow(res), "\n")
             return(TRUE)
         })
 

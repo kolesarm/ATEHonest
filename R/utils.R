@@ -39,11 +39,11 @@ cv <- function(B, alpha=0.05) {
 #' \code{method}.
 #' @param X Design matrix for control variables with dimension \code{[n p]} (if
 #'     \eqn{p=1} and \code{X} is a vector, then it is converted to a matrix)
-#' @param d Vector of treatment indicators. If supplied, return the
-#'     \code{n1}-by-\code{n0} distance matrix between treated and untreated
-#'     observations, otherwise  return the full distance matrix
-#' @param Ahalf \eqn{A^{1/2}} weight matrix so that the distances are computed
-#'     between \eqn{Ax_{0,j}} and \eqn{Ax_{1,i}}.
+#' @param d Vector of treatment indicators with length \code{n}. If supplied,
+#'     return the \code{[n1 n0]} distance matrix between treated and untreated
+#'     observations, otherwise return the full \code{[n n]} distance matrix
+#' @param Ahalf \eqn{A^{1/2}} weight matrix with dimension \code{[p p]} so that
+#'     the distances are computed between \eqn{Ax_{0,j}} and \eqn{Ax_{1,i}}.
 #' @return \code{[n1 n0]} or \code{[n n]} matrix of distances.
 #' @inheritParams stats::dist
 #' @export
@@ -84,10 +84,10 @@ distMat <- function(X, Ahalf=diag(NCOL(X)),
 #' using a nearest-neighbor esitmator among observations with the same treatment
 #' status \code{d}.
 #' @param DM distance matrix with dimension \code{[n n]}.
-#' @param d vector of treatment status indicators with length \code{n}
-#' @param y outcome vector with length \code{n}
+#' @template data
 #' @param J number of nearest neighbors to average over
-#' @param tol numerical tolerance for determining neighbors
+#' @param tol numerical tolerance for determining nearest neighbors in
+#'     constructing matches
 #' @export
 nnvar <- function(DM, d, y, J=3, tol=0) {
     ehat2 <- vector(length=length(d))

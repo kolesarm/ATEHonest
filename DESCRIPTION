@@ -1,8 +1,11 @@
 Package: ATEHonest
 Title: Honest inference for treatment effects under unconfoudedness
-Version: 0.0.1
+Version: 0.0.2
 Authors@R: 'Michal Kolesar <kolesarmi@googlemail.com> [aut, cre]'
-Description: What the package does (one paragraph).
+Description: Constructs matching estimators, and optimal linear estimators, as
+    well as confidence intervals for conditional average treatment effects under
+    unconfoundedness that are valid in finite samples under the assumption that
+    the regression function satisfies a Lipschitz constraint.
 Depends: R (>= 3.4.0)
 License: GPL-3
 Imports:

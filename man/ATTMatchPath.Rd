@@ -2,7 +2,7 @@
 % Please edit documentation in R/att_estimate.R
 \name{ATTMatchPath}
 \alias{ATTMatchPath}
-\title{Matching estimator for the ATT}
+\title{Compute the matching estimator for the CATT}
 \usage{
 ATTMatchPath(y, d, D0, M = 1:25, tol = 1e-12)
 }
@@ -15,20 +15,19 @@ ATTMatchPath(y, d, D0, M = 1:25, tol = 1e-12)
 and treated units, where \code{n0} is number of untreated units and
 \code{n1} is number of treated units}
 
-\item{M}{number of matches, vector. If \code{Inf}, then use simple difference
-in means}
+\item{M}{a vector determining the number of matches. If \code{Inf}, then use
+the simple difference in means estimator.}
 
-\item{tol}{numerical tolerance for determining neighbors}
-
-\item{alpha}{Level of confidence interval, \code{1-alpha}.}
-
-\item{beta}{The quantile \code{beta} of excecss length for
-determining performance of one-sided CIs.}
-
-\item{sigma2}{vector of variance estimates with length \code{n}}
-
-\item{C}{Lipschitz smoothness constant}
+\item{tol}{numerical tolerance for determining nearest neighbors in
+constructing matches}
 }
 \description{
-Matching estimator for the ATT
+Computes the matching estimating and matching weights for a range of matches
+\code{M}. The output of this function is used as an input for
+\code{\link{ATTMatchEstimate}} for inference on the CATT.
+}
+\examples{
+Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
+D0 <- distMat(NSWexper[, 2:10], Ahalf, method="manhattan", NSWexper$treated)
+ATTMatchPath(NSWexper$re78, NSWexper$treated, D0, M=c(1, 2), tol=1e-12)
 }

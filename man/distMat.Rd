@@ -11,17 +11,17 @@ distMat(X, Ahalf = diag(NCOL(X)), method = "euclidean", d = NULL,
 \item{X}{Design matrix for control variables with dimension \code{[n p]} (if
 \eqn{p=1} and \code{X} is a vector, then it is converted to a matrix)}
 
-\item{Ahalf}{\eqn{A^{1/2}} weight matrix so that the distances are computed
-between \eqn{Ax_{0,j}} and \eqn{Ax_{1,i}}.}
+\item{Ahalf}{\eqn{A^{1/2}} weight matrix with dimension \code{[p p]} so that
+the distances are computed between \eqn{Ax_{0,j}} and \eqn{Ax_{1,i}}.}
 
 \item{method}{the distance measure to be used.  This must be one of
     \code{"euclidean"}, \code{"maximum"}, \code{"manhattan"},
     \code{"canberra"}, \code{"binary"} or \code{"minkowski"}.
     Any unambiguous substring can be given.}
 
-\item{d}{Vector of treatment indicators. If supplied, return the
-\code{n1}-by-\code{n0} distance matrix between treated and untreated
-observations, otherwise  return the full distance matrix}
+\item{d}{Vector of treatment indicators with length \code{n}. If supplied,
+return the \code{[n1 n0]} distance matrix between treated and untreated
+observations, otherwise return the full \code{[n n]} distance matrix}
 
 \item{p}{The power of the Minkowski distance.}
 }

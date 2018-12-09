@@ -32,7 +32,7 @@ less steps than \code{maxiter}, returns the whole solution path.}
 \code{\link[CVXR]{CVXR}} (generic convex optimizer) solution.}
 
 \item{tol}{numerical tolerance for rounding error when finding the nearest
-neighbor. All observations with effective distance withing \code{tol} of
+neighbor. All observations with effective distance within \code{tol} of
 the closest are considered to be active.}
 }
 \value{
@@ -53,7 +53,8 @@ A list with two elements:
 }
 \description{
 Calculates optimal weights \eqn{m} and \eqn{r} for the control and treated
-observations as a function of \eqn{\delta}, or equivalently \eqn{mu}.
+observations as a function of \eqn{\delta}, or equivalently \eqn{mu}, using
+the algorithm describe inthe appendix to Armstrong and Kolesár (2018)
 }
 \examples{
 x0 <- c(0, 1, 2, 3)
@@ -63,4 +64,10 @@ D0 <- distMat(c(x0, x1), d)
 r <- ATTh(D0, maxiter=3)
 ## Get last, fourth step
 ATTh(D0, s=r$s, maxiter=3)
+
+}
+\references{
+Armstrong, T. B., and M. Kolesár (2018): Finite-Sample Optimal
+    Estimation and Inference on Average Treatment Effects Under
+    Unconfoundedness, Unpublished manuscript
 }

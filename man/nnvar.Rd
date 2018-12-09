@@ -9,13 +9,14 @@ nnvar(DM, d, y, J = 3, tol = 0)
 \arguments{
 \item{DM}{distance matrix with dimension \code{[n n]}.}
 
-\item{d}{vector of treatment status indicators with length \code{n}}
+\item{d}{Vector of treatment indicators with length \code{n}}
 
 \item{y}{outcome vector with length \code{n}}
 
 \item{J}{number of nearest neighbors to average over}
 
-\item{tol}{numerical tolerance for determining neighbors}
+\item{tol}{numerical tolerance for determining nearest neighbors in
+constructing matches}
 }
 \description{
 Calculates an \code{n}-vector sigma2 of estimates of the variance of \code{y}

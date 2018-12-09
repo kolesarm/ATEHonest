@@ -2,7 +2,7 @@
 % Please edit documentation in R/att_estimate.R
 \name{ATTOptEstimate}
 \alias{ATTOptEstimate}
-\title{build optimal estimator given a solution path}
+\title{Optimal estimation and inference for the CATT}
 \usage{
 ATTOptEstimate(op, sigma2, C = 1, sigma2final = sigma2, alpha = 0.05,
   beta = 0.8, opt.criterion = "RMSE")
@@ -10,7 +10,9 @@ ATTOptEstimate(op, sigma2, C = 1, sigma2final = sigma2, alpha = 0.05,
 \arguments{
 \item{op}{Output of \code{ATTOptPath}.}
 
-\item{sigma2}{vector of variance estimates with length \code{n}}
+\item{sigma2}{vector of variance estimates with length \code{n}. If
+\code{sigma2} is a scalar, it is assumed that the variance is
+homoskedastic.}
 
 \item{C}{Lipschitz smoothness constant}
 
@@ -20,15 +22,25 @@ determining standard error of the optimal estimators. In contrast,
 
 \item{alpha}{Level of confidence interval, \code{1-alpha}.}
 
-\item{beta}{The quantile \code{beta} of excecss length for
-determining performance of one-sided CIs.}
+\item{beta}{The quantile \code{beta} of excecss length for determining
+performance of one-sided CIs.}
 
-\item{opt.criterion}{One of \code{"RMSE"}, \code{"OCI"}, \code{"FLCI"}}
-
-\item{y}{outcome vector with length \code{n}}
-
-\item{d}{Vector of treatment indicators with length \code{n}}
+\item{opt.criterion}{One of \code{"RMSE"} (root mean squared error),
+\code{"OCI"} (one-sided confidence intervals), \code{"FLCI"}
+(fixed-length two-sided confidence intervals)}
 }
 \description{
-build optimal estimator given a solution path
+Computes the estimator and confidence intervals (CIs) for the CATT. The tuning parameter is chosen to optimize \code{opt.criterion} criterion.
+}
+\examples{
+Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
+D0 <- distMat(NSWexper[, 2:10], Ahalf, method="manhattan", NSWexper$treated)
+## Distance matrix for variance estimation
+DM <- distMat(NSWexper[, 2:10], Ahalf, method="manhattan")
+sigma2 <- nnvar(DM, NSWexper$treated, NSWexper$re78, J=3)
+## Compute homotopy/solution path, and the class of optimal estimators based
+## on the solution path
+op <- ATTOptPath(ATTh(D0, maxiter=200)$res, NSWexper$re78, NSWexper$treated)
+ATTOptEstimate(op, mean(sigma2), C=1, sigma2final=sigma2, opt.criterion="RMSE")
+ATTOptEstimate(op, mean(sigma2), C=1, sigma2final=sigma2, opt.criterion="FLCI")
 }
