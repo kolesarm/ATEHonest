@@ -202,8 +202,8 @@ ATTstep <- function(s, tol=.Machine$double.eps*n0*n1) {
 #' ## Get last, fourth step
 #' ATTh(D0, s=r$s, maxiter=3)
 #'
-#' @references \cite{Armstrong, T. B., and M. Kolesár (2018): Finite-Sample Optimal
-#'     Estimation and Inference on Average Treatment Effects Under
+#' @references \cite{Armstrong, T. B., and M. Kolesár (2018): Finite-Sample
+#'     Optimal Estimation and Inference on Average Treatment Effects Under
 #'     Unconfoundedness, Unpublished manuscript}
 #' @export
 ATTh <- function(D0, s, maxiter=50, check=FALSE,

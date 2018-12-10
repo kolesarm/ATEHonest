@@ -10,9 +10,8 @@ ATTOptEstimate(op, sigma2, C = 1, sigma2final = sigma2, alpha = 0.05,
 \arguments{
 \item{op}{Output of \code{ATTOptPath}.}
 
-\item{sigma2}{vector of variance estimates with length \code{n}. If
-\code{sigma2} is a scalar, it is assumed that the variance is
-homoskedastic.}
+\item{sigma2}{Estimate of the conditional varance of the outcome, used to
+optimize the tuning parameter.}
 
 \item{C}{Lipschitz smoothness constant}
 
@@ -30,7 +29,8 @@ performance of one-sided CIs.}
 (fixed-length two-sided confidence intervals)}
 }
 \description{
-Computes the estimator and confidence intervals (CIs) for the CATT. The tuning parameter is chosen to optimize \code{opt.criterion} criterion.
+Computes the estimator and confidence intervals (CIs) for the CATT. The
+tuning parameter is chosen to optimize \code{opt.criterion} criterion.
 }
 \examples{
 Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))

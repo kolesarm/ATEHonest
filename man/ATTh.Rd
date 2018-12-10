@@ -67,7 +67,7 @@ ATTh(D0, s=r$s, maxiter=3)
 
 }
 \references{
-\cite{Armstrong, T. B., and M. Kolesár (2018): Finite-Sample Optimal
-    Estimation and Inference on Average Treatment Effects Under
+\cite{Armstrong, T. B., and M. Kolesár (2018): Finite-Sample
+    Optimal Estimation and Inference on Average Treatment Effects Under
     Unconfoundedness, Unpublished manuscript}
 }

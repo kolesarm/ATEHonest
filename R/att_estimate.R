@@ -43,11 +43,11 @@ UpdatePath <- function(ep, resw, Cratio, sigma2, alpha=0.05, beta=0.8) {
 #' @template data
 #' @param tol numerical tolerance for determining nearest neighbors in
 #'     constructing matches
-#' @export
 #' @examples
 #' Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
 #' D0 <- distMat(NSWexper[, 2:10], Ahalf, method="manhattan", NSWexper$treated)
 #' ATTMatchPath(NSWexper$re78, NSWexper$treated, D0, M=c(1, 2), tol=1e-12)
+#' @export
 ATTMatchPath <- function(y, d, D0, M=1:25, tol=1e-12) {
     n1 <- nrow(D0)
     maxbias <- vector(length=length(M))
@@ -73,9 +73,8 @@ ATTMatchPath <- function(y, d, D0, M=1:25, tol=1e-12) {
 #' @param alpha Level of confidence interval, \code{1-alpha}.
 #' @param beta The quantile \code{beta} of excecss length for determining
 #'     performance of one-sided CIs.
-#' @param sigma2 vector of variance estimates with length \code{n}. If
-#'     \code{sigma2} is a scalar, it is assumed that the variance is
-#'     homoskedastic.
+#' @param sigma2 Estimate of the conditional varance of the outcome, used to
+#'     optimize the tuning parameter.
 #' @param C Lipschitz smoothness constant
 #' @param sigma2final vector of variance estimates with length{n} for
 #'     determining standard error of the optimal estimators. In contrast,
@@ -83,7 +82,6 @@ ATTMatchPath <- function(y, d, D0, M=1:25, tol=1e-12) {
 #' @param opt.criterion One of \code{"RMSE"} (root mean squared error),
 #'     \code{"OCI"} (one-sided confidence intervals), \code{"FLCI"}
 #'     (fixed-length two-sided confidence intervals)
-#' @export
 #' @examples
 #' Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
 #' D0 <- distMat(NSWexper[, 2:10], Ahalf, method="manhattan", NSWexper$treated)
@@ -93,6 +91,7 @@ ATTMatchPath <- function(y, d, D0, M=1:25, tol=1e-12) {
 #' sigma2 <- nnvar(DM, NSWexper$treated, NSWexper$re78, J=3)
 #' ## Estimator and CI based on a single match
 #' ATTMatchEstimate(mp, mean(sigma2), C=1, sigma2final=sigma2)
+#' @export
 ATTMatchEstimate <- function(mp, sigma2, C=1, sigma2final=sigma2, alpha=0.05,
                              beta=0.8, opt.criterion="RMSE") {
     ## Update estimate path with new value of C
@@ -187,10 +186,10 @@ ATTOptPath <- function(res, y, d) {
 
 #' Optimal estimation and inference for the CATT
 #'
-#' Computes the estimator and confidence intervals (CIs) for the CATT. The tuning parameter is chosen to optimize \code{opt.criterion} criterion.
+#' Computes the estimator and confidence intervals (CIs) for the CATT. The
+#' tuning parameter is chosen to optimize \code{opt.criterion} criterion.
 #' @param op Output of \code{ATTOptPath}.
 #' @inheritParams ATTMatchEstimate
-#' @export
 #' @examples
 #' Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
 #' D0 <- distMat(NSWexper[, 2:10], Ahalf, method="manhattan", NSWexper$treated)
@@ -202,6 +201,7 @@ ATTOptPath <- function(res, y, d) {
 #' op <- ATTOptPath(ATTh(D0, maxiter=200)$res, NSWexper$re78, NSWexper$treated)
 #' ATTOptEstimate(op, mean(sigma2), C=1, sigma2final=sigma2, opt.criterion="RMSE")
 #' ATTOptEstimate(op, mean(sigma2), C=1, sigma2final=sigma2, opt.criterion="FLCI")
+#' @export
 ATTOptEstimate <- function(op, sigma2, C=1, sigma2final=sigma2, alpha=0.05,
                            beta=0.8, opt.criterion="RMSE") {
     ## Drop delta=0, back out weights
@@ -209,6 +209,11 @@ ATTOptEstimate <- function(op, sigma2, C=1, sigma2final=sigma2, alpha=0.05,
     res <- op$res[keep, , drop=FALSE]
     ep <- UpdatePath(op$ep[keep, ], op$resw[keep, , drop=FALSE],
                      C, sigma2, alpha, beta)
+    ## update delta
+    if (length(sigma2)>1)
+        warning(paste("The solution path is assuming homoskedastic variance,",
+                      "but supplied sigma2 implies it's not homoskedastic"))
+    ep$delta <- res[, 1] <- ep$delta/sqrt(mean(sigma2))
 
     up <- function(res) {
         r <- ATTOptPath(res, op$y, op$d)
@@ -297,4 +302,93 @@ print.ATTEstimate <- function(x, digits = getOption("digits"), ...) {
     print(knitr::kable(r))
     cat("\n")
     invisible(x)
+}
+
+
+#' Efficiency bounds for confidence intervals
+#'
+#' Computes the asymptotic efficiency of two-sided fixed-length confidence
+#' intervals at smooth functions, as well as the efficiency of one-sided
+#' confidence intervals that optimize a given \code{beta} quantile of excess
+#' length, using the formula descibed in Appendix A of Armstrong and Kolesár
+#' (2018)
+#' @inheritParams ATTMatchEstimate
+#' @param res The \code{res} element of the output of \code{ATTh}.
+#' @param d Vector of treatment indicators with length \code{n}
+#' @references \cite{Armstrong, T. B., and M. Kolesár (2018): Finite-Sample
+#'     Optimal Estimation and Inference on Average Treatment Effects Under
+#'     Unconfoundedness, Unpublished manuscript}
+#' @export
+ATTEffBounds <- function(res, d, sigma2, C=1, beta=0.8, alpha=0.05) {
+    if (length(sigma2)>1)
+        warning(paste("The solution path is assuming homoskedastic variance,",
+                      "but supplied sigma2 implies it's not homoskedastic"))
+
+    n <- ncol(res)-3
+    n1 <- sum(d)
+    n0 <- n-n1
+    ## normalize delta by standard deviation:
+    del0 <- res[, "delta"]
+    mu0 <- res[, "mu"]
+    m0 <- res[, 2:(n0+1), drop=FALSE]
+    r0 <- res[, (n0+2):(n+1), drop=FALSE]
+
+    ## Modulus when sigma2=1 and C=1
+    mod11 <- function(del) {
+        idx <- which.max(del0>=del)
+        if (idx==1 || del==del0[idx])
+            return(list(omega=2*(mu0[idx]+mean(r0[idx, ])),
+                        domega=0.5*del/(n1 * mu0[idx])))
+
+        fn <- function(w)
+            2*sqrt((n1*((1-w)*mu0[idx-1]+w*mu0[idx])^2 +
+                   sum(((1-w)*m0[idx-1, ]+w*m0[idx, ])^2)))-del
+
+        w <- stats::uniroot(fn, interval=c(0, 1))$root
+        list(omega=2*((1-w)*mu0[idx-1]+w*mu0[idx] +
+                   mean((1-w)*r0[idx-1, ]+w*r0[idx, ])),
+             domega=0.5*del/(n1 * ((1-w)*mu0[idx-1]+w*mu0[idx]) ))
+    }
+
+    ## One-sided
+    zal <- stats::qnorm(1-alpha)
+    ## Rescaling to modulus(C, sigma)
+    sig <- sqrt(mean(sigma2)) / C
+    d0 <- (zal + stats::qnorm(beta)) * sig
+    if (2*d0>max(del0)) {
+        warning("Path too short to compute one-sided efficiency")
+        eff1 <- NaN
+    } else
+        eff1 <- mod11(2*d0)$omega/sum(unlist(mod11(d0))*c(1, d0))
+
+
+    integrand <- function(z)
+        sapply(z, function(z)
+            mod11(2*(zal-z) * sig)$omega * stats::dnorm(z))
+    ## Maximum integrable point
+    lbar <- zal-max(del0)/(2*sig)
+
+    if (integrand(lbar)>1e-8) {
+        warning("Path too short to compute two-sided efficiency")
+        num <- den <- NaN
+    } else {
+        lo <- -zal                          # lower endpoint
+        while(integrand(lo)>1e-8) lo <- max(lo-2, lbar)
+        num <- stats::integrate(integrand, lo, zal, abs.tol=1e-6)$value
+
+
+
+        len <- function(del) {
+            if (del==0)
+                return(Inf)
+            m <- mod11(del*sig)
+            2*sig*cv((m$omega/(m$domega*sig)-del)/2, alpha)*m$domega
+        }
+        den <- stats::optimize(len, interval=c(1e-6, max(del0/sig)))$objective
+        ## den <- 2*ATTOptEstimate(ATTOptPath(res, d, d), mean(sigma2), C=C,
+        ##                     sigma2final=mean(sigma2), alpha,
+        ##                     opt.criterion="FLCI")$e$hl
+
+    }
+    list(onesided=eff1, twosided=num/den)
 }

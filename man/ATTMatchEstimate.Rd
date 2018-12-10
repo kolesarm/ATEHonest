@@ -10,9 +10,8 @@ ATTMatchEstimate(mp, sigma2, C = 1, sigma2final = sigma2,
 \arguments{
 \item{mp}{Output of \code{ATTMatchPath}}
 
-\item{sigma2}{vector of variance estimates with length \code{n}. If
-\code{sigma2} is a scalar, it is assumed that the variance is
-homoskedastic.}
+\item{sigma2}{Estimate of the conditional varance of the outcome, used to
+optimize the tuning parameter.}
 
 \item{C}{Lipschitz smoothness constant}
 
