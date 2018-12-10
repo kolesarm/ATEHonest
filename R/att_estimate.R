@@ -280,12 +280,20 @@ print.ATTEstimate <- function(x, digits = getOption("digits"), ...) {
 
     fmt <- function(x) format(x, digits=digits, width=digits+1)
 
+
     r <- x$e[, c("att", "maxbias", "rsd", "rhl")]
     r <- cbind(r, l=r$att-r$rhl, u=r$att+r$rhl)
     r <- fmt(r)
     r$ci <- paste0("(", r$l, ", ",  r$u, ")")
     r$rhl <- r$l <- r$u <- NULL
+
     names(r) <- c("Estimate", "Max. bias", "SE", "CI")
+
+    if ("M" %in% names(x$e))
+        r$M <- c("M"=x$e$M)
+    else
+        r$delta <- c("delta"=x$e$delta)
+
     print(knitr::kable(r))
     cat("\n")
     invisible(x)

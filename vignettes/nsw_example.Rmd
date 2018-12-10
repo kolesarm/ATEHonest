@@ -1,17 +1,25 @@
 ---
-title: "Honest CIs: NSW example"
-author: "Michal Kolesár"
-date: "`r Sys.Date()`"
 output:
   pdf_document:
-    toc: false
-    toc_depth: 2
+    citation_package: natbib
+    latex_engine: pdflatex
+    template: mk_Rpackage_template.tex
+    toc: true
+    toc_depth: 1
+    includes:
+        in_header: vignette_head.tex
+title: "Honest CIs for Average Treatment Effects: NSW Example"
+author: "Michal Kolesár"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+geometry: margin=1in
+fontfamily: mathpazo
+fontsize: 11pt
+bibliography: ate-library.bib
 vignette: >
-  %\VignetteIndexEntry{Inference for Average Treatment Effects}
+  %\VignetteIndexEntry{Sensitivity analysis in GMM}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
-
 
 ```{r, include=FALSE, cache=FALSE}
 library("knitr")
@@ -20,24 +28,61 @@ knitr::opts_chunk$set(tidy = TRUE, collapse=TRUE, comment = "#>",
                       tidy.opts=list(blank=FALSE, width.cutoff=55))
 ```
 
-The package `ATEHonest` implements honest inference for estimating average
-treatment effects under unconfoundedness. Here we illustrate the use of the
-package using NSW data.
+The package `ATEHonest` implements honest confidence intervals and estimators
+for estimating average treatment effects under unconfoundedness from @ak17ate.
+Here we illustrate the use of the package using NSW data from @dw99.
 
+The data is shipped with the package, as two data frames, `NSW` (where the
+treated units are from the experimental sample and control units are from PSID),
+and `NSWexper`, where both treated and control units are from the experimental
+sample. We'll use the experimental sample here.
 
-The data is shipped with the package, as a data frame called `NSW`. First we
-extract the design matrix, and the treatment and outcome vectors:
+First we extract the design matrix, and the treatment and outcome vectors, and
+we construct a nearest neighbor estimate of the variance of the regression
+errors using Mahalanobis distance:
 
 ```{r}
 library("ATEHonest")
-X <- as.matrix(NSW[, 2:10])
-## weight matrix
-Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
-d <- NSW$treated
-y <- NSW$re78
+X <- as.matrix(NSWexper[, 2:10])
+d <- NSWexper$treated
+y <- NSWexper$re78
+DMvar <- distMat(X, chol(solve(cov(X))), method="euclidean")
+sigma2 <- nnvar(DMvar, d, y, J=3)
+```
 
-## Compute matrix of distances between treated and control units
+Next, we compute matrix of distances between treated and control units, using
+the same weight matrix to compute distances as in @ak17ate:
+```{r}
+Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
 D0 <- distMat(X, Ahalf, method="manhattan", d)
 ```
 
-TODO: finish
+We now compute the first couple of hundred steps of the solution path. 200 will
+be sufficient for computing the optimal estimator. Given the solution path, we
+then compute the root mean squared error optimal esitmator, as well as estimator
+that's optimal for constructing tow-sided CIs:
+
+```{r}
+op <- ATTOptPath(ATTh(D0, maxiter=200)$res, y, d)
+ATTOptEstimate(op, mean(sigma2), C=1, sigma2final=sigma2, opt.criterion="RMSE")
+ATTOptEstimate(op, mean(sigma2), C=1, sigma2final=sigma2, opt.criterion="FLCI")
+```
+
+For comparison, we also consider matching estimators. First, a matching
+estimator with a single match:
+
+```{r}
+ATTMatchEstimate(ATTMatchPath(y, d, D0, M=1, tol=1e-12), mean(sigma2), C=1, sigma2final=sigma2)
+```
+
+Next, we optimize the number of matches. For that we first compute the matching
+estimator for a vector of matches `M`, and then optimize the number of matches
+using `ATTMatchEstmate`:
+
+```{r}
+mp <- ATTMatchPath(y, d, D0, M=1:10, tol=1e-12)
+ATTMatchEstimate(mp, mean(sigma2), C=1, sigma2final=sigma2, opt.criterion="FLCI")
+
+ATTMatchEstimate(mp, mean(sigma2), C=1, sigma2final=sigma2, opt.criterion="RMSE")
+```
+We can see that a single match is in fact optimal for both estimation and construction of two-sided CIs.
