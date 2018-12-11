@@ -385,10 +385,6 @@ ATTEffBounds <- function(res, d, sigma2, C=1, beta=0.8, alpha=0.05) {
             2*sig*cv((m$omega/(m$domega*sig)-del)/2, alpha)*m$domega
         }
         den <- stats::optimize(len, interval=c(1e-6, max(del0/sig)))$objective
-        ## den <- 2*ATTOptEstimate(ATTOptPath(res, d, d), mean(sigma2), C=C,
-        ##                     sigma2final=mean(sigma2), alpha,
-        ##                     opt.criterion="FLCI")$e$hl
-
     }
     list(onesided=eff1, twosided=num/den)
 }

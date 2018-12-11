@@ -1,6 +1,6 @@
 Package: ATEHonest
 Title: Honest inference for treatment effects under unconfoudedness
-Version: 0.0.2
+Version: 0.1.0
 Authors@R: 'Michal Kolesar <kolesarmi@googlemail.com> [aut, cre]'
 Description: Constructs matching estimators, and optimal linear estimators, as
     well as confidence intervals for conditional average treatment effects under
