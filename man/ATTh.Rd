@@ -9,8 +9,8 @@ ATTh(D0, s, maxiter = 50, check = FALSE, tol = .Machine$double.eps *
 }
 \arguments{
 \item{D0}{matrix of distances with dimension \code{[n1 n0]} between untreated
-and treated units, where \code{n0} is number of untreated units and
-\code{n1} is number of treated units}
+and treated units, where \code{n0} is the number of untreated units and
+\code{n1} is the number of treated units}
 
 \item{s}{Set of state variables at which to start the homotopy. If not
     provided, the homotopy is started at the beginning. The state variables
@@ -54,7 +54,7 @@ A list with two elements:
 \description{
 Calculates optimal weights \eqn{m} and \eqn{r} for the control and treated
 observations as a function of \eqn{\delta}, or equivalently \eqn{mu}, using
-the algorithm describe inthe appendix to Armstrong and Kolesár (2018)
+the algorithm describe in the appendix to Armstrong and Kolesár (2018)
 }
 \examples{
 x0 <- c(0, 1, 2, 3)

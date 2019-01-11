@@ -29,7 +29,7 @@ test_that("Solution path for ATT in small examples", {
                  1.181192580509525))
 
     tt <- list()
-    for (j in 1:length(x0)) {
+    for (j in seq_along(x0)) {
         d <- dd(x0[[j]], x1[[j]])
         D0 <- distMat(c(x0[[j]], x1[[j]]), d=d)
         ## if (j != 4) {

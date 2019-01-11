@@ -12,8 +12,8 @@ ATTMatchPath(y, d, D0, M = 1:25, tol = 1e-12)
 \item{d}{Vector of treatment indicators with length \code{n}}
 
 \item{D0}{matrix of distances with dimension \code{[n1 n0]} between untreated
-and treated units, where \code{n0} is number of untreated units and
-\code{n1} is number of treated units}
+and treated units, where \code{n0} is the number of untreated units and
+\code{n1} is the number of treated units}
 
 \item{M}{a vector determining the number of matches. If \code{Inf}, then use
 the simple difference in means estimator.}

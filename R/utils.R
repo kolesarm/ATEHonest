@@ -62,7 +62,7 @@ distMat <- function(X, Ahalf=diag(NCOL(X)),
              else if (method=="minkowski") p
              else if (method=="maximum") Inf
              else stop("Method '", method, "' not yet implemented for large X")
-        for (i in 1:nrow(X)) {
+        for (i in seq_len(nrow(X))) {
             Dm[i, ] <- if (p != Inf)
                            colSums(abs(X[i, ] - t(X))^p)^(1/p)
                        else
@@ -81,7 +81,7 @@ distMat <- function(X, Ahalf=diag(NCOL(X)),
 #' Nearest-neighbor variance estimator
 #'
 #' Calculates an \code{n}-vector sigma2 of estimates of the variance of \code{y}
-#' using a nearest-neighbor esitmator among observations with the same treatment
+#' using a nearest-neighbor estimator among observations with the same treatment
 #' status \code{d}.
 #' @param DM distance matrix with dimension \code{[n n]}.
 #' @template data
@@ -92,7 +92,7 @@ distMat <- function(X, Ahalf=diag(NCOL(X)),
 nnvar <- function(DM, d, y, J=3, tol=0) {
     ehat2 <- vector(length=length(d))
 
-    for (i in 1:nrow(DM)) {
+    for (i in seq_len(nrow(DM))) {
         ## distance from i to other people with same treatment, including
         ## oneself
         di <- sort(DM[i, d==d[i]])[J+1]

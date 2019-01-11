@@ -20,6 +20,6 @@ constructing matches}
 }
 \description{
 Calculates an \code{n}-vector sigma2 of estimates of the variance of \code{y}
-using a nearest-neighbor esitmator among observations with the same treatment
+using a nearest-neighbor estimator among observations with the same treatment
 status \code{d}.
 }

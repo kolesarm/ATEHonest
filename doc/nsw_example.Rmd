@@ -59,7 +59,7 @@ D0 <- distMat(X, Ahalf, method="manhattan", d)
 
 We now compute the first couple of hundred steps of the solution path. 200 will
 be sufficient for computing the optimal estimator. Given the solution path, we
-then compute the root mean squared error optimal esitmator, as well as estimator
+then compute the root mean squared error optimal estimator, as well as estimator
 that's optimal for constructing tow-sided CIs:
 
 ```{r}

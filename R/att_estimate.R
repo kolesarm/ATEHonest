@@ -6,7 +6,7 @@ ATTMatchW <- function(D0, M, tol) {
     if (M==Inf)
         return(-(w0+1)/n0)
 
-    for (i in 1:nrow(D0)) {
+    for (i in seq_len(nrow(D0))) {
         ## Find NN of i, within tolerance
         idx <- D0[i, ] <= sort(D0[i, ])[M]+tol
         w0[idx] <- w0[idx] + 1/sum(idx)
@@ -68,12 +68,12 @@ ATTMatchPath <- function(y, d, D0, M=1:25, tol=1e-12) {
 #' Computes matching estimator and confidence intervals (CIs) for the CATT. If
 #' \code{ATTMatchPath} used a single \code{M}, the estimator and CIs are based
 #' on a matching estimator with this number of matches. Otherwise, optimize the
-#' numer of matches from the set in \code{M} according to \code{opt.criterion}.
+#' number of matches from the set in \code{M} according to \code{opt.criterion}.
 #' @param mp Output of \code{ATTMatchPath}
 #' @param alpha Level of confidence interval, \code{1-alpha}.
-#' @param beta The quantile \code{beta} of excecss length for determining
+#' @param beta The quantile \code{beta} of excess length for determining
 #'     performance of one-sided CIs.
-#' @param sigma2 Estimate of the conditional varance of the outcome, used to
+#' @param sigma2 Estimate of the conditional variance of the outcome, used to
 #'     optimize the tuning parameter.
 #' @param C Lipschitz smoothness constant
 #' @param sigma2final vector of variance estimates with length{n} for
@@ -137,7 +137,7 @@ ATTbias <- function(w, D0) {
     f.rhs <- as.vector(D0)
     f.dir <- rep("<=", length(f.rhs))
     ## Constraint number, column number, value
-    f.con <- cbind(rep(1:length(f.rhs), each=2),
+    f.con <- cbind(rep(seq_along(f.rhs), each=2),
                    as.vector(t(expand.grid((n0+1):(n0+n1), 1:n0))),
                    rep(c(1, -1), length(f.rhs)))
 
@@ -310,7 +310,7 @@ print.ATTEstimate <- function(x, digits = getOption("digits"), ...) {
 #' Computes the asymptotic efficiency of two-sided fixed-length confidence
 #' intervals at smooth functions, as well as the efficiency of one-sided
 #' confidence intervals that optimize a given \code{beta} quantile of excess
-#' length, using the formula descibed in Appendix A of Armstrong and Kolesár
+#' length, using the formula described in Appendix A of Armstrong and Kolesár
 #' (2018)
 #' @inheritParams ATTMatchEstimate
 #' @param res The \code{res} element of the output of \code{ATTh}.
@@ -363,8 +363,8 @@ ATTEffBounds <- function(res, d, sigma2, C=1, beta=0.8, alpha=0.05) {
 
 
     integrand <- function(z)
-        sapply(z, function(z)
-            mod11(2*(zal-z) * sig)$omega * stats::dnorm(z))
+        vapply(z, function(z)
+            mod11(2*(zal-z) * sig)$omega * stats::dnorm(z), numeric(1))
     ## Maximum integrable point
     lbar <- zal-max(del0)/(2*sig)
 

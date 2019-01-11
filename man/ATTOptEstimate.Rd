@@ -10,7 +10,7 @@ ATTOptEstimate(op, sigma2, C = 1, sigma2final = sigma2, alpha = 0.05,
 \arguments{
 \item{op}{Output of \code{ATTOptPath}.}
 
-\item{sigma2}{Estimate of the conditional varance of the outcome, used to
+\item{sigma2}{Estimate of the conditional variance of the outcome, used to
 optimize the tuning parameter.}
 
 \item{C}{Lipschitz smoothness constant}
@@ -21,7 +21,7 @@ determining standard error of the optimal estimators. In contrast,
 
 \item{alpha}{Level of confidence interval, \code{1-alpha}.}
 
-\item{beta}{The quantile \code{beta} of excecss length for determining
+\item{beta}{The quantile \code{beta} of excess length for determining
 performance of one-sided CIs.}
 
 \item{opt.criterion}{One of \code{"RMSE"} (root mean squared error),

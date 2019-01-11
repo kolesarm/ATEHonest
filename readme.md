@@ -1,3 +1,5 @@
+[![Travis build status](https://travis-ci.org/kolesarm/ATEHonest.svg?branch=master)](https://travis-ci.org/kolesarm/ATEHonest)
+
 # ATEHonest
 
 Estimators and confidence intervals for average treatment effects under unconfoundedness using procedures from [Armstrong and Kolesár

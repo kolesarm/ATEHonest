@@ -10,7 +10,7 @@ ATTMatchEstimate(mp, sigma2, C = 1, sigma2final = sigma2,
 \arguments{
 \item{mp}{Output of \code{ATTMatchPath}}
 
-\item{sigma2}{Estimate of the conditional varance of the outcome, used to
+\item{sigma2}{Estimate of the conditional variance of the outcome, used to
 optimize the tuning parameter.}
 
 \item{C}{Lipschitz smoothness constant}
@@ -21,7 +21,7 @@ determining standard error of the optimal estimators. In contrast,
 
 \item{alpha}{Level of confidence interval, \code{1-alpha}.}
 
-\item{beta}{The quantile \code{beta} of excecss length for determining
+\item{beta}{The quantile \code{beta} of excess length for determining
 performance of one-sided CIs.}
 
 \item{opt.criterion}{One of \code{"RMSE"} (root mean squared error),
@@ -32,7 +32,7 @@ performance of one-sided CIs.}
 Computes matching estimator and confidence intervals (CIs) for the CATT. If
 \code{ATTMatchPath} used a single \code{M}, the estimator and CIs are based
 on a matching estimator with this number of matches. Otherwise, optimize the
-numer of matches from the set in \code{M} according to \code{opt.criterion}.
+number of matches from the set in \code{M} according to \code{opt.criterion}.
 }
 \examples{
 Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))

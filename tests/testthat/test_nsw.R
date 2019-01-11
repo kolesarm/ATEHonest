@@ -102,8 +102,8 @@ test_that("Alternative way of computing modulus efficiency", {
         sig <- sqrt(mean(sigma2)) / C
 
         integrand <- function(z)
-            sapply(z, function(z)
-                mod11(2*(zal-z) * sig)$omega * stats::dnorm(z))
+            vapply(z, function(z)
+                mod11(2*(zal-z) * sig)$omega * stats::dnorm(z), numeric(1))
         ## Maximum integrable point
         lbar <- zal-max(del0)/(2*sig)
 

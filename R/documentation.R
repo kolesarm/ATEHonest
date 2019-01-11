@@ -30,7 +30,7 @@
 #' Experimental dataset from Dehejia and Wahba (1999)
 #'
 #' National Supported Work data from Dehejia and Wahba (1999).
-#' @format A data frame with 445 observations (185 treated anbd 260 controls)
+#' @format A data frame with 445 observations (185 treated and 260 controls)
 #'     and 11 variables.
 #'
 #' \describe{

@@ -12,8 +12,8 @@ ATTcheck(m, r, mu, D0)
 \item{r}{values for treated observations}
 
 \item{D0}{matrix of distances with dimension \code{[n1 n0]} between untreated
-and treated units, where \code{n0} is number of untreated units and
-\code{n1} is number of treated units}
+and treated units, where \code{n0} is the number of untreated units and
+\code{n1} is the number of treated units}
 }
 \description{
 Check solution validity using CVX

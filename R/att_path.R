@@ -158,7 +158,7 @@ ATTstep <- function(s, tol=.Machine$double.eps*n0*n1) {
 #'
 #' Calculates optimal weights \eqn{m} and \eqn{r} for the control and treated
 #' observations as a function of \eqn{\delta}, or equivalently \eqn{mu}, using
-#' the algorithm describe inthe appendix to Armstrong and Kolesár (2018)
+#' the algorithm described in the appendix to Armstrong and Kolesár (2018)
 #' @template D0
 #' @param maxiter maximum number of steps in the homotopy. If the homotopy has
 #'     less steps than \code{maxiter}, returns the whole solution path.
@@ -228,7 +228,7 @@ ATTh <- function(D0, s, maxiter=50, check=FALSE,
 
     stopme <- FALSE
     while (sum(s$m0^2)<Inf && nrow(res) <= maxiter && stopme!=TRUE) {
-        stopme <- tryCatch( {
+        stopme <- tryCatch({
             s <- ATTstep(s, tol)
             res <- rbind(res, c(2*sqrt(n1*s$mu^2 + sum(s$m0^2)),
                                 s$m0, s$r0, s$mu,
