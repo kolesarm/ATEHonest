@@ -202,6 +202,13 @@ ATTstep <- function(s, tol=.Machine$double.eps*n0*n1) {
 #' ## Get last, fourth step
 #' ATTh(D0, s=r$s, maxiter=3)
 #'
+#' x0 <- c(1,  1,  3,  3,  4,  6, 17, 17, 21, 22, 23, 23, 26, 30, 36, 37, 47, 53,
+#'         58, 61)
+#' x1 <- c(9, 15, 26, 27, 28, 31, 32, 40, 51, 52, 56)
+#' d <- c(rep(FALSE, length(x0)), rep(TRUE, length(x1)))
+#' ## Check against cvx
+#' D0 <- distMat(c(x0, x1), d=d)$res
+#'
 #' @references \cite{Armstrong, T. B., and M. Kolesár (2018): Finite-Sample
 #'     Optimal Estimation and Inference on Average Treatment Effects Under
 #'     Unconfoundedness, Unpublished manuscript}
