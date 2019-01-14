@@ -3,7 +3,7 @@
 # ATEHonest
 
 Estimators and confidence intervals for average treatment effects under unconfoundedness using procedures from [Armstrong and Kolesár
-(2017)](https://arxiv.org/abs/1712.04594).
+(2018)](https://arxiv.org/abs/1712.04594).
 
 See vignette `nsw_example.pdf` (stored under `doc/`) for description of
 the package.

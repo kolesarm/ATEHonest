@@ -53,7 +53,7 @@ A list with two elements:
 }
 \description{
 Calculates optimal weights \eqn{m} and \eqn{r} for the control and treated
-observations as a function of \eqn{\delta}, or equivalently \eqn{mu}, using
+observations as a function of \eqn{\delta}, or equivalently \eqn{\mu}, using
 the algorithm described in the appendix to Armstrong and Kolesár (2018)
 }
 \examples{

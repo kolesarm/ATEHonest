@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{cv}
 \alias{cv}
-\title{Critical values for CIs around a biased Gaussian estimator.}
+\title{Critical values for CIs based on a biased Gaussian estimator.}
 \usage{
 cv(B, alpha = 0.05)
 }
@@ -16,10 +16,10 @@ cv(B, alpha = 0.05)
 Critical value
 }
 \description{
-Computes the critical value \eqn{cv_{1-alpha}(B)} that is needed to make the
-confidence interval \eqn{X\pm cv_{1-alpha}(B)} have coverage \eqn{1-alpha} if
-\eqn{X} is normally distributed with variance one and maximum bias at most
-\eqn{B}.
+Computes the critical value \eqn{cv_{1-\alpha}(B)} such that the confidence
+interval \eqn{X\pm cv_{1-\alpha}(B)} will have coverage \eqn{1-\alpha}, where
+\eqn{X} is Normally distributed with variance equal to \eqn{1} and maximum
+bias at most \eqn{B}.
 }
 \examples{
 # 90\% critical value:

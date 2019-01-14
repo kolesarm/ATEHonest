@@ -138,7 +138,7 @@ ATTbias <- function(w, D0) {
                    as.vector(t(expand.grid((n0+1):(n0+n1), 1:n0))),
                    rep(c(1, -1), length(f.rhs)))
 
-    r <- lpSolve::lp("max", f.obj, , f.dir, f.rhs, dense.const=f.con)
+    r <- lpSolve::lp("max", f.obj, , f.dir, f.rhs, dense.const=f.con) #nolint
     r$objval
 }
 
@@ -202,8 +202,8 @@ ATTOptEstimate <- function(op, sigma2, C=1, sigma2final=sigma2, alpha=0.05,
                            beta=0.8, opt.criterion="RMSE") {
     ## Drop delta=0, back out weights
     keep <- op$ep$delta > 0
-    res <- op$res[keep, , drop=FALSE]
-    ep <- UpdatePath(op$ep[keep, ], op$resw[keep, , drop=FALSE],
+    res <- op$res[keep, , drop=FALSE] # nolint
+    ep <- UpdatePath(op$ep[keep, ], op$resw[keep, , drop=FALSE], # nolint
                      C, sigma2, alpha, beta)
     ## update delta
     if (length(sigma2)>1)
@@ -239,7 +239,7 @@ ATTOptEstimate <- function(op, sigma2, C=1, sigma2final=sigma2, alpha=0.05,
 
     if (ip<=nrow(res)) {
         f1 <- function(w)
-            up((1-w)*res[i, , drop=FALSE]+w*res[i+1, , drop=FALSE])[[idx]]
+            up((1-w)*res[i, , drop=FALSE]+w*res[i+1, , drop=FALSE])[[idx]] # nolint
         opt1 <- stats::optimize(f1, interval=c(0, 1))
     } else {
         opt1 <- list(minimum=0, objective=min(ep[[idx]]))
@@ -247,18 +247,18 @@ ATTOptEstimate <- function(op, sigma2, C=1, sigma2final=sigma2, alpha=0.05,
 
     if (i>1) {
         f0 <- function(w)
-            up((1-w)*res[i-1, , drop=FALSE]+w*res[i, , drop=FALSE])[[idx]]
+            up((1-w)*res[i-1, , drop=FALSE]+w*res[i, , drop=FALSE])[[idx]] # nolint
         opt0 <- stats::optimize(f0, interval=c(0, 1))
     } else {
         opt0 <- list(minimum=1, objective=min(ep[[idx]]))
     }
 
     if (opt1$objective < opt0$objective) {
-        resopt <- (1-opt1$minimum)*res[i, , drop=FALSE] +
-            opt1$minimum*res[min(i+1, nrow(res)), , drop=FALSE]
+        resopt <- (1-opt1$minimum)*res[i, , drop=FALSE] +  # nolint
+            opt1$minimum*res[min(i+1, nrow(res)), , drop=FALSE]  # nolint
     } else {
-        resopt <- (1-opt0$minimum)*res[max(i-1, 1), , drop=FALSE] +
-            opt0$minimum*res[i, , drop=FALSE]
+        resopt <- (1-opt0$minimum)*res[max(i-1, 1), , drop=FALSE] +  # nolint
+            opt0$minimum*res[i, , drop=FALSE]  # nolint
     }
     }
     r1 <- up(resopt)

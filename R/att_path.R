@@ -153,7 +153,7 @@ ATTstep <- function(s, tol=.Machine$double.eps*n0*n1) {
 #' Homotopy for average treatment effect for the treated
 #'
 #' Calculates optimal weights \eqn{m} and \eqn{r} for the control and treated
-#' observations as a function of \eqn{\delta}, or equivalently \eqn{mu}, using
+#' observations as a function of \eqn{\delta}, or equivalently \eqn{\mu}, using
 #' the algorithm described in the appendix to Armstrong and Kolesár (2018)
 #' @template D0
 #' @param maxiter maximum number of steps in the homotopy. If the homotopy has
@@ -232,7 +232,7 @@ ATTh <- function(D0, s, maxiter=50, check=FALSE,
             res <- rbind(res, c(2*sqrt(n1*s$mu^2 + sum(s$m0^2)),
                                 s$m0, s$r0, s$mu,
                                 s$drop))
-        }, error = function(e) {
+        }, error = function(e) { # nolint
             message(conditionMessage(e))
             cat("Stopping ATTh at step ", nrow(res), "\n")
             return(TRUE)

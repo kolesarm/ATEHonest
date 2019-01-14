@@ -119,3 +119,21 @@ test_that("Alternative way of computing modulus efficiency", {
     expect_equal(ATTEffBounds(res, d, sigma2, C=4)$twosided,
                  ATTEffBounds2(res, d, sigma2, C=4))
 })
+
+context("Matching estimator for ATT in NSWexper")
+test_that("Standard errors for matching estimator are correct", {
+    Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
+    D0 <- distMat(NSWexper[, 2:10], Ahalf, method="manhattan", NSWexper$treated)
+    mp <- ATTMatchPath(NSWexper$re78, NSWexper$treated, D0, M=2, tol=1e-12)
+    DM <- distMat(NSWexper[, 2:10], Ahalf, method="manhattan")
+    sigma2 <- nnvar(DM, NSWexper$treated, NSWexper$re78, J=3)
+    r <- ATTMatchEstimate(mp, mean(sigma2), C=1, sigma2final=sigma2)
+    expect_equal(c(r$e$sd, r$e$hl), c(0.692625208, 2.437109605))
+    o1 <- utils::capture.output(print(r, digits=6))
+    expect1 <- c("", "",
+                 "|Estimate |Max. bias |SE       |CI                   |  M|",
+                 "|:--------|:---------|:--------|:--------------------|--:|",
+                 "|1.92327  |1.29784   |0.709765 |(-0.542033, 4.38857) |  2|",
+                 "")
+    expect_equal(o1, expect1)
+})
