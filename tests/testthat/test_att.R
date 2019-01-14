@@ -34,6 +34,8 @@ test_that("Solution path for ATT in small examples", {
         D0 <- distMat(c(x0[[j]], x1[[j]]), d=d)
         if (j != 4)
             expect_silent(tt[[j]] <- ATTh(D0, check=TRUE)$res)
+        else
+            tt[[j]] <- ATTh(D0, check=TRUE)$res
         ## For j==4 the solution paths on xps and travis do not match officepc
         ## (where there is no message)
         ## expect_message(tt[[j]] <- ATTh(D0, check=TRUE)$res)
