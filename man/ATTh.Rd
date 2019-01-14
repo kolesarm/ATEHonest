@@ -54,7 +54,7 @@ A list with two elements:
 \description{
 Calculates optimal weights \eqn{m} and \eqn{r} for the control and treated
 observations as a function of \eqn{\delta}, or equivalently \eqn{mu}, using
-the algorithm describe in the appendix to Armstrong and Kolesár (2018)
+the algorithm described in the appendix to Armstrong and Kolesár (2018)
 }
 \examples{
 x0 <- c(0, 1, 2, 3)
@@ -64,6 +64,9 @@ D0 <- distMat(c(x0, x1), d)
 r <- ATTh(D0, maxiter=3)
 ## Get last, fourth step
 ATTh(D0, s=r$s, maxiter=3)
+
+## Check against cvx solution
+ATTh(D0, check=TRUE)$res
 
 }
 \references{

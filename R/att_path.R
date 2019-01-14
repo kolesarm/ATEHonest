@@ -1,8 +1,6 @@
-#' Check solution validity using CVX
-#' @param m values for untreated observations
-#' @param r values for treated observations
-#' @inheritParams ATTh
-#' @keywords internal
+## Check solution validity using CVX
+## @param m values for untreated observations
+## @param r values for treated observations
 ATTcheck <- function(m, r, mu, D0) {
     n <- nrow(D0) + ncol(D0)
 
@@ -40,11 +38,10 @@ ATTcheck <- function(m, r, mu, D0) {
     0
 }
 
-#' Find modulus using CVX
-#' @param delta2 square of delta for modulus
-#' @param D0 matrix of distances with dimension \code{[n1 n0]} between untreated
-#'     and treated units
-#' @keywords internal
+## Find modulus using CVX
+## @param delta2 square of delta for modulus
+## @param D0 matrix of distances with dimension \code{[n1 n0]} between untreated
+##     and treated units
 ATTbrute <- function(delta2, D0) {
     n1 <- nrow(D0)
     n0 <- ncol(D0)
@@ -63,10 +60,9 @@ ATTbrute <- function(delta2, D0) {
 }
 
 
-#' Calculate next step in ATT homotopy
-#' @param s list of state variables
-#' @return Updated list \code{s} of state variables
-#' @keywords internal
+## Calculate next step in ATT homotopy
+## @param s list of state variables
+## @return Updated list \code{s} of state variables
 ATTstep <- function(s, tol=.Machine$double.eps*n0*n1) {
     n0 <- ncol(s$D)
     n1 <- nrow(s$D)
@@ -202,12 +198,8 @@ ATTstep <- function(s, tol=.Machine$double.eps*n0*n1) {
 #' ## Get last, fourth step
 #' ATTh(D0, s=r$s, maxiter=3)
 #'
-#' x0 <- c(1,  1,  3,  3,  4,  6, 17, 17, 21, 22, 23, 23, 26, 30, 36, 37, 47, 53,
-#'         58, 61)
-#' x1 <- c(9, 15, 26, 27, 28, 31, 32, 40, 51, 52, 56)
-#' d <- c(rep(FALSE, length(x0)), rep(TRUE, length(x1)))
-#' ## Check against cvx
-#' D0 <- distMat(c(x0, x1), d=d)$res
+#' ## Check against cvx solution
+#' ATTh(D0, check=TRUE)$res
 #'
 #' @references \cite{Armstrong, T. B., and M. Kolesár (2018): Finite-Sample
 #'     Optimal Estimation and Inference on Average Treatment Effects Under

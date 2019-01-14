@@ -1,5 +1,4 @@
-#' Matching weights for untreated
-#' @keywords internal
+## Matching weights for untreated
 ATTMatchW <- function(D0, M, tol) {
     n0 <- ncol(D0)
     w0 <- rep(0, n0)
@@ -15,8 +14,7 @@ ATTMatchW <- function(D0, M, tol) {
 }
 
 
-#' update estimation path with new C or new variance
-#' @keywords internal
+## update estimation path with new C or new variance
 UpdatePath <- function(ep, resw, Cratio, sigma2, alpha=0.05, beta=0.8) {
     if (length(sigma2)==1) sigma2 <- rep(sigma2, ncol(resw))
     ep$maxbias <- Cratio*ep$maxbias
@@ -121,8 +119,7 @@ ATTMatchEstimate <- function(mp, sigma2, C=1, sigma2final=sigma2, alpha=0.05,
 }
 
 
-#' Compute worst-case bias
-#' @keywords internal
+## Compute worst-case bias
 ATTbias <- function(w, D0) {
     ## If w receives zero weight, we can drop it
     idx <- w != 0
@@ -146,8 +143,7 @@ ATTbias <- function(w, D0) {
 }
 
 
-#' Weights from solution path
-#' @keywords internal
+## Weights from solution path
 ATTOptW <- function(res, d) {
     n0 <- length(d)-sum(d)
     m <- res[, 2:(n0+1), drop=FALSE]

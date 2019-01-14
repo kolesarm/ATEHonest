@@ -1,7 +1,10 @@
 Package: ATEHonest
 Title: Honest inference for treatment effects under unconfoundedness
 Version: 0.1.0
-Authors@R: 'Michal Kolesar <kolesarmi@googlemail.com> [aut, cre]'
+Authors@R: person(given = "Michal",
+                  family = "Kolesár",
+                  role = c("aut", "cre"),
+                  email = "kolesarmi@googlemail.com")
 Description: Constructs matching estimators, and optimal linear estimators, as
     well as confidence intervals for conditional average treatment effects under
     unconfoundedness that are valid in finite samples under the assumption that
@@ -28,3 +31,5 @@ LazyData: true
 RoxygenNote: 6.1.1
 VignetteBuilder: knitr
 Language: en-US
+BugReports: https://github.com/kolesarm/ATEHonest/issues
+URL: https://github.com/kolesarm/ATEHonest

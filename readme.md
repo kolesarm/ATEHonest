@@ -1,4 +1,4 @@
-[![Travis build status](https://travis-ci.org/kolesarm/ATEHonest.svg?branch=master)](https://travis-ci.org/kolesarm/ATEHonest)
+[![Travis build status](https://travis-ci.org/kolesarm/ATEHonest.svg?branch=master)](https://travis-ci.org/kolesarm/ATEHonest) [![Coverage status](https://codecov.io/gh/kolesarm/ATEHonest/branch/master/graph/badge.svg)](https://codecov.io/github/kolesarm/ATEHonest?branch=master)
 
 # ATEHonest
 
@@ -21,3 +21,7 @@ using the function `install_github()` from the `devtools` package:
 install.packages("devtools") ## if devtools package not installed
 devtools::install_github("kolesarm/ATEHonest")
 ```
+
+Note: to install the `Rmpfr` package (a dependency of `CVXR` package that this
+  package uses), one needs the `libmpfr-dev` library. On Ubuntu/Debian, the
+  library can be installed by running `sudo apt-get install libmpfr-dev`
