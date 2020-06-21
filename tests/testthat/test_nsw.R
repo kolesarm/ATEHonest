@@ -24,10 +24,9 @@ expect_equal(attm(M=4, DMvar), c(1.42077963, 0.96131554))
 })
 
 
-context("Matching estimates ")
+context("Matching estimates")
 
 test_that("Check we match Abadie and Imbens (2011, JBES) estimates", {
-
     X <- as.matrix(NSWexper[, 2:10])
     d <- NSWexper$treated
     y <- NSWexper$re78
@@ -54,14 +53,13 @@ test_that("Check we match Abadie and Imbens (2011, JBES) estimates", {
 context("Efficiency calculations")
 
 test_that("Alternative way of computing modulus efficiency", {
-
     X <- as.matrix(NSWexper[, 2:10])
     d <- NSWexper$treated
     D0 <- distMat(X, diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1)),
                   method="manhattan", d)
     sigma2 <- 40
 
-    res <- ATTh(D0, maxiter=300)$res
+    res <- ATTh(D0, maxiter=200)$res
 
     eb <- ATTEffBounds(res, d, sigma2, C=1)
     expect_equal(eb$onesided, 0.991823078)

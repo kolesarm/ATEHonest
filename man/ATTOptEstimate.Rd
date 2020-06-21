@@ -47,7 +47,7 @@ DM <- distMat(NSWexper[, 2:10], Ahalf, method="manhattan")
 sigma2 <- nnvar(DM, NSWexper$treated, NSWexper$re78, J=3)
 ## Compute homotopy/solution path, and the class of optimal estimators based
 ## on the solution path
-attpath <- ATTh(D0, maxiter=200)$res
+attpath <- ATTh(D0, maxiter=120)$res
 op <- ATTOptPath(attpath, NSWexper$re78, NSWexper$treated)
 ATTOptEstimate(op, mean(sigma2), C=1, sigma2final=sigma2,
                opt.criterion="RMSE")

@@ -23,7 +23,4 @@ test_that("Various ways of computing the distance matrix", {
     expect_equal(distMat(X, Ahalf, method="manhattan"),
                  unname(as.matrix(stats::dist(X %*% Ahalf,
                                               method="manhattan"))))
-
-
-
 })

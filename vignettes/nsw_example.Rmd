@@ -55,13 +55,13 @@ Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
 D0 <- distMat(X, Ahalf, method="manhattan", d)
 ```
 
-We now compute the first couple of hundred steps of the solution path. 200 will
-be sufficient for computing the optimal estimator. Given the solution path, we
-then compute the root mean squared error optimal estimator, as well as estimator
-that's optimal for constructing tow-sided CIs:
+We now compute the first few steps of the solution path. 150 steps will be
+sufficient for computing the optimal estimator. Given the solution path, we then
+compute the root mean squared error optimal estimator, as well as estimator
+that's optimal for constructing two-sided CIs:
 
 ```{r}
-res <- ATTh(D0, maxiter=300)$res
+res <- ATTh(D0, maxiter=150)$res
 op <- ATTOptPath(res, y, d)
 ATTOptEstimate(op, mean(sigma2), C=1, sigma2final=sigma2, opt.criterion="RMSE")
 ATTOptEstimate(op, mean(sigma2), C=1, sigma2final=sigma2, opt.criterion="FLCI")

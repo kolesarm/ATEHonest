@@ -158,15 +158,14 @@ ATTstep <- function(s, tol=.Machine$double.eps*n0*n1) {
 #' @template D0
 #' @param maxiter maximum number of steps in the homotopy. If the homotopy has
 #'     less steps than \code{maxiter}, returns the whole solution path.
-#' @param check check at each step that solution matches
-#'     \code{\link[CVXR]{CVXR}} (generic convex optimizer) solution.
+#' @param check check at each step that the solution matches that in the
+#'     \code{\link[CVXR]{CVXR-package}} (generic convex optimizer package).
 #' @param tol numerical tolerance for rounding error when finding the nearest
 #'     neighbor. All observations with effective distance within \code{tol} of
 #'     the closest are considered to be active.
 #' @param s Set of state variables at which to start the homotopy. If not
 #'     provided, the homotopy is started at the beginning. The state variables
-#'     are as follows:
-#' \describe{
+#'     are as follows: \describe{
 #'
 #'   \item{m0}{A vector of length \code{n0} of corresponding to \eqn{m}}
 #'   \item{r0}{A vector of length \code{n1} of corresponding to \eqn{r}}
