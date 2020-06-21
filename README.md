@@ -7,7 +7,7 @@ treatment effects under unconfoundedness using methods from [Armstrong and
 Kolesár (2018)](https://arxiv.org/abs/1712.04594).
 
 
-See vignette [nsw_example](doc/nsw_example.pdf) for a description of the package
+See the [package vignette](doc/nsw_example.pdf) for a description of the package
 (available through `vignette("ShiftShareSE")` once package is installed), and
 the package [manual](doc/manual.pdf) for documentation of the package functions.
 
@@ -30,4 +30,4 @@ Note: to install the `Rmpfr` package (a dependency of `CVXR` package that this
 
 ## Example
 
-TODO
+To be added

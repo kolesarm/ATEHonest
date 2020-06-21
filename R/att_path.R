@@ -240,7 +240,6 @@ ATTh <- function(D0, s, maxiter=50, check=FALSE,
             cat("Stopping ATTh at step ", nrow(res), "\n")
             return(TRUE)
         })
-
         if (check && max(s$m0)<Inf && ATTcheck(s$m0, s$r0, s$mu, D0))
             stop("Solution doesn't agree with CVX")
     }

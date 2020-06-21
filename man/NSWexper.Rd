@@ -23,7 +23,8 @@ A data frame with 445 observations (185 treated and 260 controls)
 }
 }
 \source{
-Rajeev Dehejia's website, \url{http://users.nber.org/~rdehejia/nswdata2.html}
+Rajeev Dehejia's website,
+    \url{http://users.nber.org/~rdehejia/nswdata2.html}
 }
 \usage{
 NSWexper

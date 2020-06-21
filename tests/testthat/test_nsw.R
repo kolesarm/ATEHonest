@@ -28,24 +28,23 @@ context("Matching estimates ")
 
 test_that("Check we match Abadie and Imbens (2011, JBES) estimates", {
 
-    X <- as.matrix(ATEHonest::NSWexper[, 2:10])
-    d <- ATEHonest::NSWexper$treated
-    y <- ATEHonest::NSWexper$re78
-    D2 <- ATEHonest::distMat(X, diag(1/sqrt(diag(var(X)))),
-                             method="euclidean", d)
+    X <- as.matrix(NSWexper[, 2:10])
+    d <- NSWexper$treated
+    y <- NSWexper$re78
+    D2 <- distMat(X, diag(1/sqrt(diag(var(X)))),
+                  method="euclidean", d)
 
-    mp2 <- ATEHonest::ATTMatchPath(y, d, D2, M=c(1:4, 16, 64, Inf), tol=1e-12)
+    mp2 <- ATTMatchPath(y, d, D2, M=c(1:4, 16, 64, Inf), tol=1e-12)
 
     expect_equal(round(mp2$ep$att[c(1, 4:7)], 4),
                  c(1.2232, 1.9946, 1.7533, 2.2049, 1.7943))
 
-    X <- as.matrix(ATEHonest::NSW[, 2:10])
-    d <- ATEHonest::NSW$treated
-    y <- ATEHonest::NSW$re78
-    D2 <- ATEHonest::distMat(X, diag(1/sqrt(diag(var(X)))),
-                             method="euclidean", d)
+    X <- as.matrix(NSW[, 2:10])
+    d <- NSW$treated
+    y <- NSW$re78
+    D2 <- distMat(X, diag(1/sqrt(diag(var(X)))), method="euclidean", d)
 
-    mp2 <- ATEHonest::ATTMatchPath(y, d, D2, M=c(1:4, 16, 64), tol=1e-12)
+    mp2 <- ATTMatchPath(y, d, D2, M=c(1:4, 16, 64), tol=1e-12)
 
     expect_equal(round(mp2$ep$att[c(1, 4:6)], 4),
                  c(2.0735,  1.6187,  0.4692, -0.1114))
@@ -56,13 +55,13 @@ context("Efficiency calculations")
 
 test_that("Alternative way of computing modulus efficiency", {
 
-    X <- as.matrix(ATEHonest::NSWexper[, 2:10])
-    d <- ATEHonest::NSWexper$treated
+    X <- as.matrix(NSWexper[, 2:10])
+    d <- NSWexper$treated
     D0 <- distMat(X, diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1)),
                   method="manhattan", d)
     sigma2 <- 40
 
-    res <- ATEHonest::ATTh(D0, maxiter=300)$res
+    res <- ATTh(D0, maxiter=300)$res
 
     eb <- ATTEffBounds(res, d, sigma2, C=1)
     expect_equal(eb$onesided, 0.991823078)

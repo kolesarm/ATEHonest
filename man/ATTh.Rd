@@ -19,14 +19,17 @@ and treated units, where \code{n0} is the number of untreated units and
 
 \item{s}{Set of state variables at which to start the homotopy. If not
     provided, the homotopy is started at the beginning. The state variables
-    are as follows: \describe{
+    are as follows:
+\describe{
 
   \item{m0}{A vector of length \code{n0} of corresponding to \eqn{m}}
   \item{r0}{A vector of length \code{n1} of corresponding to \eqn{r}}
   \item{mu}{A scalar corresponding to \eqn{\mu}}
   \item{D}{A matrix of effective distances with dimension \code{[n1 n0]}}
-  \item{Lam}{A sparse matrix of Lagrange multipliers with dimension \code{[n1 n0]}}
-  \item{N0}{A sparse matrix of nearest neighbors with dimension \code{[n1 n0]}}
+  \item{Lam}{A sparse matrix of Lagrange multipliers with dimension
+            \code{[n1 n0]}}
+  \item{N0}{A sparse matrix of nearest neighbors with dimension
+            \code{[n1 n0]}}
 
 }}
 

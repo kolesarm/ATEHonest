@@ -194,7 +194,8 @@ ATTOptPath <- function(res, y, d) {
 #' sigma2 <- nnvar(DM, NSWexper$treated, NSWexper$re78, J=3)
 #' ## Compute homotopy/solution path, and the class of optimal estimators based
 #' ## on the solution path
-#' op <- ATTOptPath(ATTh(D0, maxiter=200)$res, NSWexper$re78, NSWexper$treated)
+#' attpath <- ATTh(D0, maxiter=200)$res
+#' op <- ATTOptPath(attpath, NSWexper$re78, NSWexper$treated)
 #' ATTOptEstimate(op, mean(sigma2), C=1, sigma2final=sigma2,
 #'                opt.criterion="RMSE")
 #' ATTOptEstimate(op, mean(sigma2), C=1, sigma2final=sigma2,
