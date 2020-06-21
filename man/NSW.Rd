@@ -4,7 +4,8 @@
 \name{NSW}
 \alias{NSW}
 \title{Dataset from Dehejia and Wahba (1999)}
-\format{A data frame with 2,675 observations (2,490 controls from PSID, and 185
+\format{
+A data frame with 2,675 observations (2,490 controls from PSID, and 185
     treated individuals from NSW) and 11 variables.
 
 \describe{
@@ -19,7 +20,8 @@
 \item{re78}{Earnings in 1978 (in thousands of dollars)}
 \item{ue74}{Indicator for zero earnings in 1974}
 \item{ue75}{Indicator for zero earnings in 1975}
-}}
+}
+}
 \source{
 Rajeev Dehejia's website, \url{http://users.nber.org/~rdehejia/nswdata2.html}
 }

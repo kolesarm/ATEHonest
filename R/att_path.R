@@ -55,7 +55,7 @@ ATTbrute <- function(delta2, D0) {
     con <- list(kronecker(t(rep(1, n0)), rb) -
                 t(kronecker(t(rep(1, n1)), mb)) <= D0,
                 4*(sum(mb^2)+n1*mu^2) <= delta2)
-    s <- solve(CVXR::Problem(ob, con))
+    s <- CVXR::solve(CVXR::Problem(ob, con))
     c(s$value, s$getValue(mb), s$getValue(rb), s$getValue(mu))
 }
 
@@ -165,14 +165,17 @@ ATTstep <- function(s, tol=.Machine$double.eps*n0*n1) {
 #'     the closest are considered to be active.
 #' @param s Set of state variables at which to start the homotopy. If not
 #'     provided, the homotopy is started at the beginning. The state variables
-#'     are as follows: \describe{
+#'     are as follows:
+#' \describe{
 #'
 #'   \item{m0}{A vector of length \code{n0} of corresponding to \eqn{m}}
 #'   \item{r0}{A vector of length \code{n1} of corresponding to \eqn{r}}
 #'   \item{mu}{A scalar corresponding to \eqn{\mu}}
 #'   \item{D}{A matrix of effective distances with dimension \code{[n1 n0]}}
-#'   \item{Lam}{A sparse matrix of Lagrange multipliers with dimension \code{[n1 n0]}}
-#'   \item{N0}{A sparse matrix of nearest neighbors with dimension \code{[n1 n0]}}
+#'   \item{Lam}{A sparse matrix of Lagrange multipliers with dimension
+#'             \code{[n1 n0]}}
+#'   \item{N0}{A sparse matrix of nearest neighbors with dimension
+#'             \code{[n1 n0]}}
 #'
 #' }
 #' @return A list with two elements:

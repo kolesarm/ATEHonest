@@ -93,7 +93,7 @@ test_that("Alternative way of computing modulus efficiency", {
             w <- stats::uniroot(fn, interval=c(0, 1))$root
             list(omega=2*((1-w)*mu0[idx-1]+w*mu0[idx] +
                           mean((1-w)*r0[idx-1, ]+w*r0[idx, ])),
-                 domega=0.5*del/(n1 * ((1-w)*mu0[idx-1]+w*mu0[idx]) ))
+                 domega=0.5*del/(n1 * ((1-w)*mu0[idx-1]+w*mu0[idx])))
         }
 
         ## One-sided

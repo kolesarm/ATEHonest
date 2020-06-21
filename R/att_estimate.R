@@ -195,8 +195,10 @@ ATTOptPath <- function(res, y, d) {
 #' ## Compute homotopy/solution path, and the class of optimal estimators based
 #' ## on the solution path
 #' op <- ATTOptPath(ATTh(D0, maxiter=200)$res, NSWexper$re78, NSWexper$treated)
-#' ATTOptEstimate(op, mean(sigma2), C=1, sigma2final=sigma2, opt.criterion="RMSE")
-#' ATTOptEstimate(op, mean(sigma2), C=1, sigma2final=sigma2, opt.criterion="FLCI")
+#' ATTOptEstimate(op, mean(sigma2), C=1, sigma2final=sigma2,
+#'                opt.criterion="RMSE")
+#' ATTOptEstimate(op, mean(sigma2), C=1, sigma2final=sigma2,
+#'                opt.criterion="FLCI")
 #' @export
 ATTOptEstimate <- function(op, sigma2, C=1, sigma2final=sigma2, alpha=0.05,
                            beta=0.8, opt.criterion="RMSE") {
@@ -343,7 +345,7 @@ ATTEffBounds <- function(res, d, sigma2, C=1, beta=0.8, alpha=0.05) {
         w <- stats::uniroot(fn, interval=c(0, 1))$root
         list(omega=2*((1-w)*mu0[idx-1]+w*mu0[idx] +
                    mean((1-w)*r0[idx-1, ]+w*r0[idx, ])),
-             domega=0.5*del/(n1 * ((1-w)*mu0[idx-1]+w*mu0[idx]) ))
+             domega=0.5*del/(n1 * ((1-w)*mu0[idx-1]+w*mu0[idx])))
     }
 
     ## One-sided

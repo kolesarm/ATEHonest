@@ -4,8 +4,7 @@
 \alias{distMat}
 \title{Matrix of distances between observations}
 \usage{
-distMat(X, Ahalf = diag(NCOL(X)), method = "euclidean", d = NULL,
-  p = 2)
+distMat(X, Ahalf = diag(NCOL(X)), method = "euclidean", d = NULL, p = 2)
 }
 \arguments{
 \item{X}{Design matrix for control variables with dimension \code{[n p]} (if

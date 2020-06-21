@@ -2,11 +2,14 @@
 
 # ATEHonest
 
-Estimators and confidence intervals for average treatment effects under unconfoundedness using procedures from [Armstrong and Kolesár
-(2018)](https://arxiv.org/abs/1712.04594).
+This R package implements estimators and confidence intervals for average
+treatment effects under unconfoundedness using methods from [Armstrong and
+Kolesár (2018)](https://arxiv.org/abs/1712.04594).
 
-See vignette `nsw_example.pdf` (stored under `doc/`) for description of
-the package.
+
+See vignette [nsw_example](doc/nsw_example.pdf) for a description of the package
+(available through `vignette("ShiftShareSE")` once package is installed), and
+the package [manual](doc/manual.pdf) for documentation of the package functions.
 
 This software package is based upon work supported by the National Science
 Foundation under grant numbers SES-1628939 (Armstrong) and SES-1628878
@@ -14,14 +17,17 @@ Foundation under grant numbers SES-1628939 (Armstrong) and SES-1628878
 
 ## Installation
 
-You can install the package manually by downloading the source code here, or
-using the function `install_github()` from the `devtools` package:
+You can get the current development version from GitHub:
 
-```
-install.packages("devtools") ## if devtools package not installed
-devtools::install_github("kolesarm/ATEHonest")
+``` r
+install.packages("remotes") # if the remotes package is not installed
+remotes::install_github("kolesarm/ATEHonest")
 ```
 
 Note: to install the `Rmpfr` package (a dependency of `CVXR` package that this
   package uses), one needs the `libmpfr-dev` library. On Ubuntu/Debian, the
   library can be installed by running `sudo apt-get install libmpfr-dev`
+
+## Example
+
+TODO

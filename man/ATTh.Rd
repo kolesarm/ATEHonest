@@ -4,8 +4,13 @@
 \alias{ATTh}
 \title{Homotopy for average treatment effect for the treated}
 \usage{
-ATTh(D0, s, maxiter = 50, check = FALSE, tol = .Machine$double.eps *
-  ncol(D0) * nrow(D0))
+ATTh(
+  D0,
+  s,
+  maxiter = 50,
+  check = FALSE,
+  tol = .Machine$double.eps * ncol(D0) * nrow(D0)
+)
 }
 \arguments{
 \item{D0}{matrix of distances with dimension \code{[n1 n0]} between untreated

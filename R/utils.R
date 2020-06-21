@@ -48,7 +48,7 @@ cv <- function(B, alpha=0.05) {
 #' @export
 distMat <- function(X, Ahalf=diag(NCOL(X)),
                     method="euclidean", d=NULL, p=2) {
-    if (class(X)!= "matrix")
+    if (!inherits(X, "matrix"))
         X <- as.matrix(X)
     X <- X %*% t(Ahalf)
 

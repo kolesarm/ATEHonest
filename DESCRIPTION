@@ -1,15 +1,20 @@
 Package: ATEHonest
 Title: Honest inference for treatment effects under unconfoundedness
 Version: 0.1.1
-Authors@R: person(given = "Michal",
+Authors@R: c(person(given = "Michal",
                   family = "Kolesár",
                   role = c("aut", "cre"),
-                  email = "kolesarmi@googlemail.com")
+                  email = "kolesarmi@googlemail.com",
+                  comment = c(ORCID = "0000-0002-2482-7796")),
+             person(given = "Tim",
+                  family = "Armstrong",
+                  role = "ctb",
+                  email = "tim.b.armstrong@gmail.com"))
 Description: Construct matching estimators, and optimal linear estimators, along
-    with confidence intervals for conditional average treatment effects under
-    unconfoundedness that are valid in finite samples under the assumption that
-    the regression function satisfies a Lipschitz constraint.
-Depends: R (>= 3.4.0)
+    with confidence intervals for conditional and population average treatment
+    effects under unconfoundedness that are valid in finite samples under the
+    assumption that the regression function satisfies a Lipschitz constraint.
+Depends: R (>= 4.0.0)
 License: GPL-3
 Imports:
     Matrix,
@@ -23,12 +28,10 @@ Suggests:
     CVXR,
     lpSolve,
     knitr,
-    rmarkdown,
-    reshape2,
-    ggplot2
+    rmarkdown
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.0
 VignetteBuilder: knitr
 Language: en-US
 BugReports: https://github.com/kolesarm/ATEHonest/issues

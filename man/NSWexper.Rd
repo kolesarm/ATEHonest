@@ -4,7 +4,8 @@
 \name{NSWexper}
 \alias{NSWexper}
 \title{Experimental dataset from Dehejia and Wahba (1999)}
-\format{A data frame with 445 observations (185 treated and 260 controls)
+\format{
+A data frame with 445 observations (185 treated and 260 controls)
     and 11 variables.
 
 \describe{
@@ -19,7 +20,8 @@
 \item{re78}{Earnings in 1978 (in thousands of dollars)}
 \item{ue74}{Indicator for zero earnings in 1974}
 \item{ue75}{Indicator for zero earnings in 1975}
-}}
+}
+}
 \source{
 Rajeev Dehejia's website, \url{http://users.nber.org/~rdehejia/nswdata2.html}
 }

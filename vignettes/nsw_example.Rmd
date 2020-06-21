@@ -3,12 +3,10 @@ output:
   pdf_document:
     citation_package: natbib
     latex_engine: pdflatex
-    template: mk_Rpackage_template.tex
-    toc: true
-    toc_depth: 1
+    keep_tex: true
     includes:
         in_header: vignette_head.tex
-title: "Honest CIs for Average Treatment Effects: NSW Example"
+title: "ATEHonest: Honest CIs for Average Treatment Effects"
 author: "Michal Kolesár"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 geometry: margin=1in
@@ -16,7 +14,7 @@ fontfamily: mathpazo
 fontsize: 11pt
 bibliography: ate-library.bib
 vignette: >
-  %\VignetteIndexEntry{Sensitivity analysis in GMM}
+  %\VignetteIndexEntry{ATEHonest}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

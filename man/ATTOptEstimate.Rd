@@ -4,8 +4,15 @@
 \alias{ATTOptEstimate}
 \title{Optimal estimation and inference for the CATT}
 \usage{
-ATTOptEstimate(op, sigma2, C = 1, sigma2final = sigma2, alpha = 0.05,
-  beta = 0.8, opt.criterion = "RMSE")
+ATTOptEstimate(
+  op,
+  sigma2,
+  C = 1,
+  sigma2final = sigma2,
+  alpha = 0.05,
+  beta = 0.8,
+  opt.criterion = "RMSE"
+)
 }
 \arguments{
 \item{op}{Output of \code{ATTOptPath}.}

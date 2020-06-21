@@ -4,8 +4,15 @@
 \alias{ATTMatchEstimate}
 \title{Inference on the CATT using the matching estimator}
 \usage{
-ATTMatchEstimate(mp, sigma2, C = 1, sigma2final = sigma2,
-  alpha = 0.05, beta = 0.8, opt.criterion = "RMSE")
+ATTMatchEstimate(
+  mp,
+  sigma2,
+  C = 1,
+  sigma2final = sigma2,
+  alpha = 0.05,
+  beta = 0.8,
+  opt.criterion = "RMSE"
+)
 }
 \arguments{
 \item{mp}{Output of \code{ATTMatchPath}}

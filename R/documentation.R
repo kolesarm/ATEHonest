@@ -1,8 +1,9 @@
 #' Dataset from Dehejia and Wahba (1999)
 #'
-#' Subset of National Supported Work and PSID data from Dehejia and Wahba (1999).
-#' @format A data frame with 2,675 observations (2,490 controls from PSID, and 185
-#'     treated individuals from NSW) and 11 variables.
+#' Subset of National Supported Work and PSID data from Dehejia and Wahba
+#' (1999).
+#' @format A data frame with 2,675 observations (2,490 controls from PSID, and
+#'     185 treated individuals from NSW) and 11 variables.
 #'
 #' \describe{
 #' \item{treated}{Treatment indicator}
@@ -17,7 +18,8 @@
 #' \item{ue74}{Indicator for zero earnings in 1974}
 #' \item{ue75}{Indicator for zero earnings in 1975}
 #' }
-#' @source Rajeev Dehejia's website, \url{http://users.nber.org/~rdehejia/nswdata2.html}
+#' @source Rajeev Dehejia's website,
+#'     \url{http://users.nber.org/~rdehejia/nswdata2.html}
 #' @references{
 #'
 #' \cite{Dehejia, R., and Wahba, S. (1999), "Causal Effects in Nonexperimental
@@ -46,7 +48,8 @@
 #' \item{ue74}{Indicator for zero earnings in 1974}
 #' \item{ue75}{Indicator for zero earnings in 1975}
 #' }
-#' @source Rajeev Dehejia's website, \url{http://users.nber.org/~rdehejia/nswdata2.html}
+#' @source Rajeev Dehejia's website,
+#'     \url{http://users.nber.org/~rdehejia/nswdata2.html}
 #' @references{
 #'
 #' \cite{Dehejia, R., and Wahba, S. (1999), "Causal Effects in Nonexperimental
