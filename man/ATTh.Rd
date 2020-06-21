@@ -69,13 +69,10 @@ x0 <- c(0, 1, 2, 3)
 x1 <- c(1, 4, 5)
 d <- c(rep(FALSE, length(x0)), rep(TRUE, length(x1)))
 D0 <- distMat(c(x0, x1), d)
-r <- ATTh(D0, maxiter=3)
-## Get last, fourth step
-ATTh(D0, s=r$s, maxiter=3)
-
 ## Check against cvx solution
-ATTh(D0, check=TRUE)$res
-
+r <- ATTh(D0, maxiter=3, check=TRUE)
+## Get last, fourth step
+r <- ATTh(D0, s=r$s, maxiter=3)
 }
 \references{
 \cite{Armstrong, T. B., and M. Kolesár (2018): Finite-Sample

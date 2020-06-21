@@ -197,13 +197,10 @@ ATTstep <- function(s, tol=.Machine$double.eps*n0*n1) {
 #' x1 <- c(1, 4, 5)
 #' d <- c(rep(FALSE, length(x0)), rep(TRUE, length(x1)))
 #' D0 <- distMat(c(x0, x1), d)
-#' r <- ATTh(D0, maxiter=3)
-#' ## Get last, fourth step
-#' ATTh(D0, s=r$s, maxiter=3)
-#'
 #' ## Check against cvx solution
-#' ATTh(D0, check=TRUE)$res
-#'
+#' r <- ATTh(D0, maxiter=3, check=TRUE)
+#' ## Get last, fourth step
+#' r <- ATTh(D0, s=r$s, maxiter=3)
 #' @references \cite{Armstrong, T. B., and M. Kolesár (2018): Finite-Sample
 #'     Optimal Estimation and Inference on Average Treatment Effects Under
 #'     Unconfoundedness, Unpublished manuscript}
@@ -229,7 +226,7 @@ ATTh <- function(D0, s, maxiter=50, check=FALSE,
     colnames(res) <- c("delta", 1:n, "mu", "drop")
 
     stopme <- FALSE
-    while (sum(s$m0^2)<Inf && nrow(res) <= maxiter && stopme!=TRUE) {
+    while (sum(s$m0^2) < Inf && nrow(res) <= maxiter && !isTRUE(stopme)) {
         stopme <- tryCatch({
             s <- ATTstep(s, tol)
             res <- rbind(res, c(2*sqrt(n1*s$mu^2 + sum(s$m0^2)),
