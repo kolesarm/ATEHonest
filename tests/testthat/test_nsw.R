@@ -59,7 +59,7 @@ test_that("Alternative way of computing modulus efficiency", {
                   method="manhattan", d)
     sigma2 <- 40
 
-    res <- ATTh(D0, maxiter=200)$res
+    res <- ATTh(D0, maxiter=300)$res
 
     eb <- ATTEffBounds(res, d, sigma2, C=1)
     expect_equal(eb$onesided, 0.991823078)

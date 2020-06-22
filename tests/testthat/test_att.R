@@ -1,7 +1,7 @@
+
 context("Check solution path for ATT")
 
 test_that("Solution path for ATT in small examples", {
-
     dd <- function(x0, x1) c(rep(FALSE, length(x0)),
                              rep(TRUE, length(x1)))
 
@@ -32,25 +32,25 @@ test_that("Solution path for ATT in small examples", {
     for (j in seq_along(x0)) {
         d <- dd(x0[[j]], x1[[j]])
         D0 <- distMat(c(x0[[j]], x1[[j]]), d=d)
-        if (j != 4)
+        if (j != 4) {
             expect_silent(tt[[j]] <- ATTh(D0, check=TRUE)$res)
-        else
+        } else {
             tt[[j]] <- ATTh(D0, check=TRUE)$res
+        }
         ## For j==4 the solution paths on xps and travis do not match officepc
         ## (where there is no message)
         ## expect_message(tt[[j]] <- ATTh(D0, check=TRUE)$res)
 
-        y <- d
         ## Check maximum bias matches that from LP
         res <- tt[[j]][tt[[j]][, "delta"]!=0, ]
-        r0 <- ATTOptEstimate(ATTOptPath(res, y, d), sigma2=1, C=0.5)
+        r0 <- ATTOptEstimate(ATTOptPath(res, d, d), sigma2=1, C=0.5)
         expect_equal(0.5*ATTbias(r0$w, D0), r0$e$maxbias)
-        r1 <- ATTOptEstimate(ATTOptPath(res, y, d), sigma2=1, C=1)
+        r1 <- ATTOptEstimate(ATTOptPath(res, d, d), sigma2=1, C=1)
         expect_equal(ATTbias(r1$w, D0), r1$e$maxbias)
         ## Check optimum matches CVX
         rmse <- function(delta, C)
             ATTOptEstimate(ATTOptPath(
-                res=matrix(ATTbrute(delta2=delta^2, D0), nrow=1), y, d),
+                res=matrix(ATTbrute(delta2=delta^2, D0), nrow=1), d, d),
                 sigma2=1, C=C)$e$rmse
 
         cvx0 <- unlist(optimize(function(de)
