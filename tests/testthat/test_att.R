@@ -28,14 +28,20 @@ test_that("Solution path for ATT in small examples", {
                  0.478185868404733,  0.525553657035341, 1.044897968992634,
                  1.181192580509525))
 
+    ## x0 <- c(3, 4, 7, 7, 9)
+    ## x1 <- c(1, 4, 5, 7)
+    ## d <- c(rep(FALSE, length(x0)), rep(TRUE, length(x1)))
+    ## D0 <- distMat(c(x0, x1), d=d)
+    ## expect_silent(rr <- ATTh(D0, check=TRUE))
+
     tt <- list()
     for (j in seq_along(x0)) {
         d <- dd(x0[[j]], x1[[j]])
         D0 <- distMat(c(x0[[j]], x1[[j]]), d=d)
-        if (j != 4) {
-            expect_silent(tt[[j]] <- ATTh(D0, check=TRUE)$res)
-        } else {
+        if (j == 4) {
             tt[[j]] <- ATTh(D0, check=TRUE)$res
+        } else {
+            expect_silent(tt[[j]] <- ATTh(D0, check=TRUE)$res)
         }
         ## For j==4 the solution paths on xps and travis do not match officepc
         ## (where there is no message)

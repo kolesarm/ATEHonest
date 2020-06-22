@@ -67,11 +67,11 @@ the algorithm described in the appendix to Armstrong and Kolesár (2018)
 x0 <- c(0, 1, 2, 3)
 x1 <- c(1, 4, 5)
 d <- c(rep(FALSE, length(x0)), rep(TRUE, length(x1)))
-D0 <- distMat(c(x0, x1), d)
+D0 <- distMat(c(x0, x1), d=d)
 ## Check against cvx solution
 r <- ATTh(D0, maxiter=3, check=TRUE)
-## Get last, fourth step
-r <- ATTh(D0, s=r$s, maxiter=3)
+## Get the last, fourth step
+r <- ATTh(D0, s=r$s, check=TRUE)
 }
 \references{
 \cite{Armstrong, T. B., and M. Kolesár (2018): Finite-Sample

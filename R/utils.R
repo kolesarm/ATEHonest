@@ -50,6 +50,7 @@ distMat <- function(X, Ahalf=diag(NCOL(X)),
                     method="euclidean", d=NULL, p=2) {
     if (!inherits(X, "matrix"))
         X <- as.matrix(X)
+
     X <- X %*% t(Ahalf)
 
     if (nrow(X)>500) {

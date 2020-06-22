@@ -17,7 +17,7 @@ Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
 D0 <- distMat(X, Ahalf, method="manhattan", d)
 
 ## -----------------------------------------------------------------------------
-res <- ATTh(D0, maxiter=150)$res
+res <- ATTh(D0, maxiter=300)$res
 op <- ATTOptPath(res, y, d)
 ATTOptEstimate(op, mean(sigma2), C=1, sigma2final=sigma2, opt.criterion="RMSE")
 ATTOptEstimate(op, mean(sigma2), C=1, sigma2final=sigma2, opt.criterion="FLCI")

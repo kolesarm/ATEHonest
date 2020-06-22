@@ -29,11 +29,9 @@ ATTcheck <- function(m, r, mu, D0) {
 
     ## Solutions should also be close together
     diff <- max(abs(c(r1-r, m1-m)))
-    if (diff > 1e-1) {
+    if (diff > 1e-1)
         message("CVX solution differs from homotopy, by ", round(diff, 3),
                 " at delta=", sqrt(delta2), ".")
-        return(0)
-    }
 
     0
 }
@@ -45,11 +43,9 @@ ATTcheck <- function(m, r, mu, D0) {
 ATTbrute <- function(delta2, D0) {
     n1 <- nrow(D0)
     n0 <- ncol(D0)
-
     mb <- CVXR::Variable(n0)
     rb <- CVXR::Variable(n1)
     mu <- CVXR::Variable(1)
-
     ob <- 2*CVXR::Maximize(mean(rb) + mu)
     ## outer(r, m, "-")<=D0 using kronecker
     con <- list(kronecker(t(rep(1, n0)), rb) -
@@ -195,11 +191,11 @@ ATTstep <- function(s, tol=.Machine$double.eps*n0*n1) {
 #' x0 <- c(0, 1, 2, 3)
 #' x1 <- c(1, 4, 5)
 #' d <- c(rep(FALSE, length(x0)), rep(TRUE, length(x1)))
-#' D0 <- distMat(c(x0, x1), d)
+#' D0 <- distMat(c(x0, x1), d=d)
 #' ## Check against cvx solution
 #' r <- ATTh(D0, maxiter=3, check=TRUE)
-#' ## Get last, fourth step
-#' r <- ATTh(D0, s=r$s, maxiter=3)
+#' ## Get the last, fourth step
+#' r <- ATTh(D0, s=r$s, check=TRUE)
 #' @references \cite{Armstrong, T. B., and M. Kolesár (2018): Finite-Sample
 #'     Optimal Estimation and Inference on Average Treatment Effects Under
 #'     Unconfoundedness, Unpublished manuscript}
