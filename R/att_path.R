@@ -192,9 +192,9 @@ ATTstep <- function(s, tol=.Machine$double.eps*n0*n1) {
 #' x1 <- c(1, 4, 5)
 #' d <- c(rep(FALSE, length(x0)), rep(TRUE, length(x1)))
 #' D0 <- distMat(c(x0, x1), d=d)
-#' ## Check against cvx solution
-#' r <- ATTh(D0, maxiter=3, check=TRUE)
-#' ## Get the last, fourth step
+#' ## Compute first three steps
+#' r <- ATTh(D0, maxiter=3)
+#' ## Compute the remaining steps, checking them against CVX solution
 #' r <- ATTh(D0, s=r$s, check=TRUE)
 #' @references \cite{Armstrong, T. B., and M. Kolesár (2018): Finite-Sample
 #'     Optimal Estimation and Inference on Average Treatment Effects Under
@@ -214,19 +214,19 @@ ATTh <- function(D0, s, maxiter=50, check=FALSE,
                   D=D0,
                   r0=r0,
                   N0=Matrix::Matrix(D0<=r0), # without tol
-                  mu=0)
+                  mu=0,
+                  drop=NA)
     }
     res <- matrix(c(2*sqrt(n1*s$mu^2 + sum(s$m0^2)), s$m0, s$r0,
-                    s$mu, NA), nrow=1)
+                    s$mu, s$drop), nrow=1)
     colnames(res) <- c("delta", 1:n, "mu", "drop")
 
     stopme <- FALSE
     while (sum(s$m0^2) < Inf && nrow(res) <= maxiter && !isTRUE(stopme)) {
         stopme <- tryCatch({
             s <- ATTstep(s, tol)
-            res <- rbind(res, c(2*sqrt(n1*s$mu^2 + sum(s$m0^2)),
-                                s$m0, s$r0, s$mu,
-                                s$drop))
+            res <- rbind(res, c(2*sqrt(n1*s$mu^2 + sum(s$m0^2)), s$m0, s$r0,
+                                s$mu, s$drop))
         }, error = function(e) { # nolint
             message(conditionMessage(e))
             cat("Stopping ATTh at step ", nrow(res), "\n")

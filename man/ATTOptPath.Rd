@@ -10,7 +10,7 @@ ATTOptPath(res, y, d)
 \item{res}{The \code{res} element of the output of \code{ATTh} on which to
 base the estimate}
 
-\item{y}{outcome vector with length \code{n}}
+\item{y}{Outcome vector with length \code{n}}
 
 \item{d}{Vector of treatment indicators with length \code{n}}
 }

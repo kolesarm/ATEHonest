@@ -68,9 +68,9 @@ x0 <- c(0, 1, 2, 3)
 x1 <- c(1, 4, 5)
 d <- c(rep(FALSE, length(x0)), rep(TRUE, length(x1)))
 D0 <- distMat(c(x0, x1), d=d)
-## Check against cvx solution
-r <- ATTh(D0, maxiter=3, check=TRUE)
-## Get the last, fourth step
+## Compute first three steps
+r <- ATTh(D0, maxiter=3)
+## Compute the remaining steps, checking them against CVX solution
 r <- ATTh(D0, s=r$s, check=TRUE)
 }
 \references{

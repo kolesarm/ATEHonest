@@ -11,7 +11,7 @@ nnvar(DM, d, y, J = 3, tol = 0)
 
 \item{d}{Vector of treatment indicators with length \code{n}}
 
-\item{y}{outcome vector with length \code{n}}
+\item{y}{Outcome vector with length \code{n}}
 
 \item{J}{number of nearest neighbors to average over}
 

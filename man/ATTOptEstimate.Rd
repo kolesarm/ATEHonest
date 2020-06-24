@@ -22,8 +22,8 @@ optimize the tuning parameter.}
 
 \item{C}{Lipschitz smoothness constant}
 
-\item{sigma2final}{vector of variance estimates with length{n} for
-determining standard error of the optimal estimators. In contrast,
+\item{sigma2final}{vector of variance estimates with length \code{n} for
+determining the standard error of the optimal estimator. In contrast,
 \code{sigma2} is used only for determining the optimal tuning parameter.}
 
 \item{alpha}{Level of confidence interval, \code{1-alpha}.}

@@ -10,7 +10,7 @@ cv(B, alpha = 0.05)
 \item{B}{Maximum bias, a non-negative vector.}
 
 \item{alpha}{Determines CI level, \code{1-alpha}. Needs to be between 0 and
-1. Can be a vector of values.}
+1.}
 }
 \value{
 Critical value
@@ -26,6 +26,4 @@ bias at most \eqn{B}.
 cv(B = 1, alpha = 0.1)
 # 95\% critical values
 cv(B = c(0, 1, 3), alpha = 0.05)
-# 96 and 90\% critical values
-cv(B = 1, alpha = c(0.05, 0.1))
 }

@@ -6,30 +6,19 @@
 #' bias at most \eqn{B}.
 #' @param B Maximum bias, a non-negative vector.
 #' @param alpha Determines CI level, \code{1-alpha}. Needs to be between 0 and
-#'     1. Can be a vector of values.
-#' @return  Critical value
+#'     1.
+#' @return Critical value
 #' @examples
 #' # 90% critical value:
 #' cv(B = 1, alpha = 0.1)
 #' # 95% critical values
 #' cv(B = c(0, 1, 3), alpha = 0.05)
-#' # 96 and 90% critical values
-#' cv(B = 1, alpha = c(0.05, 0.1))
 #' @export
 cv <- function(B, alpha=0.05) {
-    if (length(B)>1) {
-        r <- vector(length=length(B))
-        r[is.na(B)] <- NA
-        idx <- B<10 & !is.na(B)
-        r[idx] <- sqrt(stats::qchisq(1-alpha, df = 1, ncp = B[idx]^2))
-        r[!idx] <- B[!idx]+stats::qnorm(1-alpha)
-        return(r)
-    } else {
-        if (B<10)
-            return(sqrt(stats::qchisq(1-alpha, df = 1, ncp = B^2)))
-        else
-            return(B+stats::qnorm(1-alpha))
-    }
+    idx <- B<10 & !is.na(B)
+    r <- B+stats::qnorm(1-alpha)
+    r[idx] <- sqrt(stats::qchisq(1-alpha, df = 1, ncp = B[idx]^2))
+    r
 }
 
 #' Matrix of distances between observations
