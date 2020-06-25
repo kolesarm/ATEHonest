@@ -249,6 +249,7 @@ ATTEffBounds <- function(h, d, sigma2, C=1, beta=0.8, alpha=0.05) {
             2*sig*cv((m$omega/(m$domega*sig)-del)/2, alpha)*m$domega
         }
         idx <- which.min(sapply(del0/sig, len))
+print(idx)
         den <- stats::optimize(len, interval=del0[c(idx-1, (idx+1))]/sig)$objective
     }
     list(onesided=eff1, twosided=num/den)

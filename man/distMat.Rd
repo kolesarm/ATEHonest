@@ -19,7 +19,7 @@ distances are computed between \code{Ahalf \%*\%  X[i, ]}.}
     Any unambiguous substring can be given.}
 
 \item{d}{Vector of treatment indicators with length \code{n}. If supplied,
-return the \code{n1} by \code{n0} submatrix corresponding ot distances
+return the \code{n1} by \code{n0} submatrix corresponding to distances
 between treated and untreated observations. Otherwise return the full
 \code{n} by \code{n} matrix}
 

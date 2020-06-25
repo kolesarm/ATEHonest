@@ -8,7 +8,7 @@ Kolesár (2018)](https://arxiv.org/abs/1712.04594).
 
 
 See the [package vignette](doc/nsw_example.pdf) for a description of the package
-(available through `vignette("ShiftShareSE")` once package is installed), and
+(available through `vignette("nsw_example")` once package is installed), and
 the package [manual](doc/manual.pdf) for documentation of the package functions.
 
 This software package is based upon work supported by the National Science
@@ -24,9 +24,10 @@ install.packages("remotes") # if the remotes package is not installed
 remotes::install_github("kolesarm/ATEHonest")
 ```
 
-Note: to install the `Rmpfr` package (a dependency of `CVXR` package that this
-  package uses), one needs the `libmpfr-dev` library. On Ubuntu/Debian, the
-  library can be installed by running `sudo apt-get install libmpfr-dev`
+- This package depends on the `'Rmpfr` package (it's a dependency of the `CVXR`
+  package that this package uses). In order to install this package, the system
+  library `libmpfr-dev` needs to be installed. On Ubuntu/Debian, the library can
+  be installed by running `sudo apt-get install libmpfr-dev`.
 
 ## Example
 

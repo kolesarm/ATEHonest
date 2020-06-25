@@ -37,7 +37,7 @@ ATTbias <- function(w, D0) {
 }
 
 
-#' Compute the matching estimator for the CATT
+#' Compute the matching estimator for the ATT
 #'
 #' Computes the matching estimator and the matching weights for a range of
 #' matches \code{M}. The output of this function is used as an input for
@@ -55,15 +55,15 @@ ATTbias <- function(w, D0) {
 #' corresponding to the number of matches, the scaled worst-case bias, and the
 #' CATT estimate.}
 #'
-#' \item{resw}{A matrix where each row corresponds to the linear weights \eqn{k}
-#' used to form the matching estimator corresponding to rows of \code{ep}}
+#' \item{K}{A matrix where each row \code{j} corresponds to the linear weights
+#' \eqn{k} used to form the matching estimator with \code{M[j]} matches.}
 #'
 #' \item{d}{Vector of treatment indicators, as supplied by \code{d}}
 #' }
 #' @examples
 #' Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
 #' D0 <- distMat(NSWexper[, 2:10], Ahalf, method="manhattan", NSWexper$treated)
-#' mp <- ATTMatchPath(NSWexper$re78, NSWexper$treated, D0, M=c(1, 2), tol=1e-12)
+#' mp <- ATTMatchPath(NSWexper$re78, NSWexper$treated, D0, M=1:2, tol=1e-12)
 #' @export
 ATTMatchPath <- function(y, d, D0, M=1:25, tol=1e-12) {
     n1 <- nrow(D0)
@@ -76,7 +76,7 @@ ATTMatchPath <- function(y, d, D0, M=1:25, tol=1e-12) {
         maxbias[j] <- ATTbias(resw[j, d==0], D0)
     }
     list(ep=data.frame(att=drop(resw %*% y), maxbias=maxbias, M=M),
-         resw=resw, d=d)
+         K=resw, d=d)
 }
 
 
@@ -119,7 +119,7 @@ ATTMatchPath <- function(y, d, D0, M=1:25, tol=1e-12) {
 ATTMatchEstimate <- function(mp, sigma2, C=1, sigma2final=sigma2, alpha=0.05,
                              beta=0.8, opt.criterion="RMSE") {
     ## Update estimate path with new value of C
-    mp$ep <- UpdatePath(mp$ep, mp$resw, C, sigma2, alpha, beta)
+    mp$ep <- UpdatePath(mp$ep, mp$K, C, sigma2, alpha, beta)
 
     ## Index of criterion to optimize
     colidx <- switch(opt.criterion, RMSE = "rmse", OCI = "maxel",
@@ -130,12 +130,12 @@ ATTMatchEstimate <- function(mp, sigma2, C=1, sigma2final=sigma2, alpha=0.05,
         warning("Optimum found at end of path")
 
     ## Robust se, C=1 to keep bias the same
-    er <- UpdatePath(mp$ep[i, ], mp$resw[i, ], Cratio=1, sigma2final, alpha,
+    er <- UpdatePath(mp$ep[i, ], mp$K[i, ], Cratio=1, sigma2final, alpha,
                      beta)
 
     structure(list(e=cbind(mp$ep[i, ],
                            data.frame(rsd=er$sd, rlower=er$lower,
                                       rupper=er$upper, rhl=er$hl, rrmse=er$rmse,
                                       rmaxel=er$maxel, C=C)),
-                   w=mp$resw[i, mp$d==0]), class="ATTEstimate")
+                   w=mp$K[i, mp$d==0]), class="ATTEstimate")
 }
