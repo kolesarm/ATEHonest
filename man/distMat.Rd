@@ -7,11 +7,11 @@
 distMat(X, Ahalf = diag(NCOL(X)), method = "euclidean", d = NULL, p = 2)
 }
 \arguments{
-\item{X}{Design matrix for control variables with dimension \code{[n p]} (if
-\eqn{p=1} and \code{X} is a vector, then it is converted to a matrix)}
+\item{X}{Design matrix of covariates with dimension \code{n} by \code{p}, or
+else a vector of length \code{n} if there is a single covariate.}
 
-\item{Ahalf}{\eqn{A^{1/2}} weight matrix with dimension \code{[p p]} so that
-the distances are computed between \eqn{Ax_{0,j}} and \eqn{Ax_{1,i}}.}
+\item{Ahalf}{Weight matrix with dimension \code{p} by \code{p} so that the
+distances are computed between \code{Ahalf \%*\%  X[i, ]}.}
 
 \item{method}{the distance measure to be used.  This must be one of
     \code{"euclidean"}, \code{"maximum"}, \code{"manhattan"},
@@ -19,15 +19,21 @@ the distances are computed between \eqn{Ax_{0,j}} and \eqn{Ax_{1,i}}.}
     Any unambiguous substring can be given.}
 
 \item{d}{Vector of treatment indicators with length \code{n}. If supplied,
-return the \code{[n1 n0]} distance matrix between treated and untreated
-observations, otherwise return the full \code{[n n]} distance matrix}
+return the \code{n1} by \code{n0} submatrix corresponding ot distances
+between treated and untreated observations. Otherwise return the full
+\code{n} by \code{n} matrix}
 
 \item{p}{The power of the Minkowski distance.}
 }
 \value{
-\code{[n1 n0]} or \code{[n n]} matrix of distances.
+Matrix of distances with dimension \code{n} by \code{n} or else
+    \code{n1} by \code{n0}
 }
 \description{
-Compute and return the distance matrix using the distance measure in
-\code{method}.
+Compute a matrix of distances between \code{n} observations using the
+distance measure in \code{method}.
+}
+\examples{
+## 4 units, unit 1 and 3 are treated.
+distMat(X=c(1, 2, 3, 4), d=c(TRUE, FALSE, TRUE, FALSE))
 }

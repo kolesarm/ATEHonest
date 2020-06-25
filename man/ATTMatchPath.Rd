@@ -25,7 +25,7 @@ constructing matches}
 List with the following components
 \describe{
 
-\item{ep}{A data frame with colums \code{M}, \code{maxbias}, and \code{att},
+\item{ep}{A data frame with columns \code{M}, \code{maxbias}, and \code{att},
 corresponding to the number of matches, the scaled worst-case bias, and the
 CATT estimate.}
 

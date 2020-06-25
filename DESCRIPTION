@@ -1,6 +1,6 @@
 Package: ATEHonest
 Title: Honest Inference for Treatment Effects under Unconfoundedness
-Version: 0.1.1
+Version: 0.1.2
 Authors@R: c(person(given = "Michal",
                   family = "Kolesár",
                   role = c("aut", "cre"),

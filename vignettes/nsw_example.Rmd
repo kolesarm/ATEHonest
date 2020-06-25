@@ -61,32 +61,32 @@ compute the root mean squared error optimal estimator, as well as estimator
 that's optimal for constructing two-sided CIs:
 
 ```{r}
-res <- ATTh(D0, maxiter=300)$res
-op <- ATTOptPath(res, y, d)
+h <- ATTh(D0, maxiter=300)
+op <- ATTOptPath(h, y, d)
 ATTOptEstimate(op, mean(sigma2), C=1, sigma2final=sigma2, opt.criterion="RMSE")
 ATTOptEstimate(op, mean(sigma2), C=1, sigma2final=sigma2, opt.criterion="FLCI")
 ```
 
 Efficiency of one- and two-sided CIs at smooth functions (see Appendix A in @ak17ate) is:
 ```{r}
-ATTEffBounds(res, d, mean(sigma2), C=1)
+ATTEffBounds(h, d, mean(sigma2), C=1)
 ```
 
 For comparison, we also consider matching estimators. First, a matching
 estimator with a single match:
-
 ```{r}
-ATTMatchEstimate(ATTMatchPath(y, d, D0, M=1, tol=1e-12), mean(sigma2), C=1, sigma2final=sigma2)
+ATTMatchEstimate(ATTMatchPath(y, d, D0, M=1, tol=1e-12), mean(sigma2),
+C=1, sigma2final=sigma2)
 ```
 
 Next, we optimize the number of matches. For that we first compute the matching
 estimator for a vector of matches `M`, and then optimize the number of matches
 using `ATTMatchEstmate`:
-
 ```{r}
 mp <- ATTMatchPath(y, d, D0, M=1:10, tol=1e-12)
 ATTMatchEstimate(mp, mean(sigma2), C=1, sigma2final=sigma2, opt.criterion="FLCI")
-
 ATTMatchEstimate(mp, mean(sigma2), C=1, sigma2final=sigma2, opt.criterion="RMSE")
 ```
-We can see that a single match is in fact optimal for both estimation and construction of two-sided CIs.
+
+We can see that a single match is in fact optimal for both estimation and
+construction of two-sided CIs.

@@ -4,11 +4,10 @@
 \alias{ATTOptPath}
 \title{Compute the class of optimal linear estimators for the CATT}
 \usage{
-ATTOptPath(res, y, d)
+ATTOptPath(h, y, d)
 }
 \arguments{
-\item{res}{The \code{res} element of the output of \code{ATTh} on which to
-base the estimate}
+\item{h}{The output of \code{ATTh} on which to base the estimate}
 
 \item{y}{Outcome vector with length \code{n}}
 

@@ -2,24 +2,24 @@
 % Please edit documentation in R/utils.R
 \name{cv}
 \alias{cv}
-\title{Critical values for CIs based on a biased Gaussian estimator.}
+\title{Critical values for inference based on a biased Gaussian estimator.}
 \usage{
 cv(B, alpha = 0.05)
 }
 \arguments{
 \item{B}{Maximum bias, a non-negative vector.}
 
-\item{alpha}{Determines CI level, \code{1-alpha}. Needs to be between 0 and
-1.}
+\item{alpha}{Scalar between 0 and 1 determining the confidence level,
+\code{1-alpha}}
 }
 \value{
-Critical value
+Critical value \eqn{cv_{1-\alpha}(B)}{cv_{1-alpha}(B)}
 }
 \description{
-Computes the critical value \eqn{cv_{1-\alpha}(B)} such that the confidence
-interval \eqn{X\pm cv_{1-\alpha}(B)} will have coverage \eqn{1-\alpha}, where
-\eqn{X} is Normally distributed with variance equal to \eqn{1} and maximum
-bias at most \eqn{B}.
+Critical value \eqn{cv_{1-\alpha}(B)} such that the confidence interval
+\eqn{X\pm cv_{1-\alpha}(B)}{X +- cv_{1-alpha}(B)} will have coverage
+\eqn{1-\alpha}, where \eqn{X} is normally distributed with variance equal to
+\eqn{1} and bias bounded by \eqn{B} in absolute value.
 }
 \examples{
 # 90\% critical value:

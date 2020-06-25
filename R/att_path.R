@@ -14,21 +14,17 @@ ATTcheck <- function(m, r, mu, D0) {
     modulus <- 2*(mean(r)+mu)
     delta2 <- 4*(sum(m^2)+nrow(D0)*mu^2)
     cvxs <- ATTbrute(delta2, D0)
-    cvxmod <- cvxs[1]
-    m1 <- cvxs[2:(ncol(D0)+1)]
-    r1 <- cvxs[(ncol(D0)+2):(n+1)]
-    mu1 <- cvxs[n+2]
-    cvxdelta2 <- 4*(sum(m1^2)+nrow(D0)*mu1^2)
+    cvx_modulus <- cvxs[length(cvxs)]
 
-    if (cvxmod-modulus > sqrt(max(cvxdelta2-delta2, 0))) {
-        warning("CVX found higher modulus, ", cvxmod, ". Homotopy got ",
-                modulus, ".\n Difference ", cvxmod-modulus, " at delta=",
+    if (cvx_modulus-modulus > sqrt(max(cvxs[1]^2-delta2, 0))) {
+        warning("CVX found higher modulus, ", cvx_modulus, ". Homotopy got ",
+                modulus, ".\n Difference ", cvx_modulus-modulus, " at delta=",
                 sqrt(delta2))
         return(1)
     }
 
     ## Solutions should also be close together
-    diff <- max(abs(c(r1-r, m1-m)))
+    diff <- max(abs(c(cvxs[(ncol(D0)+2):(n+1)]-r, cvxs[2:(ncol(D0)+1)]-m)))
     if (diff > 1e-1)
         message("CVX solution differs from homotopy, by ", round(diff, 3),
                 " at delta=", sqrt(delta2), ".")
@@ -52,7 +48,8 @@ ATTbrute <- function(delta2, D0) {
                 t(kronecker(t(rep(1, n1)), mb)) <= D0,
                 4*(sum(mb^2)+n1*mu^2) <= delta2)
     s <- CVXR::solve(CVXR::Problem(ob, con))
-    c(s$value, s$getValue(mb), s$getValue(rb), s$getValue(mu))
+    c(delta=2*sqrt(sum(s$getValue(mb)^2)+nrow(D0)*s$getValue(mu)^2),
+      s$getValue(mb), s$getValue(rb), mu=s$getValue(mu), omega=s$value)
 }
 
 
@@ -159,33 +156,35 @@ ATTstep <- function(s, tol=.Machine$double.eps*n0*n1) {
 #' @param tol numerical tolerance for rounding error when finding the nearest
 #'     neighbor. All observations with effective distance within \code{tol} of
 #'     the closest are considered to be active.
-#' @param s Set of state variables at which to start the homotopy. If not
-#'     provided, the homotopy is started at the beginning. The state variables
-#'     are as follows: \describe{
-#'
-#'   \item{m0}{A vector of length \code{n0} of corresponding to \eqn{m}}
-#'   \item{r0}{A vector of length \code{n1} of corresponding to \eqn{r}}
-#'   \item{mu}{A scalar corresponding to \eqn{\mu}}
-#'   \item{D}{A matrix of effective distances with dimension \code{[n1 n0]}}
-#'   \item{Lam}{A sparse matrix of Lagrange multipliers with dimension
-#'             \code{[n1 n0]}}
-#'   \item{N0}{A sparse matrix of nearest neighbors with dimension
-#'             \code{[n1 n0]}}
-#'
-#' }
+#' @param h Optionally, supply previous output of \code{ATTh}. If not provided,
+#'     the homotopy is started at the beginning. If provided, it starts at the
+#'     step where the previous call to \code{ATTh} ended.
 #' @return A list with two elements:
 #'
 #' \describe{
 #'
 #'   \item{res}{A matrix with rows corresponding to steps in the homotopy, so
-#'   that the maximum number of rows is \code{maxiter}, and columns
-#'   corresponding to \eqn{\delta}, \eqn{m}, \eqn{r}, \eqn{\mu}, and
-#'   \code{drop}, an indicator if an observations has been dropped from an
-#'   active set, or added }
+#'   that the maximum number of rows is \code{maxiter} (if homotopy started at
+#'   the beginning), and columns corresponding to \eqn{\delta}, \eqn{m},
+#'   \eqn{r}, \eqn{\mu}, and \code{drop}, an indicator if an observations has
+#'   been dropped from an active set, or added }
 #'
-#'   \item{s}{List of state variables at the last step with the same structure
-#'   as the input \code{s}}
+#'   \item{m0}{A vector of length \code{n0} of corresponding to \eqn{m} at the
+#'   last step.}
 #'
+#'   \item{r0}{A vector of length \code{n1} of corresponding to \eqn{r} at the
+#'   last step.}
+#'
+#'   \item{mu}{A scalar corresponding to \eqn{\mu} at the last step.}
+#'
+#'   \item{D}{A matrix of effective distances with dimension \code{[n1 n0]} at
+#'   the last step.}
+#'
+#'   \item{Lam}{A sparse matrix of Lagrange multipliers with dimension
+#'             \code{[n1 n0]} at the last step.}
+#'
+#'   \item{N0}{A sparse matrix of nearest neighbors with dimension
+#'             \code{[n1 n0]} at the last step.}
 #' }
 #' @examples
 #' x0 <- c(0, 1, 2, 3)
@@ -193,47 +192,41 @@ ATTstep <- function(s, tol=.Machine$double.eps*n0*n1) {
 #' d <- c(rep(FALSE, length(x0)), rep(TRUE, length(x1)))
 #' D0 <- distMat(c(x0, x1), d=d)
 #' ## Compute first three steps
-#' r <- ATTh(D0, maxiter=3)
+#' h <- ATTh(D0, maxiter=3)
 #' ## Compute the remaining steps, checking them against CVX solution
-#' r <- ATTh(D0, s=r$s, check=TRUE)
+#' h2 <- ATTh(D0, h=h, check=TRUE)
 #' @references \cite{Armstrong, T. B., and M. Kolesár (2018): Finite-Sample
 #'     Optimal Estimation and Inference on Average Treatment Effects Under
 #'     Unconfoundedness, Unpublished manuscript}
 #' @export
-ATTh <- function(D0, s, maxiter=50, check=FALSE,
+ATTh <- function(D0, h, maxiter=50, check=FALSE,
                  tol=.Machine$double.eps*ncol(D0)*nrow(D0)) {
     n0 <- ncol(D0)
     n1 <- nrow(D0)
     n <- n0+n1
 
     ## Initialize state variables
-    if (missing(s)) {
+    if (missing(h)) {
         r0 <- apply(D0, 1, min)
-        s <- list(m0=rep(0, n0),
-                  Lam=Matrix::Matrix(0, nrow=n1, ncol=n0),
-                  D=D0,
-                  r0=r0,
-                  N0=Matrix::Matrix(D0<=r0), # without tol
-                  mu=0,
-                  drop=NA)
+        h <- list(m0=rep(0, n0), Lam=Matrix::Matrix(0, nrow=n1, ncol=n0), D=D0,
+                  r0=r0, N0=Matrix::Matrix(D0<=r0), # without tol
+                  mu=0, drop=NA, res=matrix(nrow=0, ncol=n+3))
+        colnames(h$res) <- c("delta", 1:n, "mu", "drop")
     }
-    res <- matrix(c(2*sqrt(n1*s$mu^2 + sum(s$m0^2)), s$m0, s$r0,
-                    s$mu, s$drop), nrow=1)
-    colnames(res) <- c("delta", 1:n, "mu", "drop")
 
     stopme <- FALSE
-    while (sum(s$m0^2) < Inf && nrow(res) <= maxiter && !isTRUE(stopme)) {
+    while (sum(h$m0^2) < Inf && nrow(h$res) < maxiter && !isTRUE(stopme)) {
+        if (check && ATTcheck(h$m0, h$r0, h$mu, D0))
+            stop("Solution doesn't agree with CVX")
+        h$res <- rbind(h$res, c(2*sqrt(n1*h$mu^2 + sum(h$m0^2)), h$m0,
+                                h$r0, h$mu, h$drop))
         stopme <- tryCatch({
-            s <- ATTstep(s, tol)
-            res <- rbind(res, c(2*sqrt(n1*s$mu^2 + sum(s$m0^2)), s$m0, s$r0,
-                                s$mu, s$drop))
+            h <- ATTstep(h, tol)
         }, error = function(e) { # nolint
             message(conditionMessage(e))
-            cat("Stopping ATTh at step ", nrow(res), "\n")
+            cat("Stopping ATTh at step ", nrow(h$res), "\n")
             return(TRUE)
         })
-        if (check && max(s$m0)<Inf && ATTcheck(s$m0, s$r0, s$mu, D0))
-            stop("Solution doesn't agree with CVX")
     }
-    list(res=res[-nrow(res), ], s=s)
+    h
 }

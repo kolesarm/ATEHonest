@@ -4,10 +4,10 @@
 \alias{ATTEffBounds}
 \title{Efficiency bounds for confidence intervals}
 \usage{
-ATTEffBounds(res, d, sigma2, C = 1, beta = 0.8, alpha = 0.05)
+ATTEffBounds(h, d, sigma2, C = 1, beta = 0.8, alpha = 0.05)
 }
 \arguments{
-\item{res}{The \code{res} element of the output of \code{ATTh}.}
+\item{h}{The output of \code{ATTh}.}
 
 \item{d}{Vector of treatment indicators with length \code{n}}
 

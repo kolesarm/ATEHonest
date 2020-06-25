@@ -35,9 +35,10 @@ National Supported Work data from Dehejia and Wahba (1999).
 \references{
 {
 
-\cite{Dehejia, R., and Wahba, S. (1999), "Causal Effects in Nonexperimental
-Studies: Reevaluating the Evaluation of Training Programs," Journal of the
-American Statistical Association, 94, 1053-1062.}
+\cite{Dehejia, R., and Wahba, S. (1999),
+"Causal Effects in Nonexperimental Studies: Reevaluating
+the Evaluation of Training Programs,"
+Journal of the American Statistical Association, 94 (448), 1053-1062.}
 
 }
 }

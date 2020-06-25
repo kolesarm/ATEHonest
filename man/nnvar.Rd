@@ -7,7 +7,7 @@
 nnvar(DM, d, y, J = 3, tol = 0)
 }
 \arguments{
-\item{DM}{distance matrix with dimension \code{[n n]}.}
+\item{DM}{distance matrix with dimension \code{n} by \code{n}.}
 
 \item{d}{Vector of treatment indicators with length \code{n}}
 
@@ -18,8 +18,16 @@ nnvar(DM, d, y, J = 3, tol = 0)
 \item{tol}{numerical tolerance for determining nearest neighbors in
 constructing matches}
 }
+\value{
+An \code{n}-vector of estimates of the variance of \code{y}.
+}
 \description{
-Calculates an \code{n}-vector sigma2 of estimates of the variance of \code{y}
-using a nearest-neighbor estimator among observations with the same treatment
-status \code{d}.
+Calculate an \code{n}-vector of estimates of the variance of \code{y} using a
+nearest-neighbor estimator among observations with the same treatment status
+\code{d}.
+}
+\examples{
+X <- as.matrix(NSWexper[, 2:10])
+DM <- distMat(X, chol(solve(cov(X))), method="euclidean")
+sigma2 <- nnvar(DM, d=NSWexper$treated, y=NSWexper$re78, J=3)
 }

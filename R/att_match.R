@@ -51,7 +51,7 @@ ATTbias <- function(w, D0) {
 #' @return List with the following components
 #' \describe{
 #'
-#' \item{ep}{A data frame with colums \code{M}, \code{maxbias}, and \code{att},
+#' \item{ep}{A data frame with columns \code{M}, \code{maxbias}, and \code{att},
 #' corresponding to the number of matches, the scaled worst-case bias, and the
 #' CATT estimate.}
 #'
@@ -122,10 +122,9 @@ ATTMatchEstimate <- function(mp, sigma2, C=1, sigma2final=sigma2, alpha=0.05,
     mp$ep <- UpdatePath(mp$ep, mp$resw, C, sigma2, alpha, beta)
 
     ## Index of criterion to optimize
-    idx <- switch(opt.criterion,
-                  RMSE = which.max(names(mp$ep)=="rmse"),
-                  OCI  = which.max(names(mp$ep)=="maxel"),
-                  FLCI = which.max(names(mp$ep)=="hl"))
+    colidx <- switch(opt.criterion, RMSE = "rmse", OCI = "maxel",
+                     FLCI = "hl")
+    idx <- which.max(names(mp$ep)==colidx)
     i <- which.min(mp$ep[[idx]])
     if (i==nrow(mp$ep) & nrow(mp$ep)>1)
         warning("Optimum found at end of path")

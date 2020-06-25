@@ -1,13 +1,13 @@
-#' Critical values for CIs based on a biased Gaussian estimator.
+#' Critical values for inference based on a biased Gaussian estimator.
 #'
-#' Computes the critical value \eqn{cv_{1-\alpha}(B)} such that the confidence
-#' interval \eqn{X\pm cv_{1-\alpha}(B)} will have coverage \eqn{1-\alpha}, where
-#' \eqn{X} is Normally distributed with variance equal to \eqn{1} and maximum
-#' bias at most \eqn{B}.
+#' Critical value \eqn{cv_{1-\alpha}(B)} such that the confidence interval
+#' \eqn{X\pm cv_{1-\alpha}(B)}{X +- cv_{1-alpha}(B)} will have coverage
+#' \eqn{1-\alpha}, where \eqn{X} is normally distributed with variance equal to
+#' \eqn{1} and bias bounded by \eqn{B} in absolute value.
 #' @param B Maximum bias, a non-negative vector.
-#' @param alpha Determines CI level, \code{1-alpha}. Needs to be between 0 and
-#'     1.
-#' @return Critical value
+#' @param alpha Scalar between 0 and 1 determining the confidence level,
+#'     \code{1-alpha}
+#' @return Critical value \eqn{cv_{1-\alpha}(B)}{cv_{1-alpha}(B)}
 #' @examples
 #' # 90% critical value:
 #' cv(B = 1, alpha = 0.1)
@@ -23,34 +23,34 @@ cv <- function(B, alpha=0.05) {
 
 #' Matrix of distances between observations
 #'
-#' Compute and return the distance matrix using the distance measure in
-#' \code{method}.
-#' @param X Design matrix for control variables with dimension \code{[n p]} (if
-#'     \eqn{p=1} and \code{X} is a vector, then it is converted to a matrix)
+#' Compute a matrix of distances between \code{n} observations using the
+#' distance measure in \code{method}.
+#' @param X Design matrix of covariates with dimension \code{n} by \code{p}, or
+#'     else a vector of length \code{n} if there is a single covariate.
 #' @param d Vector of treatment indicators with length \code{n}. If supplied,
-#'     return the \code{[n1 n0]} distance matrix between treated and untreated
-#'     observations, otherwise return the full \code{[n n]} distance matrix
-#' @param Ahalf \eqn{A^{1/2}} weight matrix with dimension \code{[p p]} so that
-#'     the distances are computed between \eqn{Ax_{0,j}} and \eqn{Ax_{1,i}}.
-#' @return \code{[n1 n0]} or \code{[n n]} matrix of distances.
+#'     return the \code{n1} by \code{n0} submatrix corresponding to distances
+#'     between treated and untreated observations. Otherwise return the full
+#'     \code{n} by \code{n} matrix
+#' @param Ahalf Weight matrix with dimension \code{p} by \code{p} so that the
+#'     distances are computed between \code{Ahalf \%*\%  X[i, ]}.
+#' @return Matrix of distances with dimension \code{n} by \code{n} or else
+#'     \code{n1} by \code{n0}
 #' @inheritParams stats::dist
+#' @examples
+#' ## 4 units, unit 1 and 3 are treated.
+#' distMat(X=c(1, 2, 3, 4), d=c(TRUE, FALSE, TRUE, FALSE))
 #' @export
 distMat <- function(X, Ahalf=diag(NCOL(X)),
                     method="euclidean", d=NULL, p=2) {
-    if (!inherits(X, "matrix"))
-        X <- as.matrix(X)
-
-    X <- X %*% t(Ahalf)
+    X <- as.matrix(X) %*% t(Ahalf)
 
     if (nrow(X)>500) {
         Dm <- matrix(nrow=nrow(X), ncol=nrow(X))
         ## retrieve method in case full name not given
         method <- attr(stats::dist(c(0, 1), method=method), "method")
-        p <- if (method=="euclidean") 2L
-             else if (method=="manhattan") 1L
-             else if (method=="minkowski") p
-             else if (method=="maximum") Inf
-             else stop("Method '", method, "' not yet implemented for large X")
+        p <- switch(method, euclidean=2L, manhattan=1L, minkowski=p,
+                    maximum=Inf,
+                    stop("Method '", method, "' not implemented for large X"))
         for (i in seq_len(nrow(X))) {
             Dm[i, ] <- if (p != Inf)
                            colSums(abs(X[i, ] - t(X))^p)^(1/p)
@@ -69,14 +69,19 @@ distMat <- function(X, Ahalf=diag(NCOL(X)),
 
 #' Nearest-neighbor variance estimator
 #'
-#' Calculates an \code{n}-vector sigma2 of estimates of the variance of \code{y}
-#' using a nearest-neighbor estimator among observations with the same treatment
-#' status \code{d}.
-#' @param DM distance matrix with dimension \code{[n n]}.
+#' Calculate an \code{n}-vector of estimates of the variance of \code{y} using a
+#' nearest-neighbor estimator among observations with the same treatment status
+#' \code{d}.
+#' @param DM distance matrix with dimension \code{n} by \code{n}.
 #' @template data
 #' @param J number of nearest neighbors to average over
 #' @param tol numerical tolerance for determining nearest neighbors in
 #'     constructing matches
+#' @return An \code{n}-vector of estimates of the variance of \code{y}.
+#' @examples
+#' X <- as.matrix(NSWexper[, 2:10])
+#' DM <- distMat(X, chol(solve(cov(X))), method="euclidean")
+#' sigma2 <- nnvar(DM, d=NSWexper$treated, y=NSWexper$re78, J=3)
 #' @export
 nnvar <- function(DM, d, y, J=3, tol=0) {
     ehat2 <- vector(length=length(d))

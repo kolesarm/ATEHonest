@@ -41,16 +41,16 @@ tuning parameter is chosen to optimize \code{opt.criterion} criterion.
 }
 \examples{
 Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
-## Use NSW experimental subsample with 15 treated and untreated units
-dt <- NSWexper[c(1:15, 431:445), ]
+## Use NSW experimental subsample with 20 treated and untreated units
+dt <- NSWexper[c(1:20, 426:445), ]
 D0 <- distMat(dt[, 2:10], Ahalf, method="manhattan", dt$treated)
 ## Distance matrix for variance estimation
 DM <- distMat(dt[, 2:10], Ahalf, method="manhattan")
 sigma2 <- nnvar(DM, dt$treated, dt$re78, J=3)
 ## Compute homotopy/solution path, and the class of optimal estimators based
 ## on the solution path
-attpath <- ATTh(D0, maxiter=120)$res
-op <- ATTOptPath(attpath, dt$re78, dt$treated)
+h <- ATTh(D0, maxiter=120)
+op <- ATTOptPath(h, dt$re78, dt$treated)
 ATTOptEstimate(op, mean(sigma2), C=1, sigma2final=sigma2,
                opt.criterion="RMSE")
 ATTOptEstimate(op, mean(sigma2), C=1, sigma2final=sigma2,

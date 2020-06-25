@@ -1,4 +1,3 @@
-
 context("Check solution path for ATT")
 
 test_that("Solution path for ATT in small examples", {
@@ -18,7 +17,6 @@ test_that("Solution path for ATT in small examples", {
                  0.18593160956753849, 0.22915318333472903, 0.29678161157067251,
                  0.42253423096032311, 0.67552340069946715, 1.14904473037269139,
                  1.68623728943529416, 1.85267571248565455, 3.17444522610536684))
-
     x1 <- list(c(1, 4, 5, 7),
                c(1, 2, 4, 8),
                c(1, 1, 1, 1, 1, 2, 5, 8, 8, 9, 10),
@@ -38,51 +36,44 @@ test_that("Solution path for ATT in small examples", {
     for (j in seq_along(x0)) {
         d <- dd(x0[[j]], x1[[j]])
         D0 <- distMat(c(x0[[j]], x1[[j]]), d=d)
-        if (j == 4) {
-            tt[[j]] <- ATTh(D0, check=TRUE)$res
-        } else {
-            expect_silent(tt[[j]] <- ATTh(D0, check=TRUE)$res)
-        }
+        expect_silent(tt[[j]] <- ATTh(D0, check=TRUE))
+
+        ## if (j == 4) {
+        ##     tt[[j]] <- ATTh(D0, check=TRUE)
+        ## } else {
+            ## expect_silent(tt[[j]] <- ATTh(D0, check=TRUE))
+        ## }
         ## For j==4 the solution paths on xps and travis do not match officepc
         ## (where there is no message)
         ## expect_message(tt[[j]] <- ATTh(D0, check=TRUE)$res)
 
         ## Check maximum bias matches that from LP
-        res <- tt[[j]][tt[[j]][, "delta"]!=0, ]
-        r0 <- ATTOptEstimate(ATTOptPath(res, d, d), sigma2=1, C=0.5)
+        op <- ATTOptPath(tt[[j]], d, d)
+        r0 <- ATTOptEstimate(op, sigma2=1, C=0.5)
         expect_equal(0.5*ATTbias(r0$w, D0), r0$e$maxbias)
-        r1 <- ATTOptEstimate(ATTOptPath(res, d, d), sigma2=1, C=1)
-        expect_equal(ATTbias(r1$w, D0), r1$e$maxbias)
+        r1 <- ATTOptEstimate(op, sigma2=1, C=1)
+        expect_equal(1*ATTbias(r1$w, D0), r1$e$maxbias)
         ## Check optimum matches CVX
         rmse <- function(delta, C)
             ATTOptEstimate(ATTOptPath(
-                res=matrix(ATTbrute(delta2=delta^2, D0), nrow=1), d, d),
+                list(res=matrix(ATTbrute(delta2=delta^2, D0), nrow=1)), d, d),
                 sigma2=1, C=C)$e$rmse
-
-        cvx0 <- unlist(optimize(function(de)
-            rmse(de, 0.5), c(min(res[, "delta"]), max(res[, "delta"]))))
-        cvx1 <- unlist(optimize(function(de)
-            rmse(de, 1), c(min(res[, "delta"]), max(res[, "delta"]))))
-        hom0 <- unlist(r0$e[, c("delta", "rmse")])
-        hom1 <- unlist(r1$e[, c("delta", "rmse")])
-
-        expect_lt(abs(cvx1[2]-hom1[2]), 1e-3)
-        expect_lt(abs(cvx0[2]-hom0[2]), 1e-3)
-        ## The deltas sometimes differ
-        ## expect_lt(abs(cvx1[1]-hom1[1]), 1e-4)
-        ## expect_lt(abs(cvx0[1]-hom0[1]), 1e-4)
+        cvx0 <- optimize(rmse, range(tt[[j]]$res[, 1]), C=0.5)
+        cvx1 <- optimize(rmse, range(tt[[j]]$res[, 1]), C=1)
+        expect_lt(abs(r0$e$rmse - cvx0$objective), 1e-4)
+        expect_lt(abs(r1$e$rmse - cvx1$objective), 2.5e-4)
     }
-
-    expect_lt(nrow(tt[[1]]), 8)
-    expect_lt(nrow(tt[[2]]), 9)
-    expect_lt(nrow(tt[[3]]), 9)
-    expect_lt(nrow(tt[[4]]), 25)
+    expect_lt(nrow(tt[[1]]$res), 8)
+    expect_lt(nrow(tt[[2]]$res), 9)
+    expect_lt(nrow(tt[[3]]$res), 9)
+    expect_lt(nrow(tt[[4]]$res), 25)
 
     ## TODO: CVX solver fails at more iterations
-    set.seed(42)
-    x0 <- sort(rnorm(100))
-    x1 <- sort(rnorm(100))
-    expect_silent(t5 <- ATTh(distMat(c(x0, x1), dd(x0, x1)), check=TRUE,
-                                     maxiter=100)$res)
+    ## set.seed(42)
+    ## x0 <- sort(rnorm(100))
+    ## x1 <- sort(rnorm(100))
+    ## d <- dd(x0, x1)
+    ## expect_silent(t5 <- ATTh(distMat(c(x0, x1), dd(x0, x1), d=d), check=TRUE,
+    ##                                  maxiter=100))
     ## CVXR::installed_solvers()
 })

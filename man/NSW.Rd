@@ -36,9 +36,10 @@ Subset of National Supported Work and PSID data from Dehejia and Wahba
 \references{
 {
 
-\cite{Dehejia, R., and Wahba, S. (1999), "Causal Effects in Nonexperimental
-Studies: Reevaluating the Evaluation of Training Programs," Journal of the
-American Statistical Association, 94, 1053-1062.}
+\cite{Dehejia, R., and Wahba, S. (1999),
+"Causal Effects in Nonexperimental Studies: Reevaluating
+the Evaluation of Training Programs,"
+Journal of the American Statistical Association, 94 (448), 1053-1062.}
 
 }
 }

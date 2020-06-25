@@ -53,18 +53,19 @@ test_that("Check we match Abadie and Imbens (2011, JBES) estimates", {
 context("Efficiency calculations")
 
 test_that("Alternative way of computing modulus efficiency", {
-    X <- as.matrix(NSWexper[, 2:10])
-    d <- NSWexper$treated
+    dt <- NSWexper[c(1:15, 431:445), ]
+    X <- as.matrix(dt[, 2:10])
+    d <- dt$treated
     D0 <- distMat(X, diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1)),
                   method="manhattan", d)
     sigma2 <- 40
 
-    res <- ATTh(D0, maxiter=300)$res
+    h <- ATTh(D0, maxiter=300)
 
-    eb <- ATTEffBounds(res, d, sigma2, C=1)
-    expect_equal(eb$onesided, 0.991823078)
+    eb <- ATTEffBounds(h, d, sigma2, C=1)
+    expect_equal(eb$onesided, 0.9941966299)
     ## Alternative modulus calculation
-    expect_warning(ATTEffBounds(res[1:100, ], d, sigma2, C=1))
+    expect_warning(ATTEffBounds(list(res=h$res[1:10, ]), d, sigma2, C=1))
 
     ATTEffBounds2 <- function(res, d, sigma2, C=1, beta=0.8, alpha=0.05) {
         n <- ncol(res)-3
@@ -107,14 +108,15 @@ test_that("Alternative way of computing modulus efficiency", {
         lo <- -zal                          # lower endpoint
         while(integrand(lo)>1e-8) lo <- max(lo-2, lbar)
         num <- stats::integrate(integrand, lo, zal, abs.tol=1e-6)$value
-        den <- 2*ATTOptEstimate(ATTOptPath(res, d, d), mean(sigma2), C=C,
+        den <- 2*ATTOptEstimate(ATTOptPath(list(res=res), d, d),
+                                mean(sigma2), C=C,
                                 sigma2final=mean(sigma2), alpha,
                                 opt.criterion="FLCI")$e$hl
         C*num/den
     }
-    expect_equal(eb$twosided, ATTEffBounds2(res, d, sigma2, C=1))
-    expect_equal(ATTEffBounds(res, d, sigma2, C=4)$twosided,
-                 ATTEffBounds2(res, d, sigma2, C=4))
+    expect_lt(abs(eb$twosided-ATTEffBounds2(h$res, d, sigma2, C=1)), 1e-5)
+    expect_lt(abs(ATTEffBounds(h, d, sigma2, C=4)$twosided-
+                 ATTEffBounds2(h$res, d, sigma2, C=4)), 1e-5)
 })
 
 context("Matching estimator for ATT in NSWexper")

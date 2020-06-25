@@ -6,7 +6,7 @@
 \usage{
 ATTh(
   D0,
-  s,
+  h,
   maxiter = 50,
   check = FALSE,
   tol = .Machine$double.eps * ncol(D0) * nrow(D0)
@@ -17,20 +17,9 @@ ATTh(
 and treated units, where \code{n0} is the number of untreated units and
 \code{n1} is the number of treated units}
 
-\item{s}{Set of state variables at which to start the homotopy. If not
-    provided, the homotopy is started at the beginning. The state variables
-    are as follows: \describe{
-
-  \item{m0}{A vector of length \code{n0} of corresponding to \eqn{m}}
-  \item{r0}{A vector of length \code{n1} of corresponding to \eqn{r}}
-  \item{mu}{A scalar corresponding to \eqn{\mu}}
-  \item{D}{A matrix of effective distances with dimension \code{[n1 n0]}}
-  \item{Lam}{A sparse matrix of Lagrange multipliers with dimension
-            \code{[n1 n0]}}
-  \item{N0}{A sparse matrix of nearest neighbors with dimension
-            \code{[n1 n0]}}
-
-}}
+\item{h}{Optionally, supply previous output of \code{ATTh}. If not provided,
+the homotopy is started at the beginning. If provided, it starts at the
+step where the previous call to \code{ATTh} ended.}
 
 \item{maxiter}{maximum number of steps in the homotopy. If the homotopy has
 less steps than \code{maxiter}, returns the whole solution path.}
@@ -48,14 +37,27 @@ A list with two elements:
 \describe{
 
   \item{res}{A matrix with rows corresponding to steps in the homotopy, so
-  that the maximum number of rows is \code{maxiter}, and columns
-  corresponding to \eqn{\delta}, \eqn{m}, \eqn{r}, \eqn{\mu}, and
-  \code{drop}, an indicator if an observations has been dropped from an
-  active set, or added }
+  that the maximum number of rows is \code{maxiter} (if homotopy started at
+  the beginning), and columns corresponding to \eqn{\delta}, \eqn{m},
+  \eqn{r}, \eqn{\mu}, and \code{drop}, an indicator if an observations has
+  been dropped from an active set, or added }
 
-  \item{s}{List of state variables at the last step with the same structure
-  as the input \code{s}}
+  \item{m0}{A vector of length \code{n0} of corresponding to \eqn{m} at the
+  last step.}
 
+  \item{r0}{A vector of length \code{n1} of corresponding to \eqn{r} at the
+  last step.}
+
+  \item{mu}{A scalar corresponding to \eqn{\mu} at the last step.}
+
+  \item{D}{A matrix of effective distances with dimension \code{[n1 n0]} at
+  the last step.}
+
+  \item{Lam}{A sparse matrix of Lagrange multipliers with dimension
+            \code{[n1 n0]} at the last step.}
+
+  \item{N0}{A sparse matrix of nearest neighbors with dimension
+            \code{[n1 n0]} at the last step.}
 }
 }
 \description{
@@ -69,9 +71,9 @@ x1 <- c(1, 4, 5)
 d <- c(rep(FALSE, length(x0)), rep(TRUE, length(x1)))
 D0 <- distMat(c(x0, x1), d=d)
 ## Compute first three steps
-r <- ATTh(D0, maxiter=3)
+h <- ATTh(D0, maxiter=3)
 ## Compute the remaining steps, checking them against CVX solution
-r <- ATTh(D0, s=r$s, check=TRUE)
+h2 <- ATTh(D0, h=h, check=TRUE)
 }
 \references{
 \cite{Armstrong, T. B., and M. Kolesár (2018): Finite-Sample
