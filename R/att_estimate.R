@@ -231,8 +231,9 @@ ATTEffBounds <- function(h, d, sigma2, C=1, beta=0.8, alpha=0.05) {
     integrand <- function(z)
         vapply(z, function(z)
             mod11(2*(zal-z) * sig)$omega * stats::dnorm(z), numeric(1))
-    ## Maximum integrable point
-    lbar <- zal-max(del0)/(2*sig)
+    ## Maximum integrable point, make it smaller than max(del0) to prevent
+    ## numerical issues
+    lbar <- zal-(max(del0)-1e-10)/(2*sig)
 
     if (integrand(lbar)>1e-8) {
         warning("Path too short to compute two-sided efficiency")

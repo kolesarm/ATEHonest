@@ -27,7 +27,7 @@ ATTcheck <- function(m, r, mu, D0) {
     diff <- max(abs(c(cvxs[(ncol(D0)+2):(n+1)]-r, cvxs[2:(ncol(D0)+1)]-m)))
     if (diff > 1e-1)
         message("CVX solution differs from homotopy, by ", round(diff, 3),
-                " at delta=", sqrt(delta2), ".")
+                " at delta=", sqrt(delta2), ":\n", paste(cvxs, collapse="; "))
 
     0
 }
@@ -199,20 +199,10 @@ ATTstep <- function(s, tol=.Machine$double.eps*n0*n1) {
 #' x0 <- c(1,  1,  3,  3,  4,  6, 17, 17, 21, 22, 23, 23, 26, 30, 36, 37,
 #'         47, 53, 58, 61)
 #' x1 <- c(9, 15, 26, 27, 28, 31, 32, 40, 51, 52, 56)
-#' CVXR::installed_solvers()
 #' d <- c(rep(FALSE, length(x0)), rep(TRUE, length(x1)))
 #' D0 <- distMat(c(x0, x1), d=d)
-#' ATTh(D0, check=TRUE)
-#' ## Check 2
-#' dt <- NSWexper[c(1:15, 431:445), ]
-#' X <- as.matrix(dt[, 2:10])
-#' d <- dt$treated
-#' D0 <- distMat(X, diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1)),
-#'                  method="manhattan", d)
-#' sigma2 <- 40
-#' h <- ATTh(D0, maxiter=300)
+#' h <- ATTh(D0, check=TRUE, maxiter=20)
 #' h$res
-#' eb <- ATTEffBounds(h, d, sigma2, C=1)
 #' @references \cite{Armstrong, T. B., and M. Kolesár (2018): Finite-Sample
 #'     Optimal Estimation and Inference on Average Treatment Effects Under
 #'     Unconfoundedness, Unpublished manuscript}

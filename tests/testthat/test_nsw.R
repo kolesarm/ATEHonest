@@ -53,7 +53,7 @@ test_that("Check we match Abadie and Imbens (2011, JBES) estimates", {
 context("Efficiency calculations")
 
 test_that("Alternative way of computing modulus efficiency", {
-    dt <- NSWexper[c(1:15, 431:445), ]
+    dt <- NSWexper[c(1:20, 431:445), ]
     X <- as.matrix(dt[, 2:10])
     d <- dt$treated
     D0 <- distMat(X, diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1)),
@@ -62,7 +62,7 @@ test_that("Alternative way of computing modulus efficiency", {
 
     sigma2 <- 40
     eb <- ATTEffBounds(h, d, sigma2, C=1)
-    expect_equal(eb$onesided, 0.9941966299)
+    expect_equal(eb$onesided, 0.993176377)
     ## Alternative modulus calculation
     expect_warning(ATTEffBounds(list(res=h$res[1:10, ]), d, sigma2, C=1))
 
