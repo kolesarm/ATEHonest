@@ -18,7 +18,7 @@ ATTOptEstimate(
 \item{op}{Output of \code{ATTOptPath}.}
 
 \item{sigma2}{Estimate of the conditional variance of the outcome, used to
-optimize the tuning parameter.}
+optimize the number of matches.}
 
 \item{C}{Lipschitz smoothness constant}
 

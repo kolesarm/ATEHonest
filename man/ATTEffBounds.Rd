@@ -12,7 +12,7 @@ ATTEffBounds(h, d, sigma2, C = 1, beta = 0.8, alpha = 0.05)
 \item{d}{Vector of treatment indicators with length \code{n}}
 
 \item{sigma2}{Estimate of the conditional variance of the outcome, used to
-optimize the tuning parameter.}
+optimize the number of matches.}
 
 \item{C}{Lipschitz smoothness constant}
 

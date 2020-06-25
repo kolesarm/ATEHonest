@@ -204,15 +204,15 @@ ATTstep <- function(s, tol=.Machine$double.eps*n0*n1) {
 #' D0 <- distMat(c(x0, x1), d=d)
 #' ATTh(D0, check=TRUE)
 #' ## Check 2
-#'     dt <- NSWexper[c(1:15, 431:445), ]
-#'    X <- as.matrix(dt[, 2:10])
-#'    d <- dt$treated
-#'    D0 <- distMat(X, diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1)),
+#' dt <- NSWexper[c(1:15, 431:445), ]
+#' X <- as.matrix(dt[, 2:10])
+#' d <- dt$treated
+#' D0 <- distMat(X, diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1)),
 #'                  method="manhattan", d)
-#'    sigma2 <- 40
-#'    h <- ATTh(D0, maxiter=300)
-#'    h$res
-#'    eb <- ATTEffBounds(h, d, sigma2, C=1)
+#' sigma2 <- 40
+#' h <- ATTh(D0, maxiter=300)
+#' h$res
+#' eb <- ATTEffBounds(h, d, sigma2, C=1)
 #' @references \cite{Armstrong, T. B., and M. Kolesár (2018): Finite-Sample
 #'     Optimal Estimation and Inference on Average Treatment Effects Under
 #'     Unconfoundedness, Unpublished manuscript}

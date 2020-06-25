@@ -91,7 +91,7 @@ ATTMatchPath <- function(y, d, D0, M=1:25, tol=1e-12) {
 #' @param beta The quantile \code{beta} of excess length for determining
 #'     performance of one-sided CIs.
 #' @param sigma2 Estimate of the conditional variance of the outcome, used to
-#'     optimize the tuning parameter.
+#'     optimize the number of matches.
 #' @param C Lipschitz smoothness constant
 #' @param sigma2final vector of variance estimates with length \code{n} for
 #'     determining the standard error of the optimal estimator. In contrast,
@@ -103,7 +103,7 @@ ATTMatchPath <- function(y, d, D0, M=1:25, tol=1e-12) {
 #'     \code{"ATTEstimate"} is a list containing the following components:
 #' \describe{
 #' \item{e}{Data frame with columns TODO}
-#' \item{w}{weights}
+#' \item{k}{weights TODO}
 #' }
 #' @examples
 #' Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
@@ -112,8 +112,7 @@ ATTMatchPath <- function(y, d, D0, M=1:25, tol=1e-12) {
 #' ## Distance matrix for variance estimation
 #' DM <- distMat(NSWexper[, 2:10], Ahalf, method="manhattan")
 #' sigma2 <- nnvar(DM, NSWexper$treated, NSWexper$re78, J=3)
-#' ## Estimator and CI based on a single match is better than with 2 matches for
-#' ## RMSE
+#' ## Estimator based on a single match is better than with 2 matches for RMSE
 #' ATTMatchEstimate(mp, mean(sigma2), C=1, sigma2final=sigma2)
 #' @export
 ATTMatchEstimate <- function(mp, sigma2, C=1, sigma2final=sigma2, alpha=0.05,
@@ -122,9 +121,9 @@ ATTMatchEstimate <- function(mp, sigma2, C=1, sigma2final=sigma2, alpha=0.05,
     mp$ep <- UpdatePath(mp$ep, mp$K, C, sigma2, alpha, beta)
 
     ## Index of criterion to optimize
-    colidx <- switch(opt.criterion, RMSE = "rmse", OCI = "maxel",
-                     FLCI = "hl")
-    idx <- which.max(names(mp$ep)==colidx)
+    idx <- which.max(names(mp$ep) ==
+                     switch(opt.criterion, RMSE = "rmse", OCI = "maxel",
+                            FLCI = "hl"))
     i <- which.min(mp$ep[[idx]])
     if (i==nrow(mp$ep) & nrow(mp$ep)>1)
         warning("Optimum found at end of path")
@@ -137,5 +136,5 @@ ATTMatchEstimate <- function(mp, sigma2, C=1, sigma2final=sigma2, alpha=0.05,
                            data.frame(rsd=er$sd, rlower=er$lower,
                                       rupper=er$upper, rhl=er$hl, rrmse=er$rmse,
                                       rmaxel=er$maxel, C=C)),
-                   w=mp$K[i, mp$d==0]), class="ATTEstimate")
+                   k=mp$K[i, mp$d==0]), class="ATTEstimate")
 }

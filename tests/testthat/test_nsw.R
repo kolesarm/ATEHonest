@@ -58,10 +58,9 @@ test_that("Alternative way of computing modulus efficiency", {
     d <- dt$treated
     D0 <- distMat(X, diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1)),
                   method="manhattan", d)
-    sigma2 <- 40
-
     h <- ATTh(D0, maxiter=300)
 
+    sigma2 <- 40
     eb <- ATTEffBounds(h, d, sigma2, C=1)
     expect_equal(eb$onesided, 0.9941966299)
     ## Alternative modulus calculation

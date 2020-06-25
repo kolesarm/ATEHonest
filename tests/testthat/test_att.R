@@ -50,9 +50,9 @@ test_that("Solution path for ATT in small examples", {
         ## Check maximum bias matches that from LP
         op <- ATTOptPath(tt[[j]], d, d)
         r0 <- ATTOptEstimate(op, sigma2=1, C=0.5)
-        expect_equal(0.5*ATTbias(r0$w, D0), r0$e$maxbias)
+        expect_equal(0.5*ATTbias(r0$k, D0), r0$e$maxbias)
         r1 <- ATTOptEstimate(op, sigma2=1, C=1)
-        expect_equal(1*ATTbias(r1$w, D0), r1$e$maxbias)
+        expect_equal(1*ATTbias(r1$k, D0), r1$e$maxbias)
         ## Check optimum matches CVX
         rmse <- function(delta, C)
             ATTOptEstimate(ATTOptPath(

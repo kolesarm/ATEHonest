@@ -2,7 +2,7 @@
 % Please edit documentation in R/att_match.R
 \name{ATTMatchPath}
 \alias{ATTMatchPath}
-\title{Compute the matching estimator for the CATT}
+\title{Compute the matching estimator for the ATT}
 \usage{
 ATTMatchPath(y, d, D0, M = 1:25, tol = 1e-12)
 }
@@ -29,8 +29,8 @@ List with the following components
 corresponding to the number of matches, the scaled worst-case bias, and the
 CATT estimate.}
 
-\item{resw}{A matrix where each row corresponds to the linear weights \eqn{k}
-used to form the matching estimator corresponding to rows of \code{ep}}
+\item{K}{A matrix where each row \code{j} corresponds to the linear weights
+\eqn{k} used to form the matching estimator with \code{M[j]} matches.}
 
 \item{d}{Vector of treatment indicators, as supplied by \code{d}}
 }
@@ -43,5 +43,5 @@ matches \code{M}. The output of this function is used as an input for
 \examples{
 Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
 D0 <- distMat(NSWexper[, 2:10], Ahalf, method="manhattan", NSWexper$treated)
-mp <- ATTMatchPath(NSWexper$re78, NSWexper$treated, D0, M=c(1, 2), tol=1e-12)
+mp <- ATTMatchPath(NSWexper$re78, NSWexper$treated, D0, M=1:2, tol=1e-12)
 }

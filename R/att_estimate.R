@@ -145,7 +145,7 @@ ATTOptEstimate <- function(op, sigma2, C=1, sigma2final=sigma2, alpha=0.05,
     structure(list(e=cbind(r1, data.frame(rsd=r2$sd, rlower=r2$lower,
                                           rupper= r2$upper, rhl=r2$hl,
                                           rrmse=r2$rmse, rmaxel=r2$maxel, C=C)),
-                   res=resopt, w=resw1[, op$d==0]),
+                   res=resopt, k=resw1[, op$d==0]),
               class="ATTEstimate")
 }
 

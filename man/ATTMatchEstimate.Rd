@@ -18,7 +18,7 @@ ATTMatchEstimate(
 \item{mp}{Output of \code{ATTMatchPath}}
 
 \item{sigma2}{Estimate of the conditional variance of the outcome, used to
-optimize the tuning parameter.}
+optimize the number of matches.}
 
 \item{C}{Lipschitz smoothness constant}
 
@@ -40,7 +40,7 @@ Returns an object of class \code{"ATTEstimate"}. An object of class
     \code{"ATTEstimate"} is a list containing the following components:
 \describe{
 \item{e}{Data frame with columns TODO}
-\item{w}{weights}
+\item{k}{weights TODO}
 }
 }
 \description{
@@ -56,7 +56,6 @@ mp <- ATTMatchPath(NSWexper$re78, NSWexper$treated, D0, M=c(1, 2), tol=1e-12)
 ## Distance matrix for variance estimation
 DM <- distMat(NSWexper[, 2:10], Ahalf, method="manhattan")
 sigma2 <- nnvar(DM, NSWexper$treated, NSWexper$re78, J=3)
-## Estimator and CI based on a single match is better than with 2 matches for
-## RMSE
+## Estimator based on a single match is better than with 2 matches for RMSE
 ATTMatchEstimate(mp, mean(sigma2), C=1, sigma2final=sigma2)
 }
