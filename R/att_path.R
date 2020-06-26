@@ -25,9 +25,9 @@ ATTcheck <- function(m, r, mu, D0) {
 
     ## Solutions should also be close together
     diff <- max(abs(c(cvxs[(ncol(D0)+2):(n+1)]-r, cvxs[2:(ncol(D0)+1)]-m)))
-    if (diff > 1e-1)
+    if (diff > 2e-1)
         message("CVX solution differs from homotopy, by ", round(diff, 3),
-                " at delta=", sqrt(delta2), ":\n", paste(cvxs, collapse="; "))
+                " at delta=", sqrt(delta2), ":\n", paste(cvxs, collapse=", "))
 
     0
 }
@@ -195,14 +195,6 @@ ATTstep <- function(s, tol=.Machine$double.eps*n0*n1) {
 #' h <- ATTh(D0, maxiter=3)
 #' ## Compute the remaining steps, checking them against CVX solution
 #' h2 <- ATTh(D0, h=h, check=TRUE)
-#' ## Check
-#' x0 <- c(1,  1,  3,  3,  4,  6, 17, 17, 21, 22, 23, 23, 26, 30, 36, 37,
-#'         47, 53, 58, 61)
-#' x1 <- c(9, 15, 26, 27, 28, 31, 32, 40, 51, 52, 56)
-#' d <- c(rep(FALSE, length(x0)), rep(TRUE, length(x1)))
-#' D0 <- distMat(c(x0, x1), d=d)
-#' h <- ATTh(D0, check=TRUE, maxiter=20)
-#' h$res
 #' @references \cite{Armstrong, T. B., and M. Kolesár (2018): Finite-Sample
 #'     Optimal Estimation and Inference on Average Treatment Effects Under
 #'     Unconfoundedness, Unpublished manuscript}

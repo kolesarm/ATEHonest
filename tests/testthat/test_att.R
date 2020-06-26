@@ -26,26 +26,11 @@ test_that("Solution path for ATT in small examples", {
                  0.478185868404733,  0.525553657035341, 1.044897968992634,
                  1.181192580509525))
 
-    ## x0 <- c(3, 4, 7, 7, 9)
-    ## x1 <- c(1, 4, 5, 7)
-    ## d <- c(rep(FALSE, length(x0)), rep(TRUE, length(x1)))
-    ## D0 <- distMat(c(x0, x1), d=d)
-    ## expect_silent(rr <- ATTh(D0, check=TRUE))
-
     tt <- list()
     for (j in seq_along(x0)) {
         d <- dd(x0[[j]], x1[[j]])
         D0 <- distMat(c(x0[[j]], x1[[j]]), d=d)
-        ## expect_silent(tt[[j]] <- ATTh(D0, check=TRUE))
-
-        if (j == 4) {
-            tt[[j]] <- ATTh(D0, check=TRUE)
-        } else {
-            expect_silent(tt[[j]] <- ATTh(D0, check=TRUE))
-        }
-        ## For j==4 the solution paths on xps and travis do not match officepc
-        ## (where there is no message)
-        ## expect_message(tt[[j]] <- ATTh(D0, check=TRUE)$res)
+        expect_silent(tt[[j]] <- ATTh(D0, check=TRUE))
 
         ## Check maximum bias matches that from LP
         op <- ATTOptPath(tt[[j]], d, d)
@@ -76,4 +61,72 @@ test_that("Solution path for ATT in small examples", {
     ## expect_silent(t5 <- ATTh(distMat(c(x0, x1), dd(x0, x1), d=d), check=TRUE,
     ##                                  maxiter=100))
     ## CVXR::installed_solvers()
+})
+
+context("Efficiency calculations")
+
+test_that("Alternative way of computing modulus efficiency", {
+    dt <- NSWexper[c(1:20, 431:445), ]
+    X <- as.matrix(dt[, 2:10])
+    d <- dt$treated
+    D0 <- distMat(X, diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1)),
+                  method="manhattan", d)
+    h <- ATTh(D0, maxiter=300)
+
+    sigma2 <- 40
+    eb <- ATTEffBounds(h, d, sigma2, C=1)
+    expect_equal(eb$onesided, 0.993176377)
+    ## Alternative modulus calculation
+    expect_warning(ATTEffBounds(list(res=h$res[1:10, ]), d, sigma2, C=1))
+
+    ATTEffBounds2 <- function(res, d, sigma2, C=1, beta=0.8, alpha=0.05) {
+        n <- ncol(res)-3
+        n1 <- sum(d)
+        n0 <- n-n1
+        ## normalize delta by standard deviation:
+        del0 <- res[, "delta"]
+        mu0 <- res[, "mu"]
+        m0 <- res[, 2:(n0+1), drop=FALSE]
+        r0 <- res[, (n0+2):(n+1), drop=FALSE]
+
+        ## Modulus when sigma2=1 and C=1
+        mod11 <- function(del) {
+            idx <- which.max(del0>=del)
+            if (idx==1 || del==del0[idx])
+                return(list(omega=2*(mu0[idx]+mean(r0[idx, ])),
+                            domega=0.5*del/(n1 * mu0[idx])))
+
+            fn <- function(w)
+                2*sqrt((n1*((1-w)*mu0[idx-1]+w*mu0[idx])^2 +
+                        sum(((1-w)*m0[idx-1, ]+w*m0[idx, ])^2)))-del
+
+            w <- stats::uniroot(fn, interval=c(0, 1))$root
+            list(omega=2*((1-w)*mu0[idx-1]+w*mu0[idx] +
+                          mean((1-w)*r0[idx-1, ]+w*r0[idx, ])),
+                 domega=0.5*del/(n1 * ((1-w)*mu0[idx-1]+w*mu0[idx])))
+        }
+
+        ## One-sided
+        zal <- stats::qnorm(1-alpha)
+        ## Rescaling to modulus(C, sigma)
+        sig <- sqrt(mean(sigma2)) / C
+
+        integrand <- function(z)
+            vapply(z, function(z)
+                mod11(2*(zal-z) * sig)$omega * stats::dnorm(z), numeric(1))
+        ## Maximum integrable point
+        lbar <- zal-max(del0)/(2*sig)
+
+        lo <- -zal                          # lower endpoint
+        while(integrand(lo)>1e-8) lo <- max(lo-2, lbar)
+        num <- stats::integrate(integrand, lo, zal, abs.tol=1e-6)$value
+        den <- 2*ATTOptEstimate(ATTOptPath(list(res=res), d, d),
+                                mean(sigma2), C=C,
+                                sigma2final=mean(sigma2), alpha,
+                                opt.criterion="FLCI")$e$hl
+        C*num/den
+    }
+    expect_lt(abs(eb$twosided-ATTEffBounds2(h$res, d, sigma2, C=1)), 1e-5)
+    expect_lt(abs(ATTEffBounds(h, d, sigma2, C=4)$twosided-
+                 ATTEffBounds2(h$res, d, sigma2, C=4)), 1e-5)
 })

@@ -203,7 +203,7 @@ ATTEffBounds <- function(h, d, sigma2, C=1, beta=0.8, alpha=0.05) {
     ## Modulus and its derivative when sigma2=1 and C=1
     mod11 <- function(del) {
         idx <- which.max(del0>=del)
-        if (del==del0[idx])
+        if (abs(del-del0[idx]) < .Machine$double.eps^(2/3))
             return(list(omega=2*(mu0[idx]+mean(r0[idx, ])),
                         domega=0.5*del/(n1 * mu0[idx])))
 
@@ -250,7 +250,6 @@ ATTEffBounds <- function(h, d, sigma2, C=1, beta=0.8, alpha=0.05) {
             2*sig*cv((m$omega/(m$domega*sig)-del)/2, alpha)*m$domega
         }
         idx <- which.min(sapply(del0/sig, len))
-print(idx)
         den <- stats::optimize(len, interval=del0[c(idx-1, (idx+1))]/sig)$objective
     }
     list(onesided=eff1, twosided=num/den)
