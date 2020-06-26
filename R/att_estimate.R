@@ -187,6 +187,16 @@ print.ATTEstimate <- function(x, digits = getOption("digits"), ...) {
 #' @references \cite{Armstrong, T. B., and M. Kolesár (2018): Finite-Sample
 #'     Optimal Estimation and Inference on Average Treatment Effects Under
 #'     Unconfoundedness, Unpublished manuscript}
+#' @examples
+#' dt <- NSWexper[c(1:20, 431:445), ]
+#' X <- as.matrix(dt[, 2:10])
+#' d <- dt$treated
+#' D0 <- distMat(X, diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1)),
+#' method="manhattan", d)
+#' h <- ATTh(D0, maxiter=300)
+#' h$res[, 1]
+#' sigma2 <- 40
+#' eb <- ATTEffBounds(h, d, sigma2, C=1)
 #' @export
 ATTEffBounds <- function(h, d, sigma2, C=1, beta=0.8, alpha=0.05) {
     if (length(sigma2)>1)
@@ -231,9 +241,9 @@ ATTEffBounds <- function(h, d, sigma2, C=1, beta=0.8, alpha=0.05) {
     integrand <- function(z)
         vapply(z, function(z)
             mod11(2*(zal-z) * sig)$omega * stats::dnorm(z), numeric(1))
-    ## Maximum integrable point, make it smaller than max(del0) to prevent
+    ## Minimum integrable point, make it bigger than max(del0) to prevent
     ## numerical issues
-    lbar <- zal-(max(del0)-1e-10)/(2*sig)
+    lbar <- zal-(max(del0))/(2*sig)+1e-8
 
     if (integrand(lbar)>1e-8) {
         warning("Path too short to compute two-sided efficiency")
@@ -246,11 +256,15 @@ ATTEffBounds <- function(h, d, sigma2, C=1, beta=0.8, alpha=0.05) {
         len <- function(del) {
             if (del==0)
                 return(Inf)
-            m <- mod11(del*sig)
-            2*sig*cv((m$omega/(m$domega*sig)-del)/2, alpha)*m$domega
+            ## m <- mod11(del*sig)
+            ## 2*sig*cv((m$omega/(m$domega*sig)-del)/2, alpha)*m$domega
+            m <- mod11(del)
+            2*sig*cv((m$omega/(m$domega*sig)-del/sig)/2, alpha)*m$domega
         }
-        idx <- which.min(sapply(del0/sig, len))
-        den <- stats::optimize(len, interval=del0[c(idx-1, (idx+1))]/sig)$objective
+        ## idx <- which.min(sapply(del0/sig, len))
+        ## den <- stats::optimize(len, interval=del0[c(idx-1, (idx+1))]/sig)$objective
+        idx <- which.min(sapply(del0, len))
+        den <- stats::optimize(len, interval=del0[c(idx-1, (idx+1))])$objective
     }
     list(onesided=eff1, twosided=num/den)
 }
