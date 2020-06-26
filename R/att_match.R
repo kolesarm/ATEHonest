@@ -1,5 +1,5 @@
 ## Matching weights for the untreated
-ATTMatchW <- function(D0, M, tol) {
+ATTMatchK0 <- function(D0, M, tol) {
     n0 <- ncol(D0)
     w0 <- rep(0, n0)
     if (M==Inf)
@@ -72,7 +72,7 @@ ATTMatchPath <- function(y, d, D0, M=1:25, tol=1e-12) {
     resw[, d==1] <- 1/n1
 
     for (j in seq_along(M)) {
-        resw[j, d==0] <- ATTMatchW(D0, M[j], tol)
+        resw[j, d==0] <- ATTMatchK0(D0, M[j], tol)
         maxbias[j] <- ATTbias(resw[j, d==0], D0)
     }
     list(ep=data.frame(att=drop(resw %*% y), maxbias=maxbias, M=M),

@@ -55,21 +55,28 @@ Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
 D0 <- distMat(X, Ahalf, method="manhattan", d)
 ```
 
-We now compute the first few steps of the solution path. 300 steps will be
+We now compute the first few steps of the solution path. 120 steps will be
 sufficient for computing the optimal estimator. Given the solution path, we then
 compute the root mean squared error optimal estimator, as well as estimator
 that's optimal for constructing two-sided CIs:
 
 ```{r}
-h <- ATTh(D0, maxiter=300)
-op <- ATTOptPath(h, y, d)
+op <- ATTOptPath(y, d, D0, maxsteps=120)
 ATTOptEstimate(op, mean(sigma2), C=1, sigma2final=sigma2, opt.criterion="RMSE")
 ATTOptEstimate(op, mean(sigma2), C=1, sigma2final=sigma2, opt.criterion="FLCI")
 ```
 
-Efficiency of one- and two-sided CIs at smooth functions (see Appendix A in @ak17ate) is:
+For computing efficiency of one- and two-sided CIs at smooth functions (see
+Appendix A in @ak17ate), the solution path is not long enough:
+
 ```{r}
-ATTEffBounds(h, d, mean(sigma2), C=1)
+ATTEffBounds(op, mean(sigma2), C=1)
+```
+We therefore make it longer, by passing the output `op` as an argument to `ATTOptPath`
+
+```{r}
+op <- ATTOptPath(path=op, maxsteps=290)
+ATTEffBounds(op, mean(sigma2), C=1)
 ```
 
 For comparison, we also consider matching estimators. First, a matching

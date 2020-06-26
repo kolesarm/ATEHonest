@@ -35,22 +35,28 @@ performance of one-sided CIs.}
 \code{"OCI"} (one-sided confidence intervals), \code{"FLCI"}
 (fixed-length two-sided confidence intervals)}
 }
+\value{
+Returns an object of class \code{"ATTEstimate"}. An object of class
+    \code{"ATTEstimate"} is a list containing the following components:
+\describe{
+\item{e}{Data frame with columns TODO}
+\item{k}{weights TODO}
+}
+}
 \description{
 Computes the estimator and confidence intervals (CIs) for the CATT. The
 tuning parameter is chosen to optimize \code{opt.criterion} criterion.
 }
 \examples{
 Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
-## Use NSW experimental subsample with 20 treated and untreated units
+## Use NSW experimental subsample with 30 treated and untreated units
 dt <- NSWexper[c(1:20, 426:445), ]
 D0 <- distMat(dt[, 2:10], Ahalf, method="manhattan", dt$treated)
 ## Distance matrix for variance estimation
 DM <- distMat(dt[, 2:10], Ahalf, method="manhattan")
 sigma2 <- nnvar(DM, dt$treated, dt$re78, J=3)
-## Compute homotopy/solution path, and the class of optimal estimators based
-## on the solution path
-h <- ATTh(D0, maxiter=120)
-op <- ATTOptPath(h, dt$re78, dt$treated)
+## Compute the solution path, first 50 steps will be sufficient
+op <- ATTOptPath(dt$re78, dt$treated, D0, maxsteps=50)
 ATTOptEstimate(op, mean(sigma2), C=1, sigma2final=sigma2,
                opt.criterion="RMSE")
 ATTOptEstimate(op, mean(sigma2), C=1, sigma2final=sigma2,

@@ -2,20 +2,91 @@
 % Please edit documentation in R/att_estimate.R
 \name{ATTOptPath}
 \alias{ATTOptPath}
-\title{Compute the class of optimal linear estimators for the CATT}
+\title{Class of optimal linear estimators for the CATT}
 \usage{
-ATTOptPath(h, y, d)
+ATTOptPath(y, d, D0, maxsteps = 50, tol, path = NULL, check = FALSE)
 }
 \arguments{
-\item{h}{The output of \code{ATTh} on which to base the estimate}
-
 \item{y}{Outcome vector with length \code{n}}
 
 \item{d}{Vector of treatment indicators with length \code{n}}
+
+\item{D0}{matrix of distances with dimension \code{[n1 n0]} between untreated
+and treated units, where \code{n0} is the number of untreated units and
+\code{n1} is the number of treated units}
+
+\item{maxsteps}{maximum number of steps in the solution path. If the full
+solution path is shorter than \code{maxsteps}, compute the whole path.}
+
+\item{tol}{numerical tolerance for rounding error when finding the nearest
+neighbors. All observations with effective distance within \code{tol} of
+the closest are considered to be active.}
+
+\item{path}{Optionally, supply previous output of \code{ATTOptPath}. If not
+provided, the path is started at the beginning (at \eqn{\delta=0}). If
+provided, it starts at the step where the previous call to
+\code{ATTOptPath} ended.}
+
+\item{check}{check at each step that the solution matches that obtained by
+direct optimization using \code{\link[CVXR]{CVXR-package}} (generic
+convex optimizer package).}
+}
+\value{
+A list with the following elements: \describe{
+
+\item{y}{Output vector, as supplied by \code{y}}
+
+\item{d}{Vector of treatment indicators, as supplied by \code{d}}
+
+
+\item{D0}{Matrix of distances, as supplied by \code{D0}}
+
+\item{res}{A matrix with rows corresponding to steps in the homotopy, so
+  that the maximum number of rows is \code{maxsteps} (if homotopy started at
+  the beginning), and columns corresponding to \eqn{\delta}, \eqn{m},
+  \eqn{r}, \eqn{\mu}, and \code{drop}, an indicator if an observations has
+  been dropped from an active set, or added.}
+
+\item{m0}{A vector of length \code{n0} of corresponding to \eqn{m} at the
+  last step.}
+
+\item{r0}{A vector of length \code{n1} of corresponding to \eqn{r} at the
+  last step.}
+
+\item{mu}{A scalar corresponding to the Lagrange multiplier \eqn{\mu} at the
+last step.}
+
+\item{D}{A matrix of effective distances with dimension \code{[n1 n0]} at
+  the last step.}
+
+\item{Lam}{A sparse matrix of Lagrange multipliers with dimension
+            \code{[n1 n0]} at the last step.}
+
+\item{N0}{A sparse matrix of effective nearest neighbors with dimension
+            \code{[n1 n0]} at the last step.}
+
+\item{K}{Matrix of weights \eqn{k} associated with the optimal estimator at each step}
+
+\item{ep}{A data frame with columns \code{delta}, \code{omega},
+\code{maxbias}, and \code{att}, corresponding to \eqn{\delta},
+\eqn{\omega(\delta)}, the scaled worst-case bias, and the CATT estimate.}
+
+}
 }
 \description{
-Computes the class of optimal linear estimators that minimize variance
-subject to a bound on bias, and the optimal weights. The output of this
-function is used by \code{\link{ATTOptEstimate}} for optimal estimation and
-inference on the CATT.
+Use a LASSO-like algorithm to compute the solution path
+\eqn{\{\hat{L}_{\delta}:\delta>0\}}{{hatL_delta}_{delta>0}} tracing out the
+class of optimal linear estimators that minimize variance subject to a bound
+on bias. The output of this function is used by \code{\link{ATTOptEstimate}}
+for optimal estimation and inference on the CATT.
+}
+\examples{
+x0 <- c(0, 1, 2, 3)
+x1 <- c(1, 4, 5)
+d <- c(rep(FALSE, length(x0)), rep(TRUE, length(x1)))
+D0 <- distMat(c(x0, x1), d=d)
+## Compute first three steps
+p1 <- ATTOptPath(d, d, D0, maxsteps=3)
+## Compute the remaining steps, checking them against CVX solution
+p2 <- ATTOptPath(path=p1, maxsteps=4, check=TRUE)
 }

@@ -4,12 +4,10 @@
 \alias{ATTEffBounds}
 \title{Efficiency bounds for confidence intervals}
 \usage{
-ATTEffBounds(h, d, sigma2, C = 1, beta = 0.8, alpha = 0.05)
+ATTEffBounds(op, sigma2, C = 1, beta = 0.8, alpha = 0.05)
 }
 \arguments{
-\item{h}{The output of \code{ATTh}.}
-
-\item{d}{Vector of treatment indicators with length \code{n}}
+\item{op}{The output of \code{ATTOptPath}.}
 
 \item{sigma2}{Estimate of the conditional variance of the outcome, used to
 optimize the number of matches.}
@@ -21,12 +19,28 @@ performance of one-sided CIs.}
 
 \item{alpha}{Level of confidence interval, \code{1-alpha}.}
 }
+\value{
+A list with two elements, \code{onesided} and \code{twosided}, for
+    one- and two-sided efficiency.
+}
 \description{
 Computes the asymptotic efficiency of two-sided fixed-length confidence
 intervals at smooth functions, as well as the efficiency of one-sided
 confidence intervals that optimize a given \code{beta} quantile of excess
 length, using the formula described in Appendix A of Armstrong and Kolesár
 (2018)
+}
+\examples{
+Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
+## Use NSW experimental subsample with 30 treated and untreated units
+dt <- NSWexper[c(1:20, 426:445), ]
+D0 <- distMat(dt[, 2:10], Ahalf, method="manhattan", dt$treated)
+## Distance matrix for variance estimation
+DM <- distMat(dt[, 2:10], Ahalf, method="manhattan")
+sigma2 <- nnvar(DM, dt$treated, dt$re78, J=3)
+## Compute the solution path, first 50 steps will be sufficient
+op <- ATTOptPath(dt$re78, dt$treated, D0, maxsteps=50)
+eb <- ATTEffBounds(op, mean(sigma2), C=1)
 }
 \references{
 \cite{Armstrong, T. B., and M. Kolesár (2018): Finite-Sample

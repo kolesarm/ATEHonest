@@ -143,79 +143,32 @@ ATTstep <- function(s, tol=.Machine$double.eps*n0*n1) {
 }
 
 
-#' Homotopy for average treatment effect for the treated
-#'
-#' Calculates optimal weights \eqn{m} and \eqn{r} for the control and treated
-#' observations as a function of \eqn{\delta}, or equivalently \eqn{\mu}, using
-#' the algorithm described in the appendix to Armstrong and Kolesár (2018)
-#' @template D0
-#' @param maxiter maximum number of steps in the homotopy. If the homotopy has
-#'     less steps than \code{maxiter}, returns the whole solution path.
-#' @param check check at each step that the solution matches that in the
-#'     \code{\link[CVXR]{CVXR-package}} (generic convex optimizer package).
-#' @param tol numerical tolerance for rounding error when finding the nearest
-#'     neighbor. All observations with effective distance within \code{tol} of
-#'     the closest are considered to be active.
-#' @param h Optionally, supply previous output of \code{ATTh}. If not provided,
-#'     the homotopy is started at the beginning. If provided, it starts at the
-#'     step where the previous call to \code{ATTh} ended.
-#' @return A list with two elements:
-#'
-#' \describe{
-#'
-#'   \item{res}{A matrix with rows corresponding to steps in the homotopy, so
-#'   that the maximum number of rows is \code{maxiter} (if homotopy started at
-#'   the beginning), and columns corresponding to \eqn{\delta}, \eqn{m},
-#'   \eqn{r}, \eqn{\mu}, and \code{drop}, an indicator if an observations has
-#'   been dropped from an active set, or added }
-#'
-#'   \item{m0}{A vector of length \code{n0} of corresponding to \eqn{m} at the
-#'   last step.}
-#'
-#'   \item{r0}{A vector of length \code{n1} of corresponding to \eqn{r} at the
-#'   last step.}
-#'
-#'   \item{mu}{A scalar corresponding to \eqn{\mu} at the last step.}
-#'
-#'   \item{D}{A matrix of effective distances with dimension \code{[n1 n0]} at
-#'   the last step.}
-#'
-#'   \item{Lam}{A sparse matrix of Lagrange multipliers with dimension
-#'             \code{[n1 n0]} at the last step.}
-#'
-#'   \item{N0}{A sparse matrix of nearest neighbors with dimension
-#'             \code{[n1 n0]} at the last step.}
-#' }
-#' @examples
-#' x0 <- c(0, 1, 2, 3)
-#' x1 <- c(1, 4, 5)
-#' d <- c(rep(FALSE, length(x0)), rep(TRUE, length(x1)))
-#' D0 <- distMat(c(x0, x1), d=d)
-#' ## Compute first three steps
-#' h <- ATTh(D0, maxiter=3)
-#' ## Compute the remaining steps, checking them against CVX solution
-#' h2 <- ATTh(D0, h=h, check=TRUE)
-#' @references \cite{Armstrong, T. B., and M. Kolesár (2018): Finite-Sample
-#'     Optimal Estimation and Inference on Average Treatment Effects Under
-#'     Unconfoundedness, Unpublished manuscript}
-#' @export
-ATTh <- function(D0, h, maxiter=50, check=FALSE,
-                 tol=.Machine$double.eps*ncol(D0)*nrow(D0)) {
+## Homotopy for average treatment effect for the treated
+##
+## Calculates optimal weights \eqn{m} and \eqn{r} for the control and treated
+## observations as a function of \eqn{\delta}, or equivalently \eqn{\mu}, using
+## the algorithm described in the appendix to Armstrong and Kolesár (2018)
+## @param h Optionally, supply previous output of \code{ATTh}. If not provided,
+##     the homotopy is started at the beginning. If provided, it starts at the
+##     step where the previous call to \code{ATTh} ended.
+ATTh <- function(h, maxsteps=50, check=FALSE,
+                 tol=.Machine$double.eps*ncol(h$D0)*nrow(h$D0)) {
+    D0 <- h$D0
     n0 <- ncol(D0)
     n1 <- nrow(D0)
     n <- n0+n1
 
     ## Initialize state variables
-    if (missing(h)) {
+    if (is.null(h$res)) {
         r0 <- apply(D0, 1, min)
-        h <- list(m0=rep(0, n0), Lam=Matrix::Matrix(0, nrow=n1, ncol=n0), D=D0,
-                  r0=r0, N0=Matrix::Matrix(D0<=r0), # without tol
-                  mu=0, drop=NA, res=matrix(nrow=0, ncol=n+3))
+        h <- c(h, list(m0=rep(0, n0), Lam=Matrix::Matrix(0, nrow=n1, ncol=n0),
+                       D=D0, r0=r0, N0=Matrix::Matrix(D0<=r0), # without tol
+                       mu=0, drop=NA, res=matrix(nrow=0, ncol=n+3)))
         colnames(h$res) <- c("delta", 1:n, "mu", "drop")
     }
 
     stopme <- FALSE
-    while (sum(h$m0^2) < Inf && nrow(h$res) < maxiter && !isTRUE(stopme)) {
+    while (sum(h$m0^2) < Inf && nrow(h$res) < maxsteps && !isTRUE(stopme)) {
         if (check && ATTcheck(h$m0, h$r0, h$mu, D0))
             stop("Solution doesn't agree with CVX")
         h$res <- rbind(h$res, c(2*sqrt(n1*h$mu^2 + sum(h$m0^2)), h$m0,
