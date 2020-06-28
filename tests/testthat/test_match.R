@@ -56,8 +56,7 @@ test_that("Standard errors for matching estimator are correct", {
     D0 <- distMat(NSWexper[, 2:10], Ahalf, method="manhattan", NSWexper$treated)
     mp <- ATTMatchPath(NSWexper$re78, NSWexper$treated, D0, M=2, tol=1e-12)
     DM <- distMat(NSWexper[, 2:10], Ahalf, method="manhattan")
-    sigma2 <- nnvar(DM, NSWexper$treated, NSWexper$re78, J=3)
-    r <- ATTMatchEstimate(mp, mean(sigma2), C=1, sigma2final=sigma2)
+    r <- ATTMatchEstimate(mp, C=1, DM=DM)
     expect_equal(unname(r$e[c("sd", "hl")]), c(0.692625208, 2.437109605))
     o1 <- utils::capture.output(print(r, digits=6))
     expect1 <- c("", "",
@@ -71,11 +70,10 @@ test_that("Standard errors for matching estimator are correct", {
 context("Matching estimator for ATT in NSWexper")
 test_that("Standard errors for matching estimator are correct", {
     Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
-    D0 <- distMat(NSWexper[, 2:10], Ahalf, method="manhattan", NSWexper$treated)
-    mp <- ATTMatchPath(NSWexper$re78, NSWexper$treated, D0, M=2, tol=1e-12)
     DM <- distMat(NSWexper[, 2:10], Ahalf, method="manhattan")
-    sigma2 <- nnvar(DM, NSWexper$treated, NSWexper$re78, J=3)
-    r <- ATTMatchEstimate(mp, mean(sigma2), C=1, sigma2final=sigma2)
+    mp <- ATTMatchPath(NSWexper$re78, NSWexper$treated,
+                       DM[NSWexper$treated, !NSWexper$treated], M=2, tol=1e-12)
+    r <- ATTMatchEstimate(mp, C=1, DM=DM)
     expect_equal(unname(r$e[c("sd", "hl")]), c(0.692625208, 2.437109605))
     o1 <- utils::capture.output(print(r, digits=6))
     expect1 <- c("", "",
@@ -87,7 +85,7 @@ test_that("Standard errors for matching estimator are correct", {
 })
 
 context("Variance for the ATE")
-test_that("Direct claculation of unconditional variance", {
+test_that("Direct calculation of unconditional variance", {
 
     nnUncondVar <- function(D0, M, tol, d, y, sigma2) {
         if (length(sigma2)==1)
@@ -101,7 +99,7 @@ test_that("Direct claculation of unconditional variance", {
             Lam[i, idx] <- 1/sum(idx)^2
         }
         tau <- mean(y[d]-Y0)
-        v2 <- tcrossprod(Lam %*% diag(sigma2[!d]) , Lam)
+        v2 <- tcrossprod(Lam %*% diag(sigma2[!d]), Lam)
 
         ## Unconditional and Conditional
         c((sum(v2-diag(diag(v2)))+sum((y[d]-Y0-tau)^2))/nrow(D0)^2,
@@ -124,12 +122,12 @@ test_that("Direct claculation of unconditional variance", {
     D0 <- distMat(c(x0, x1), d=d)
     sigma2 <- 40
     mp1 <- ATTMatchPath(d, d, D0, M=1, tol=1e-12)
-    r1 <- ATTMatchEstimate(mp1, sigma2, C=1, sigma2final=sigma2)
+    r1 <- ATTMatchEstimate(mp1, sigma2=sigma2, C=1)
     expect_equal(nnUncondVar(D0, M=1, tol=1e-12, d, y=d, sigma2),
                  unname(r1$e[c("usd", "rsd")])^2)
 
     mp3 <- ATTMatchPath(d, d, D0, M=3, tol=1e-12)
-    r3 <- ATTMatchEstimate(mp1, 4, C=1, sigma2final=4)
+    r3 <- ATTMatchEstimate(mp1, C=1, sigma2=4)
     expect_equal(nnUncondVar(D0, M=1, tol=1e-12, d, y=d, 4),
                  unname(r3$e[c("usd", "rsd")])^2)
 

@@ -2,66 +2,85 @@
 % Please edit documentation in R/att_estimate.R
 \name{ATTOptEstimate}
 \alias{ATTOptEstimate}
-\title{Optimal estimation and inference for the CATT}
+\title{Optimal estimation and inference for the CATT and the PATT}
 \usage{
 ATTOptEstimate(
   op,
-  sigma2,
   C = 1,
-  sigma2final = sigma2,
+  opt.criterion = "RMSE",
+  sigma2init,
+  sigma2,
+  mvar,
+  DM,
   alpha = 0.05,
   beta = 0.8,
-  opt.criterion = "RMSE",
-  M = 1
+  M = 1,
+  J = 3
 )
 }
 \arguments{
 \item{op}{Output of \code{ATTOptPath}.}
 
-\item{sigma2}{Estimate of the conditional variance of the outcome, used to
-optimize the number of matches.}
-
 \item{C}{Lipschitz smoothness constant}
 
-\item{sigma2final}{vector of variance estimates with length \code{n} for
-determining the standard error of the optimal estimator. In contrast,
-\code{sigma2} is used only for determining the optimal tuning parameter.}
+\item{opt.criterion}{criterion to optimize. One of \code{"RMSE"} (root mean
+squared error), \code{"OCI"} (one-sided confidence intervals),
+\code{"FLCI"} (fixed-length two-sided confidence intervals)}
 
-\item{alpha}{Level of confidence interval, \code{1-alpha}.}
+\item{sigma2init}{estimate of the conditional variance of the outcome, used
+to choose the optimal smoothing parameter \eqn{\delta}. If not supplied,
+use homoskedastic variance estimate based on a nearest neighbor variance
+estimator.}
 
-\item{beta}{The quantile \code{beta} of excess length for determining
-performance of one-sided CIs.}
+\item{sigma2}{vector of variance estimates with length \code{n} for
+determining the conditional standard error of the optimal estimator. In
+contrast, \code{sigma2init} is used only for determining the optimal
+tuning parameter. If not supplied, use the nearest neighbor variance
+estimator.}
 
-\item{opt.criterion}{One of \code{"RMSE"} (root mean squared error),
-\code{"OCI"} (one-sided confidence intervals), \code{"FLCI"}
-(fixed-length two-sided confidence intervals)}
+\item{mvar}{Marginal variance estimate (variance of the CATT) used to
+construct CIs for the PATT. If not supplied use the matching estimator of
+Abadie and Imbens (2006).}
 
-\item{M}{number of matches for computing marginal variance}
+\item{DM}{distance matrix with dimension \code{n} by \code{n} to determine
+nearest neighbors when when estimating \code{sigma2init} and
+\code{sigma2}.}
+
+\item{alpha}{determines confidence level, \code{1-alpha}.}
+
+\item{beta}{quantile \code{beta} of excess length for determining performance
+of one-sided CIs.}
+
+\item{M}{number of matches for computing the marginal variance \code{mvar}.}
+
+\item{J}{number of nearest neighbors to use when estimating \code{sigma2init}
+and \code{sigma2}.}
 }
 \value{
 Returns an object of class \code{"ATTEstimate"}. An object of class
     \code{"ATTEstimate"} is a list containing the following components:
-\describe{
-\item{e}{Data frame with columns TODO}
-\item{k}{weights TODO}
-}
+    \describe{ \item{e}{Data frame with columns TODO} \item{k}{weights TODO}
+    }
 }
 \description{
-Computes the estimator and confidence intervals (CIs) for the CATT. The
-tuning parameter is chosen to optimize \code{opt.criterion} criterion.
+Computes the estimator and confidence intervals (CIs) for the CATT and the
+PATT. The tuning parameter is chosen to optimize \code{opt.criterion}
+criterion.
 }
 \examples{
-Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
 ## Use NSW experimental subsample with 30 treated and untreated units
 dt <- NSWexper[c(1:20, 426:445), ]
+Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
 D0 <- distMat(dt[, 2:10], Ahalf, method="manhattan", dt$treated)
 ## Distance matrix for variance estimation
 DM <- distMat(dt[, 2:10], Ahalf, method="manhattan")
-sigma2 <- nnvar(DM, dt$treated, dt$re78, J=3)
 ## Compute the solution path, first 50 steps will be sufficient
 op <- ATTOptPath(dt$re78, dt$treated, D0, maxsteps=50)
-ATTOptEstimate(op, mean(sigma2), C=1, sigma2final=sigma2,
-               opt.criterion="RMSE")
-ATTOptEstimate(op, mean(sigma2), C=1, sigma2final=sigma2,
-               opt.criterion="FLCI")
+ATTOptEstimate(op, C=1, DM=DM, opt.criterion="RMSE")
+ATTOptEstimate(op, C=1, DM=DM, opt.criterion="FLCI")
+}
+\references{
+\cite{Armstrong, T. B., and M. Kolesár (2018): Finite-Sample
+    Optimal Estimation and Inference on Average Treatment Effects Under
+    Unconfoundedness, \url{https://arxiv.org/abs/1712.04594}}
 }

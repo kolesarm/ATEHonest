@@ -2,18 +2,18 @@
 % Please edit documentation in R/att_match.R
 \name{ATTMatchPath}
 \alias{ATTMatchPath}
-\title{Compute the matching estimator for the ATT}
+\title{Matching estimator for the ATT}
 \usage{
 ATTMatchPath(y, d, D0, M = 1:25, tol = 1e-12)
 }
 \arguments{
-\item{y}{Outcome vector with length \code{n}}
+\item{y}{outcome vector with length \code{n}.}
 
-\item{d}{Vector of treatment indicators with length \code{n}}
+\item{d}{vector of treatment indicators with length \code{n}.}
 
-\item{D0}{matrix of distances with dimension \code{[n1 n0]} between untreated
-and treated units, where \code{n0} is the number of untreated units and
-\code{n1} is the number of treated units}
+\item{D0}{matrix of distances with dimension \code{n1} by \code{n0} between
+untreated and treated units, where \code{n0} is the number of untreated
+units and \code{n1} is the number of treated units.}
 
 \item{M}{a vector of integers determining the number of matches. If
 \code{Inf}, then use the simple difference in means estimator.}
@@ -22,25 +22,31 @@ and treated units, where \code{n0} is the number of untreated units and
 constructing matches}
 }
 \value{
-List with the following components
-\describe{
+List with the following components: \describe{
 
-\item{ep}{A data frame with columns \code{M}, \code{maxbias}, and \code{att},
-corresponding to the number of matches, the scaled worst-case bias, and the
-CATT estimate.}
+\item{ep}{A data frame with columns \code{M}, \code{maxbias}, \code{att}, and
+\code{lindw} corresponding to the number of matches, the scaled worst-case
+bias, the ATT estimate, and the largest Lindeberg weight.}
 
 \item{K}{A matrix where each row \code{j} corresponds to the linear weights
 \eqn{k} used to form the matching estimator with \code{M[j]} matches.}
 
 \item{d}{Vector of treatment indicators, as supplied by \code{d}}
+
+\item{y}{Vector of outcomes, as supplied by \code{y}}
+
+\item{tol}{The tolerance parameter \code{tol}, as supplied by \code{tol}}
+
+\item{D0}{The distance matrix, as supplied by \code{D0}}
 }
 }
 \description{
 Computes the matching estimator and the matching weights for a range of
 matches \code{M}. The output of this function is used as an input for
-\code{\link{ATTMatchEstimate}} for inference on the CATT.
+\code{\link{ATTMatchEstimate}} for inference on the CATT and the PATT.
 }
 \examples{
+## Construct distance matrix
 Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
 D0 <- distMat(NSWexper[, 2:10], Ahalf, method="manhattan", NSWexper$treated)
 mp <- ATTMatchPath(NSWexper$re78, NSWexper$treated, D0, M=1:2, tol=1e-12)

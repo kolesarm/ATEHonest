@@ -8,8 +8,9 @@ UpdatePath <- function(ep, K, Cratio, sigma2, alpha=0.05, beta=0.8, ucse=NULL) {
         ep$sd <- sqrt(drop(K^2 %*% sigma2))
         ep$hl <- cv(ep$maxbias/ep$sd, alpha) * ep$sd
     } else {
+        ## PATT half-length uses usual CVs
         ep$sd <- ucse
-        ep$hl <- ep$maxbias + cv(0, alpha) * ep$sd
+        ep$hl <- ep$maxbias + stats::qnorm(1-alpha/2) * ep$sd
     }
 
     ep$lower <- ep$att - ep$maxbias - stats::qnorm(1-alpha)*ep$sd
@@ -36,13 +37,13 @@ ATTOptK <- function(res, d) {
 }
 
 
-#' Class of optimal linear estimators for the CATT
+#' Class of optimal linear estimators for the ATT
 #'
 #' Use a LASSO-like algorithm to compute the solution path
 #' \eqn{\{\hat{L}_{\delta}:\delta>0\}}{{hatL_delta}_{delta>0}} tracing out the
 #' class of optimal linear estimators that minimize variance subject to a bound
 #' on bias. The output of this function is used by \code{\link{ATTOptEstimate}}
-#' for optimal estimation and inference on the CATT.
+#' for optimal estimation and inference on the CATT and PATT
 #' @param maxsteps maximum number of steps in the solution path. If the full
 #'     solution path is shorter than \code{maxsteps}, compute the whole path.
 #' @param tol numerical tolerance for rounding error when finding the nearest
@@ -63,41 +64,48 @@ ATTOptK <- function(res, d) {
 #'
 #' \item{d}{Vector of treatment indicators, as supplied by \code{d}}
 #'
-#'
 #' \item{D0}{Matrix of distances, as supplied by \code{D0}}
 #'
-#' \item{res}{A matrix with rows corresponding to steps in the homotopy, so
-#'   that the maximum number of rows is \code{maxsteps} (if homotopy started at
-#'   the beginning), and columns corresponding to \eqn{\delta}, \eqn{m},
-#'   \eqn{r}, \eqn{\mu}, and \code{drop}, an indicator if an observations has
-#'   been dropped from an active set, or added.}
-#'
-#' \item{m0}{A vector of length \code{n0} of corresponding to \eqn{m} at the
-#'   last step.}
-#'
-#' \item{r0}{A vector of length \code{n1} of corresponding to \eqn{r} at the
-#'   last step.}
-#'
-#' \item{mu}{A scalar corresponding to the Lagrange multiplier \eqn{\mu} at the
-#' last step.}
-#'
-#' \item{D}{A matrix of effective distances with dimension \code{[n1 n0]} at
-#'   the last step.}
-#'
-#' \item{Lam}{A sparse matrix of Lagrange multipliers with dimension
-#'             \code{[n1 n0]} at the last step.}
-#'
-#' \item{N0}{A sparse matrix of effective nearest neighbors with dimension
-#'             \code{[n1 n0]} at the last step.}
+#' \item{res}{A matrix with rows corresponding to steps in the solution path, so
+#'   that the maximum number of rows is \code{maxsteps}, and columns
+#'   corresponding to the state variables \eqn{\delta}, \eqn{m}, \eqn{r},
+#'   \eqn{\mu}, and \code{drop}.}
 #'
 #' \item{K}{Matrix of weights \eqn{k} associated with the optimal estimator at
 #' each step}
 #'
 #' \item{ep}{A data frame with columns \code{delta}, \code{omega},
 #' \code{maxbias}, and \code{att}, corresponding to \eqn{\delta},
-#' \eqn{\omega(\delta)}, the scaled worst-case bias, and the CATT estimate.}
+#' \eqn{\omega(\delta)}, the scaled worst-case bias, and the ATT estimate.}
 #'
 #' }
+#'
+#' The remaining elements are state variables at the last step of the solution
+#' path (see Appendix A in Armstrong and Kolesár (2018) for details and
+#' notation): \describe{
+#'
+#' \item{m0}{A vector of length \code{n0} of corresponding to \eqn{m}.}
+#'
+#' \item{r0}{A vector of length \code{n1} of corresponding to \eqn{r}.}
+#'
+#' \item{mu}{A scalar corresponding to the Lagrange multiplier \eqn{\mu}.}
+#'
+#' \item{D}{A matrix of effective distances with dimension \code{n1} by
+#' \code{n0}.}
+#'
+#' \item{Lam}{A sparse matrix of Lagrange multipliers \eqn{\Lambda} with
+#'             dimension \code{n1} by \code{n0}.}
+#'
+#' \item{N0}{A sparse matrix of effective nearest neighbors with dimension
+#'             \code{n1} by \code{n0}.}
+#'
+#' \item{drop}{An indicator if an observations has been dropped from an active
+#'   set, or added.}
+#'
+#' }
+#' @references \cite{Armstrong, T. B., and M. Kolesár (2018): Finite-Sample
+#'     Optimal Estimation and Inference on Average Treatment Effects Under
+#'     Unconfoundedness, \url{https://arxiv.org/abs/1712.04594}}
 #' @examples
 #' x0 <- c(0, 1, 2, 3)
 #' x1 <- c(1, 4, 5)
@@ -106,7 +114,7 @@ ATTOptK <- function(res, d) {
 #' ## Compute first three steps
 #' p1 <- ATTOptPath(d, d, D0, maxsteps=3)
 #' ## Compute the remaining steps, checking them against CVX solution
-#' p2 <- ATTOptPath(path=p1, maxsteps=4, check=TRUE)
+#' p2 <- ATTOptPath(path=p1, maxsteps=50, check=TRUE)
 #' @export
 ATTOptPath <- function(y, d, D0, maxsteps=50, tol, path=NULL, check=FALSE) {
     if (is.null(path))
@@ -131,49 +139,57 @@ ATTOptPath <- function(y, d, D0, maxsteps=50, tol, path=NULL, check=FALSE) {
     path
 }
 
-#' Optimal estimation and inference for the CATT
+#' Optimal estimation and inference for the CATT and the PATT
 #'
-#' Computes the estimator and confidence intervals (CIs) for the CATT. The
-#' tuning parameter is chosen to optimize \code{opt.criterion} criterion.
+#' Computes the estimator and confidence intervals (CIs) for the CATT and the
+#' PATT. The tuning parameter is chosen to optimize \code{opt.criterion}
+#' criterion.
 #' @param op Output of \code{ATTOptPath}.
-#' @param M number of matches for computing marginal variance
+#' @param M number of matches for computing the marginal variance \code{mvar}.
+#' @param sigma2init estimate of the conditional variance of the outcome, used
+#'     to choose the optimal smoothing parameter \eqn{\delta}. If not supplied,
+#'     use homoskedastic variance estimate based on a nearest neighbor variance
+#'     estimator.
 #' @inheritParams ATTMatchEstimate
 #' @return Returns an object of class \code{"ATTEstimate"}. An object of class
 #'     \code{"ATTEstimate"} is a list containing the following components:
-#' \describe{
-#' \item{e}{Data frame with columns TODO}
-#' \item{k}{weights TODO}
-#' }
+#'     \describe{ \item{e}{Data frame with columns TODO} \item{k}{weights TODO}
+#'     }
+#' @references \cite{Armstrong, T. B., and M. Kolesár (2018): Finite-Sample
+#'     Optimal Estimation and Inference on Average Treatment Effects Under
+#'     Unconfoundedness, \url{https://arxiv.org/abs/1712.04594}}
 #' @examples
-#' Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
 #' ## Use NSW experimental subsample with 30 treated and untreated units
 #' dt <- NSWexper[c(1:20, 426:445), ]
+#' Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
 #' D0 <- distMat(dt[, 2:10], Ahalf, method="manhattan", dt$treated)
 #' ## Distance matrix for variance estimation
 #' DM <- distMat(dt[, 2:10], Ahalf, method="manhattan")
-#' sigma2 <- nnvar(DM, dt$treated, dt$re78, J=3)
 #' ## Compute the solution path, first 50 steps will be sufficient
 #' op <- ATTOptPath(dt$re78, dt$treated, D0, maxsteps=50)
-#' ATTOptEstimate(op, mean(sigma2), C=1, sigma2final=sigma2,
-#'                opt.criterion="RMSE")
-#' ATTOptEstimate(op, mean(sigma2), C=1, sigma2final=sigma2,
-#'                opt.criterion="FLCI")
+#' ATTOptEstimate(op, C=1, DM=DM, opt.criterion="RMSE")
+#' ATTOptEstimate(op, C=1, DM=DM, opt.criterion="FLCI")
 #' @export
-ATTOptEstimate <- function(op, sigma2, C=1, sigma2final=sigma2, alpha=0.05,
-                           beta=0.8, opt.criterion="RMSE", M=1) {
+ATTOptEstimate <- function(op, C=1, opt.criterion="RMSE", sigma2init, sigma2,
+                           mvar, DM, alpha=0.05, beta=0.8, M=1, J=3) {
+    if (missing(sigma2))
+        sigma2 <- nnvar(DM, op$d, op$y, J=J)
+    if (missing(sigma2init))
+        sigma2init <- mean(sigma2)
+
     ## Drop delta=0
     keep <- op$ep$delta > 0
-    res <- op$res[keep, , drop=FALSE] # nolint
-    ep <- UpdatePath(op$ep[keep, ], op$K[keep, , drop=FALSE], # nolint
-                     C, sigma2, alpha, beta)
+    res <- op$res[keep, , drop=FALSE]
+    ep <- UpdatePath(op$ep[keep, ], op$K[keep, , drop=FALSE],
+                     C, sigma2init, alpha, beta)
     ## update delta
-    if (length(sigma2)>1)
+    if (length(sigma2init)>1)
         warning(paste("The solution path is assuming homoskedastic variance,",
-                      "but supplied sigma2 implies it's not homoskedastic"))
+                      "but supplied sigma2init implies it's not homoskedastic"))
     up <- function(res) {
         op$res <- res
         r <- ATTOptPath(path=op, maxsteps=0, check=FALSE)
-        UpdatePath(r$ep, r$K, C, sigma2, alpha, beta)
+        UpdatePath(r$ep, r$K, C, sigma2init, alpha, beta)
     }
 
     if (nrow(res)==1) {
@@ -193,7 +209,7 @@ ATTOptEstimate <- function(op, sigma2, C=1, sigma2final=sigma2, alpha=0.05,
 
         if (ip<=nrow(res)) {
             f1 <- function(w)
-                up((1-w)*res[i, , drop=FALSE]+w*res[i+1, , drop=FALSE])[[idx]] # nolint
+                up((1-w)*res[i, , drop=FALSE]+w*res[i+1, , drop=FALSE])[[idx]]
             opt1 <- stats::optimize(f1, interval=c(0, 1))
         } else {
             opt1 <- list(minimum=0, objective=min(ep[[idx]]))
@@ -201,18 +217,18 @@ ATTOptEstimate <- function(op, sigma2, C=1, sigma2final=sigma2, alpha=0.05,
 
         if (i>1) {
             f0 <- function(w)
-                up((1-w)*res[i-1, , drop=FALSE]+w*res[i, , drop=FALSE])[[idx]] # nolint
+                up((1-w)*res[i-1, , drop=FALSE]+w*res[i, , drop=FALSE])[[idx]]
             opt0 <- stats::optimize(f0, interval=c(0, 1))
         } else {
             opt0 <- list(minimum=1, objective=min(ep[[idx]]))
         }
 
         if (opt1$objective < opt0$objective) {
-            resopt <- (1-opt1$minimum)*res[i, , drop=FALSE] +  # nolint
-                opt1$minimum*res[min(i+1, nrow(res)), , drop=FALSE]  # nolint
+            resopt <- (1-opt1$minimum)*res[i, , drop=FALSE] +
+                opt1$minimum*res[min(i+1, nrow(res)), , drop=FALSE]
         } else {
-            resopt <- (1-opt0$minimum)*res[max(i-1, 1), , drop=FALSE] +  # nolint
-                opt0$minimum*res[i, , drop=FALSE]  # nolint
+            resopt <- (1-opt0$minimum)*res[max(i-1, 1), , drop=FALSE] +
+                opt0$minimum*res[i, , drop=FALSE]
         }
     }
     ## Fix delta
@@ -225,11 +241,12 @@ ATTOptEstimate <- function(op, sigma2, C=1, sigma2final=sigma2, alpha=0.05,
         warning("Optimum found at end of path")
 
     ## Robust variance, C=1 to keep bias the same
-    or <- UpdatePath(oh, K, Cratio=1, sigma2final, alpha, beta)
-    mv <- nnMarginalVar(op$D0, M, tol=1e-12, op$d, op$y, sigma2final)
+    or <- UpdatePath(oh, K, Cratio=1, sigma2, alpha, beta)
+    if (missing(mvar))
+        mvar <- nnMarginalVar(op$D0, M, tol=1e-12, op$d, op$y, sigma2)
     ## Marginal variance could be negative in small samples
-    ou <- UpdatePath(or, K, Cratio=1, sigma2final, alpha,
-                     beta, ucse=sqrt(or$sd^2+max(mv, 0)))
+    ou <- UpdatePath(or, K, Cratio=1, sigma2, alpha, beta,
+                     ucse=sqrt(or$sd^2+max(mvar, 0)))
     structure(list(e=c(unlist(oh), rsd=or$sd, rlower=or$lower, rupper=or$upper,
                        rhl=or$hl, rrmse=or$rmse, rmaxel=or$maxel, usd=ou$sd,
                        ulower=ou$lower, uupper=ou$upper, uhl=ou$hl, C=C),
@@ -271,24 +288,31 @@ print.ATTEstimate <- function(x, digits = getOption("digits"), ...) {
 #' (2018)
 #' @inheritParams ATTMatchEstimate
 #' @param op The output of \code{ATTOptPath}.
-#' @return A list with two elements, \code{onesided} and \code{twosided}, for
+#' @param sigma2 estimate of the conditional variance of the outcome (assuming
+#'     homoskedasticity). If not supplied, use homoskedastic variance estimate
+#'     based on a nearest neighbor variance estimator.
+#' @param DM distance matrix with dimension \code{n} by \code{n} to determine
+#'     nearest neighbors when when estimating \code{sigma2}.
+#' @param J number of nearest neighbors to use when estimating \code{sigma2}.
+#' @return a list with two elements, \code{onesided} and \code{twosided}, for
 #'     one- and two-sided efficiency.
 #' @references \cite{Armstrong, T. B., and M. Kolesár (2018): Finite-Sample
 #'     Optimal Estimation and Inference on Average Treatment Effects Under
-#'     Unconfoundedness, Unpublished manuscript}
+#'     Unconfoundedness, \url{https://arxiv.org/abs/1712.04594}}
 #' @examples
-#' Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
 #' ## Use NSW experimental subsample with 30 treated and untreated units
 #' dt <- NSWexper[c(1:20, 426:445), ]
+#' Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
 #' D0 <- distMat(dt[, 2:10], Ahalf, method="manhattan", dt$treated)
 #' ## Distance matrix for variance estimation
 #' DM <- distMat(dt[, 2:10], Ahalf, method="manhattan")
-#' sigma2 <- nnvar(DM, dt$treated, dt$re78, J=3)
 #' ## Compute the solution path, first 50 steps will be sufficient
 #' op <- ATTOptPath(dt$re78, dt$treated, D0, maxsteps=50)
-#' eb <- ATTEffBounds(op, mean(sigma2), C=1)
+#' eb <- ATTEffBounds(op, C=1, DM=DM)
 #' @export
-ATTEffBounds <- function(op, sigma2, C=1, beta=0.8, alpha=0.05) {
+ATTEffBounds <- function(op, C=1, beta=0.8, alpha=0.05, sigma2, J=3, DM) {
+    if (missing(sigma2))
+        sigma2 <- mean(nnvar(DM, op$d, op$y, J=J))
     if (length(sigma2)>1)
         warning(paste("The solution path is assuming homoskedastic variance,",
                       "but supplied sigma2 implies it's not homoskedastic"))

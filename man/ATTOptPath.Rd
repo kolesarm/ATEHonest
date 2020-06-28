@@ -2,18 +2,18 @@
 % Please edit documentation in R/att_estimate.R
 \name{ATTOptPath}
 \alias{ATTOptPath}
-\title{Class of optimal linear estimators for the CATT}
+\title{Class of optimal linear estimators for the ATT}
 \usage{
 ATTOptPath(y, d, D0, maxsteps = 50, tol, path = NULL, check = FALSE)
 }
 \arguments{
-\item{y}{Outcome vector with length \code{n}}
+\item{y}{outcome vector with length \code{n}.}
 
-\item{d}{Vector of treatment indicators with length \code{n}}
+\item{d}{vector of treatment indicators with length \code{n}.}
 
-\item{D0}{matrix of distances with dimension \code{[n1 n0]} between untreated
-and treated units, where \code{n0} is the number of untreated units and
-\code{n1} is the number of treated units}
+\item{D0}{matrix of distances with dimension \code{n1} by \code{n0} between
+untreated and treated units, where \code{n0} is the number of untreated
+units and \code{n1} is the number of treated units.}
 
 \item{maxsteps}{maximum number of steps in the solution path. If the full
 solution path is shorter than \code{maxsteps}, compute the whole path.}
@@ -38,39 +38,43 @@ A list with the following elements: \describe{
 
 \item{d}{Vector of treatment indicators, as supplied by \code{d}}
 
-
 \item{D0}{Matrix of distances, as supplied by \code{D0}}
 
-\item{res}{A matrix with rows corresponding to steps in the homotopy, so
-  that the maximum number of rows is \code{maxsteps} (if homotopy started at
-  the beginning), and columns corresponding to \eqn{\delta}, \eqn{m},
-  \eqn{r}, \eqn{\mu}, and \code{drop}, an indicator if an observations has
-  been dropped from an active set, or added.}
-
-\item{m0}{A vector of length \code{n0} of corresponding to \eqn{m} at the
-  last step.}
-
-\item{r0}{A vector of length \code{n1} of corresponding to \eqn{r} at the
-  last step.}
-
-\item{mu}{A scalar corresponding to the Lagrange multiplier \eqn{\mu} at the
-last step.}
-
-\item{D}{A matrix of effective distances with dimension \code{[n1 n0]} at
-  the last step.}
-
-\item{Lam}{A sparse matrix of Lagrange multipliers with dimension
-            \code{[n1 n0]} at the last step.}
-
-\item{N0}{A sparse matrix of effective nearest neighbors with dimension
-            \code{[n1 n0]} at the last step.}
+\item{res}{A matrix with rows corresponding to steps in the solution path, so
+  that the maximum number of rows is \code{maxsteps}, and columns
+  corresponding to the state variables \eqn{\delta}, \eqn{m}, \eqn{r},
+  \eqn{\mu}, and \code{drop}.}
 
 \item{K}{Matrix of weights \eqn{k} associated with the optimal estimator at
 each step}
 
 \item{ep}{A data frame with columns \code{delta}, \code{omega},
 \code{maxbias}, and \code{att}, corresponding to \eqn{\delta},
-\eqn{\omega(\delta)}, the scaled worst-case bias, and the CATT estimate.}
+\eqn{\omega(\delta)}, the scaled worst-case bias, and the ATT estimate.}
+
+}
+
+The remaining elements are state variables at the last step of the solution
+path (see Appendix A in Armstrong and Kolesár (2018) for details and
+notation): \describe{
+
+\item{m0}{A vector of length \code{n0} of corresponding to \eqn{m}.}
+
+\item{r0}{A vector of length \code{n1} of corresponding to \eqn{r}.}
+
+\item{mu}{A scalar corresponding to the Lagrange multiplier \eqn{\mu}.}
+
+\item{D}{A matrix of effective distances with dimension \code{n1} by
+\code{n0}.}
+
+\item{Lam}{A sparse matrix of Lagrange multipliers \eqn{\Lambda} with
+            dimension \code{n1} by \code{n0}.}
+
+\item{N0}{A sparse matrix of effective nearest neighbors with dimension
+            \code{n1} by \code{n0}.}
+
+\item{drop}{An indicator if an observations has been dropped from an active
+  set, or added.}
 
 }
 }
@@ -79,7 +83,7 @@ Use a LASSO-like algorithm to compute the solution path
 \eqn{\{\hat{L}_{\delta}:\delta>0\}}{{hatL_delta}_{delta>0}} tracing out the
 class of optimal linear estimators that minimize variance subject to a bound
 on bias. The output of this function is used by \code{\link{ATTOptEstimate}}
-for optimal estimation and inference on the CATT.
+for optimal estimation and inference on the CATT and PATT
 }
 \examples{
 x0 <- c(0, 1, 2, 3)
@@ -89,5 +93,10 @@ D0 <- distMat(c(x0, x1), d=d)
 ## Compute first three steps
 p1 <- ATTOptPath(d, d, D0, maxsteps=3)
 ## Compute the remaining steps, checking them against CVX solution
-p2 <- ATTOptPath(path=p1, maxsteps=4, check=TRUE)
+p2 <- ATTOptPath(path=p1, maxsteps=50, check=TRUE)
+}
+\references{
+\cite{Armstrong, T. B., and M. Kolesár (2018): Finite-Sample
+    Optimal Estimation and Inference on Average Treatment Effects Under
+    Unconfoundedness, \url{https://arxiv.org/abs/1712.04594}}
 }

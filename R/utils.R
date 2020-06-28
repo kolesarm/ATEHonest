@@ -67,22 +67,13 @@ distMat <- function(X, Ahalf=diag(NCOL(X)),
 }
 
 
-#' Nearest-neighbor variance estimator
-#'
-#' Calculate an \code{n}-vector of estimates of the variance of \code{y} using a
-#' nearest-neighbor estimator among observations with the same treatment status
-#' \code{d}.
-#' @param DM distance matrix with dimension \code{n} by \code{n}.
-#' @template data
-#' @param J number of nearest neighbors to average over
-#' @param tol numerical tolerance for determining nearest neighbors in
-#'     constructing matches
-#' @return An \code{n}-vector of estimates of the variance of \code{y}.
-#' @examples
-#' X <- as.matrix(NSWexper[, 2:10])
-#' DM <- distMat(X, chol(solve(cov(X))), method="euclidean")
-#' sigma2 <- nnvar(DM, d=NSWexper$treated, y=NSWexper$re78, J=3)
-#' @export
+## Nearest-neighbor variance estimator
+## @param DM distance matrix with dimension \code{n} by \code{n}.
+## @template data
+## @param J number of nearest neighbors to average over
+## @param tol numerical tolerance for determining nearest neighbors in
+##     constructing matches
+## @export
 nnvar <- function(DM, d, y, J=3, tol=0) {
     ehat2 <- vector(length=length(d))
 

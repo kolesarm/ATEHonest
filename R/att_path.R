@@ -175,7 +175,7 @@ ATTh <- function(h, maxsteps=50, check=FALSE,
                                 h$r0, h$mu, h$drop))
         stopme <- tryCatch({
             h <- ATTstep(h, tol)
-        }, error = function(e) { # nolint
+        }, error = function(e) {
             message(conditionMessage(e))
             cat("Stopping ATTh at step ", nrow(h$res), "\n")
             return(TRUE)

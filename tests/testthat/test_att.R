@@ -87,9 +87,9 @@ test_that("Alternative way of computing modulus efficiency", {
     sigma2 <- 40
 
     op <- ATTOptPath(y=d, d=d, D0=D0, maxsteps=10)
-    expect_warning(ATTEffBounds(op, sigma2, C=1))
+    expect_warning(ATTEffBounds(op, sigma2=sigma2, C=1))
     op <- ATTOptPath(path=op, maxsteps=50)
-    eb <- ATTEffBounds(op, sigma2, C=1)
+    eb <- ATTEffBounds(op, sigma2=sigma2, C=1)
     expect_equal(eb$onesided, 0.993176377)
 
     ATTEffBounds2 <- function(op, sigma2, C=1, beta=0.8, alpha=0.05) {
@@ -137,11 +137,11 @@ test_that("Alternative way of computing modulus efficiency", {
         num <- stats::integrate(integrand, lo, zal, abs.tol=1e-6)$value
         den <- 2*ATTOptEstimate(op,
                                 mean(sigma2), C=C,
-                                sigma2final=mean(sigma2), alpha,
+                                sigma2=mean(sigma2), alpha,
                                 opt.criterion="FLCI")$e["hl"]
         C*num/den
     }
     expect_lt(abs(eb$twosided-ATTEffBounds2(op, sigma2, C=1)), 1e-5)
-    expect_lt(abs(ATTEffBounds(op, sigma2, C=4)$twosided-
+    expect_lt(abs(ATTEffBounds(op, sigma2=sigma2, C=4)$twosided-
                  ATTEffBounds2(op, sigma2, C=4)), 1e-5)
 })

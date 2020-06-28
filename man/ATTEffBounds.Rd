@@ -4,23 +4,29 @@
 \alias{ATTEffBounds}
 \title{Efficiency bounds for confidence intervals}
 \usage{
-ATTEffBounds(op, sigma2, C = 1, beta = 0.8, alpha = 0.05)
+ATTEffBounds(op, C = 1, beta = 0.8, alpha = 0.05, sigma2, J = 3, DM)
 }
 \arguments{
 \item{op}{The output of \code{ATTOptPath}.}
 
-\item{sigma2}{Estimate of the conditional variance of the outcome, used to
-optimize the number of matches.}
-
 \item{C}{Lipschitz smoothness constant}
 
-\item{beta}{The quantile \code{beta} of excess length for determining
-performance of one-sided CIs.}
+\item{beta}{quantile \code{beta} of excess length for determining performance
+of one-sided CIs.}
 
-\item{alpha}{Level of confidence interval, \code{1-alpha}.}
+\item{alpha}{determines confidence level, \code{1-alpha}.}
+
+\item{sigma2}{estimate of the conditional variance of the outcome (assuming
+homoskedasticity). If not supplied, use homoskedastic variance estimate
+based on a nearest neighbor variance estimator.}
+
+\item{J}{number of nearest neighbors to use when estimating \code{sigma2}.}
+
+\item{DM}{distance matrix with dimension \code{n} by \code{n} to determine
+nearest neighbors when when estimating \code{sigma2}.}
 }
 \value{
-A list with two elements, \code{onesided} and \code{twosided}, for
+a list with two elements, \code{onesided} and \code{twosided}, for
     one- and two-sided efficiency.
 }
 \description{
@@ -31,19 +37,18 @@ length, using the formula described in Appendix A of Armstrong and Kolesár
 (2018)
 }
 \examples{
-Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
 ## Use NSW experimental subsample with 30 treated and untreated units
 dt <- NSWexper[c(1:20, 426:445), ]
+Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
 D0 <- distMat(dt[, 2:10], Ahalf, method="manhattan", dt$treated)
 ## Distance matrix for variance estimation
 DM <- distMat(dt[, 2:10], Ahalf, method="manhattan")
-sigma2 <- nnvar(DM, dt$treated, dt$re78, J=3)
 ## Compute the solution path, first 50 steps will be sufficient
 op <- ATTOptPath(dt$re78, dt$treated, D0, maxsteps=50)
-eb <- ATTEffBounds(op, mean(sigma2), C=1)
+eb <- ATTEffBounds(op, C=1, DM=DM)
 }
 \references{
 \cite{Armstrong, T. B., and M. Kolesár (2018): Finite-Sample
     Optimal Estimation and Inference on Average Treatment Effects Under
-    Unconfoundedness, Unpublished manuscript}
+    Unconfoundedness, \url{https://arxiv.org/abs/1712.04594}}
 }

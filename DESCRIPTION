@@ -11,9 +11,9 @@ Authors@R: c(person(given = "Michal",
                   role = "ctb",
                   email = "tim.b.armstrong@gmail.com"))
 Description: Construct matching estimators, and optimal linear estimators, along
-    with confidence intervals for conditional and population average treatment
-    effects under unconfoundedness that are valid in finite samples under the
-    assumption that the regression function satisfies a Lipschitz constraint.
+    with honest confidence intervals for conditional and population average
+    treatment effects under unconfoundedness under the assumption that the
+    regression function satisfies a Lipschitz constraint.
 Depends: R (>= 4.0.0)
 License: GPL-3
 Imports:

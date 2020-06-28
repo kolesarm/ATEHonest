@@ -2,52 +2,67 @@
 % Please edit documentation in R/att_match.R
 \name{ATTMatchEstimate}
 \alias{ATTMatchEstimate}
-\title{Inference on the CATT using the matching estimator}
+\title{Inference on the CATT and the PATT using the matching estimator}
 \usage{
 ATTMatchEstimate(
   mp,
-  sigma2,
   C = 1,
-  sigma2final = sigma2,
+  opt.criterion = "RMSE",
+  sigma2init,
+  sigma2,
+  mvar,
+  DM,
   alpha = 0.05,
   beta = 0.8,
-  opt.criterion = "RMSE"
+  J = 3
 )
 }
 \arguments{
-\item{mp}{Output of \code{ATTMatchPath}}
-
-\item{sigma2}{Estimate of the conditional variance of the outcome, used to
-optimize the number of matches.}
+\item{mp}{output of \code{ATTMatchPath}}
 
 \item{C}{Lipschitz smoothness constant}
 
-\item{sigma2final}{vector of variance estimates with length \code{n} for
-determining the standard error of the optimal estimator. In contrast,
-\code{sigma2} is used only for determining the optimal tuning parameter.}
+\item{opt.criterion}{criterion to optimize. One of \code{"RMSE"} (root mean
+squared error), \code{"OCI"} (one-sided confidence intervals),
+\code{"FLCI"} (fixed-length two-sided confidence intervals)}
 
-\item{alpha}{Level of confidence interval, \code{1-alpha}.}
+\item{sigma2init}{estimate of the conditional variance of the outcome, used
+to optimize the number of matches. If not supplied, use homoskedastic
+variance estimate based on a nearest neighbor variance estimator.}
 
-\item{beta}{The quantile \code{beta} of excess length for determining
-performance of one-sided CIs.}
+\item{sigma2}{vector of variance estimates with length \code{n} for
+determining the conditional standard error of the optimal estimator. In
+contrast, \code{sigma2init} is used only for determining the optimal
+tuning parameter. If not supplied, use the nearest neighbor variance
+estimator.}
 
-\item{opt.criterion}{One of \code{"RMSE"} (root mean squared error),
-\code{"OCI"} (one-sided confidence intervals), \code{"FLCI"}
-(fixed-length two-sided confidence intervals)}
+\item{mvar}{Marginal variance estimate (variance of the CATT) used to
+construct CIs for the PATT. If not supplied use the matching estimator of
+Abadie and Imbens (2006).}
+
+\item{DM}{distance matrix with dimension \code{n} by \code{n} to determine
+nearest neighbors when when estimating \code{sigma2init} and
+\code{sigma2}.}
+
+\item{alpha}{determines confidence level, \code{1-alpha}.}
+
+\item{beta}{quantile \code{beta} of excess length for determining performance
+of one-sided CIs.}
+
+\item{J}{number of nearest neighbors to use when estimating \code{sigma2init}
+and \code{sigma2}.}
 }
 \value{
 Returns an object of class \code{"ATTEstimate"}. An object of class
     \code{"ATTEstimate"} is a list containing the following components:
-\describe{
-\item{e}{Data frame with columns TODO}
-\item{k}{weights TODO}
-}
+    \describe{ \item{e}{Data frame with columns TODO} \item{k}{weights TODO}
+    }
 }
 \description{
-Computes matching estimator and confidence intervals (CIs) for the CATT. If
-\code{ATTMatchPath} used a single \code{M}, the estimator and CIs are based
-on a matching estimator with this number of matches. Otherwise, optimize the
-number of matches from the set in \code{M} according to \code{opt.criterion}.
+Computes the matching estimator and confidence intervals (CIs) for the CATT
+and the PATT. If \code{ATTMatchPath} used a single \code{M}, the estimator
+and CIs are based on a matching estimator with this number of matches.
+Otherwise, optimize the number of matches according to \code{opt.criterion}.
 }
 \examples{
 Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
@@ -55,7 +70,16 @@ D0 <- distMat(NSWexper[, 2:10], Ahalf, method="manhattan", NSWexper$treated)
 mp <- ATTMatchPath(NSWexper$re78, NSWexper$treated, D0, M=c(1, 2), tol=1e-12)
 ## Distance matrix for variance estimation
 DM <- distMat(NSWexper[, 2:10], Ahalf, method="manhattan")
-sigma2 <- nnvar(DM, NSWexper$treated, NSWexper$re78, J=3)
 ## Estimator based on a single match is better than with 2 matches for RMSE
-ATTMatchEstimate(mp, mean(sigma2), C=1, sigma2final=sigma2)
+ATTMatchEstimate(mp, C=1, DM=DM)
+}
+\references{
+\cite{Abadie, A. and G. W. Imbens (2006):
+    "Large sample properties of matching estimators
+    for average treatment effects,"
+    Econometrica, 74, 235–267.}
+
+\cite{Armstrong, T. B., and M. Kolesár (2018): Finite-Sample
+    Optimal Estimation and Inference on Average Treatment Effects Under
+    Unconfoundedness, \url{https://arxiv.org/abs/1712.04594}}
 }

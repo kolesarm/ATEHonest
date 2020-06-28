@@ -32,35 +32,41 @@ ATTbias <- function(w, D0) {
                    as.vector(t(expand.grid((n0+1):(n0+n1), 1:n0))),
                    rep(c(1, -1), length(f.rhs)))
 
-    r <- lpSolve::lp("max", f.obj, , f.dir, f.rhs, dense.const=f.con) #nolint
+    r <- lpSolve::lp("max", f.obj, , f.dir, f.rhs, dense.const=f.con)
     r$objval
 }
 
 
-#' Compute the matching estimator for the ATT
+#' Matching estimator for the ATT
 #'
 #' Computes the matching estimator and the matching weights for a range of
 #' matches \code{M}. The output of this function is used as an input for
-#' \code{\link{ATTMatchEstimate}} for inference on the CATT.
+#' \code{\link{ATTMatchEstimate}} for inference on the CATT and the PATT.
 #' @param M a vector of integers determining the number of matches. If
 #'     \code{Inf}, then use the simple difference in means estimator.
 #' @template D0
 #' @template data
 #' @param tol numerical tolerance for determining nearest neighbors in
 #'     constructing matches
-#' @return List with the following components
-#' \describe{
+#' @return List with the following components: \describe{
 #'
-#' \item{ep}{A data frame with columns \code{M}, \code{maxbias}, and \code{att},
-#' corresponding to the number of matches, the scaled worst-case bias, and the
-#' CATT estimate.}
+#' \item{ep}{A data frame with columns \code{M}, \code{maxbias}, \code{att}, and
+#' \code{lindw} corresponding to the number of matches, the scaled worst-case
+#' bias, the ATT estimate, and the largest Lindeberg weight.}
 #'
 #' \item{K}{A matrix where each row \code{j} corresponds to the linear weights
 #' \eqn{k} used to form the matching estimator with \code{M[j]} matches.}
 #'
 #' \item{d}{Vector of treatment indicators, as supplied by \code{d}}
+#'
+#' \item{y}{Vector of outcomes, as supplied by \code{y}}
+#'
+#' \item{tol}{The tolerance parameter \code{tol}, as supplied by \code{tol}}
+#'
+#' \item{D0}{The distance matrix, as supplied by \code{D0}}
 #' }
 #' @examples
+#' ## Construct distance matrix
 #' Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
 #' D0 <- distMat(NSWexper[, 2:10], Ahalf, method="manhattan", NSWexper$treated)
 #' mp <- ATTMatchPath(NSWexper$re78, NSWexper$treated, D0, M=1:2, tol=1e-12)
@@ -81,45 +87,66 @@ ATTMatchPath <- function(y, d, D0, M=1:25, tol=1e-12) {
 }
 
 
-#' Inference on the CATT using the matching estimator
+#' Inference on the CATT and the PATT using the matching estimator
 #'
-#' Computes matching estimator and confidence intervals (CIs) for the CATT. If
-#' \code{ATTMatchPath} used a single \code{M}, the estimator and CIs are based
-#' on a matching estimator with this number of matches. Otherwise, optimize the
-#' number of matches from the set in \code{M} according to \code{opt.criterion}.
-#' @param mp Output of \code{ATTMatchPath}
-#' @param alpha Level of confidence interval, \code{1-alpha}.
-#' @param beta The quantile \code{beta} of excess length for determining
-#'     performance of one-sided CIs.
-#' @param sigma2 Estimate of the conditional variance of the outcome, used to
-#'     optimize the number of matches.
+#' Computes the matching estimator and confidence intervals (CIs) for the CATT
+#' and the PATT. If \code{ATTMatchPath} used a single \code{M}, the estimator
+#' and CIs are based on a matching estimator with this number of matches.
+#' Otherwise, optimize the number of matches according to \code{opt.criterion}.
+#' @param mp output of \code{ATTMatchPath}
 #' @param C Lipschitz smoothness constant
-#' @param sigma2final vector of variance estimates with length \code{n} for
-#'     determining the standard error of the optimal estimator. In contrast,
-#'     \code{sigma2} is used only for determining the optimal tuning parameter.
-#' @param opt.criterion One of \code{"RMSE"} (root mean squared error),
-#'     \code{"OCI"} (one-sided confidence intervals), \code{"FLCI"}
-#'     (fixed-length two-sided confidence intervals)
-#' @return Returns an object of class \code{"ATTEstimate"}. An object of class
-#'     \code{"ATTEstimate"} is a list containing the following components:
-#' \describe{
-#' \item{e}{Data frame with columns TODO}
-#' \item{k}{weights TODO}
-#' }
+#' @param opt.criterion criterion to optimize. One of \code{"RMSE"} (root mean
+#'     squared error), \code{"OCI"} (one-sided confidence intervals),
+#'     \code{"FLCI"} (fixed-length two-sided confidence intervals)
+#' @param alpha determines confidence level, \code{1-alpha}.
+#' @param beta quantile \code{beta} of excess length for determining performance
+#'     of one-sided CIs.
+#' @param sigma2init estimate of the conditional variance of the outcome, used
+#'     to optimize the number of matches. If not supplied, use homoskedastic
+#'     variance estimate based on a nearest neighbor variance estimator.
+#' @param sigma2 vector of variance estimates with length \code{n} for
+#'     determining the conditional standard error of the optimal estimator. In
+#'     contrast, \code{sigma2init} is used only for determining the optimal
+#'     tuning parameter. If not supplied, use the nearest neighbor variance
+#'     estimator.
+#' @param mvar Marginal variance estimate (variance of the CATT) used to
+#'     construct CIs for the PATT. If not supplied use the matching estimator of
+#'     Abadie and Imbens (2006).
+#' @param DM distance matrix with dimension \code{n} by \code{n} to determine
+#'     nearest neighbors when when estimating \code{sigma2init} and
+#'     \code{sigma2}.
+#' @param J number of nearest neighbors to use when estimating \code{sigma2init}
+#'     and \code{sigma2}.
+#' @references \cite{Abadie, A. and G. W. Imbens (2006):
+#'     "Large sample properties of matching estimators
+#'     for average treatment effects,"
+#'     Econometrica, 74, 235–267.}
+#'
+#' \cite{Armstrong, T. B., and M. Kolesár (2018): Finite-Sample
+#'     Optimal Estimation and Inference on Average Treatment Effects Under
+#'     Unconfoundedness, \url{https://arxiv.org/abs/1712.04594}}
 #' @examples
 #' Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
 #' D0 <- distMat(NSWexper[, 2:10], Ahalf, method="manhattan", NSWexper$treated)
 #' mp <- ATTMatchPath(NSWexper$re78, NSWexper$treated, D0, M=c(1, 2), tol=1e-12)
 #' ## Distance matrix for variance estimation
 #' DM <- distMat(NSWexper[, 2:10], Ahalf, method="manhattan")
-#' sigma2 <- nnvar(DM, NSWexper$treated, NSWexper$re78, J=3)
 #' ## Estimator based on a single match is better than with 2 matches for RMSE
-#' ATTMatchEstimate(mp, mean(sigma2), C=1, sigma2final=sigma2)
+#' ATTMatchEstimate(mp, C=1, DM=DM)
+#' @return Returns an object of class \code{"ATTEstimate"}. An object of class
+#'     \code{"ATTEstimate"} is a list containing the following components:
+#'     \describe{ \item{e}{Data frame with columns TODO} \item{k}{weights TODO}
+#'     }
 #' @export
-ATTMatchEstimate <- function(mp, sigma2, C=1, sigma2final=sigma2, alpha=0.05,
-                             beta=0.8, opt.criterion="RMSE") {
+ATTMatchEstimate <- function(mp, C=1, opt.criterion="RMSE", sigma2init,
+                             sigma2, mvar, DM, alpha=0.05, beta=0.8, J=3) {
+    if (missing(sigma2))
+        sigma2 <- nnvar(DM, mp$d, mp$y, J=J)
+    if (missing(sigma2init))
+        sigma2init <- mean(sigma2)
+
     ## Update estimate path with new value of C
-    mp$ep <- UpdatePath(mp$ep, mp$K, C, sigma2, alpha, beta)
+    mp$ep <- UpdatePath(mp$ep, mp$K, C, sigma2init, alpha, beta)
 
     ## Index of criterion to optimize
     idx <- which.max(names(mp$ep) ==
@@ -130,12 +157,14 @@ ATTMatchEstimate <- function(mp, sigma2, C=1, sigma2final=sigma2, alpha=0.05,
         warning("Optimum found at end of path")
 
     ## Robust se, C=1 to keep bias the same
-    er <- UpdatePath(mp$ep[i, ], mp$K[i, , drop=FALSE], Cratio=1, sigma2final, alpha,
-                     beta)
-    ## SE for ATE
-    mv <- nnMarginalVar(mp$D0, er$M, mp$tol, mp$d, mp$y, sigma2final)
-    eu <- UpdatePath(mp$ep[i, ], mp$K[i, , drop=FALSE], Cratio=1, sigma2final, alpha,
-                     beta, ucse=sqrt(er$sd^2+mv))
+    er <- UpdatePath(mp$ep[i, ], mp$K[i, , drop=FALSE], Cratio=1, sigma2,
+                     alpha, beta)
+    ## SE for PATE
+    if (missing(mvar))
+        mvar <- nnMarginalVar(mp$D0, er$M, mp$tol, mp$d, mp$y, sigma2)
+
+    eu <- UpdatePath(mp$ep[i, ], mp$K[i, , drop=FALSE], Cratio=1, sigma2,
+                     alpha, beta, ucse=sqrt(er$sd^2+mvar))
     structure(list(e=c(unlist(mp$ep[i, ]), rsd=er$sd, rlower=er$lower,
                        rupper=er$upper, rhl=er$hl, rrmse=er$rmse,
                        rmaxel=er$maxel, usd=eu$sd, ulower=eu$lower,
