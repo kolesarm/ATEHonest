@@ -95,3 +95,22 @@ nnvar <- function(DM, d, y, J=3, tol=0) {
     }
     ehat2
 }
+
+## Marginal variance estimate
+nnMarginalVar <- function(D0, M, tol, d, y, sigma2) {
+    if (length(sigma2)==1)
+        sigma2 <- rep(sigma2, length(d))
+
+    w0 <- rep(0, ncol(D0))
+    Y0 <- vector(length=nrow(D0))
+
+    for (i in seq_len(nrow(D0))) {
+        ## Find NN of i, within tolerance
+        idx <- D0[i, ] <= sort(D0[i, ])[M]+tol
+        Y0[i] <- mean(y[!d][idx])
+        w0[idx] <- w0[idx] + 1/sum(idx)^2
+    }
+    tau <- mean(y[d]-Y0)
+
+    (sum((y[d]-Y0-tau)^2)-sum(sigma2[d])-sum(w0*sigma2[!d]))/nrow(D0)^2
+}

@@ -1,11 +1,17 @@
 ## update estimation path with new C or new variance
-UpdatePath <- function(ep, K, Cratio, sigma2, alpha=0.05, beta=0.8) {
+UpdatePath <- function(ep, K, Cratio, sigma2, alpha=0.05, beta=0.8, ucse=NULL) {
     if (length(sigma2)==1)
         sigma2 <- rep(sigma2, ncol(K))
 
     ep$maxbias <- Cratio*ep$maxbias
-    ep$sd <- sqrt(drop(K^2 %*% sigma2))
-    ep$hl <- cv(ep$maxbias/ep$sd, alpha) * ep$sd
+    if (is.null(ucse)) {
+        ep$sd <- sqrt(drop(K^2 %*% sigma2))
+        ep$hl <- cv(ep$maxbias/ep$sd, alpha) * ep$sd
+    } else {
+        ep$sd <- ucse
+        ep$hl <- ep$maxbias + cv(0, alpha) * ep$sd
+    }
+
     ep$lower <- ep$att - ep$maxbias - stats::qnorm(1-alpha)*ep$sd
     ep$upper <- ep$att + ep$maxbias + stats::qnorm(1-alpha)*ep$sd
     ## worst-case quantile of excess length
@@ -84,7 +90,8 @@ ATTOptK <- function(res, d) {
 #' \item{N0}{A sparse matrix of effective nearest neighbors with dimension
 #'             \code{[n1 n0]} at the last step.}
 #'
-#' \item{K}{Matrix of weights \eqn{k} associated with the optimal estimator at each step}
+#' \item{K}{Matrix of weights \eqn{k} associated with the optimal estimator at
+#' each step}
 #'
 #' \item{ep}{A data frame with columns \code{delta}, \code{omega},
 #' \code{maxbias}, and \code{att}, corresponding to \eqn{\delta},
@@ -119,7 +126,8 @@ ATTOptPath <- function(y, d, D0, maxsteps=50, tol, path=NULL, check=FALSE) {
 
     path$ep <- data.frame(att=drop(path$K %*% path$y), maxbias=maxbias,
                      delta=unname(path$res[, 1]),
-                     omega=unname(2*(path$res[, n+2]+rmean)))
+                     omega=2*unname((path$res[, n+2]+rmean)),
+                     lindw=apply(path$K^2, 1, max)/rowSums(path$K^2))
     path
 }
 
@@ -128,6 +136,7 @@ ATTOptPath <- function(y, d, D0, maxsteps=50, tol, path=NULL, check=FALSE) {
 #' Computes the estimator and confidence intervals (CIs) for the CATT. The
 #' tuning parameter is chosen to optimize \code{opt.criterion} criterion.
 #' @param op Output of \code{ATTOptPath}.
+#' @param M number of matches for computing marginal variance
 #' @inheritParams ATTMatchEstimate
 #' @return Returns an object of class \code{"ATTEstimate"}. An object of class
 #'     \code{"ATTEstimate"} is a list containing the following components:
@@ -151,7 +160,7 @@ ATTOptPath <- function(y, d, D0, maxsteps=50, tol, path=NULL, check=FALSE) {
 #'                opt.criterion="FLCI")
 #' @export
 ATTOptEstimate <- function(op, sigma2, C=1, sigma2final=sigma2, alpha=0.05,
-                           beta=0.8, opt.criterion="RMSE") {
+                           beta=0.8, opt.criterion="RMSE", M=1) {
     ## Drop delta=0
     keep <- op$ep$delta > 0
     res <- op$res[keep, , drop=FALSE] # nolint
@@ -209,17 +218,22 @@ ATTOptEstimate <- function(op, sigma2, C=1, sigma2final=sigma2, alpha=0.05,
     ## Fix delta
     resopt[, 1] <- 2*sqrt(sum(op$d)*resopt[, length(op$d)+2]^2 +
                           sum(resopt[, 2:(sum(1-op$d)+1)]^2))
-    r1 <- up(resopt)
+    oh <- up(resopt) # homoskedastic
+
     K <- ATTOptK(resopt, op$d)
-    ## C=1 to keep bias the same
-    r2 <- UpdatePath(r1, K, Cratio=1, sigma2final, alpha, beta)
-    if (r1$delta==max(ep$delta) & nrow(res)>1)
+    if (oh$delta==max(ep$delta) & nrow(res)>1)
         warning("Optimum found at end of path")
 
-    structure(list(e=cbind(r1, data.frame(rsd=r2$sd, rlower=r2$lower,
-                                          rupper= r2$upper, rhl=r2$hl,
-                                          rrmse=r2$rmse, rmaxel=r2$maxel, C=C)),
-                   res=drop(resopt), k=drop(K)),
+    ## Robust variance, C=1 to keep bias the same
+    or <- UpdatePath(oh, K, Cratio=1, sigma2final, alpha, beta)
+    mv <- nnMarginalVar(op$D0, M, tol=1e-12, op$d, op$y, sigma2final)
+    ## Marginal variance could be negative in small samples
+    ou <- UpdatePath(or, K, Cratio=1, sigma2final, alpha,
+                     beta, ucse=sqrt(or$sd^2+max(mv, 0)))
+    structure(list(e=c(unlist(oh), rsd=or$sd, rlower=or$lower, rupper=or$upper,
+                       rhl=or$hl, rrmse=or$rmse, rmaxel=or$maxel, usd=ou$sd,
+                       ulower=ou$lower, uupper=ou$upper, uhl=ou$hl, C=C),
+              res=drop(resopt), k=drop(K)),
               class="ATTEstimate")
 }
 
@@ -228,8 +242,8 @@ print.ATTEstimate <- function(x, digits = getOption("digits"), ...) {
 
     fmt <- function(x) format(x, digits=digits, width=digits+1)
 
-
-    r <- x$e[, c("att", "maxbias", "rsd", "rhl")]
+    x$e <- data.frame(t(x$e))
+    r <- x$e[c("att", "maxbias", "rsd", "rhl")]
     r <- cbind(r, l=r$att-r$rhl, u=r$att+r$rhl)
     r <- fmt(r)
     r$ci <- paste0("(", r$l, ", ",  r$u, ")")
@@ -317,7 +331,7 @@ ATTEffBounds <- function(op, sigma2, C=1, beta=0.8, alpha=0.05) {
     integrand <- function(z)
         vapply(z, function(z)
             mod11(2*(zal-z) * sig)$omega * stats::dnorm(z), numeric(1))
-    ## Minimum integrable point, make it smaller than -100 to prevent numerical issues
+    ## Minimum integrable point, make it > -100 to prevent numerical issues
     lbar <- zal-min(max(del0)/(2*sig)-1e-8, 100)
     if (integrand(lbar)>1e-6) {
         warning("Path too short to compute two-sided efficiency")

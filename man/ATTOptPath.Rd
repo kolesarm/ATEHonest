@@ -65,7 +65,8 @@ last step.}
 \item{N0}{A sparse matrix of effective nearest neighbors with dimension
             \code{[n1 n0]} at the last step.}
 
-\item{K}{Matrix of weights \eqn{k} associated with the optimal estimator at each step}
+\item{K}{Matrix of weights \eqn{k} associated with the optimal estimator at
+each step}
 
 \item{ep}{A data frame with columns \code{delta}, \code{omega},
 \code{maxbias}, and \code{att}, corresponding to \eqn{\delta},

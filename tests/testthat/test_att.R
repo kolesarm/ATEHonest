@@ -30,18 +30,19 @@ test_that("Solution path for ATT in small examples", {
     for (j in seq_along(x0)) {
         d <- dd(x0[[j]], x1[[j]])
         D0 <- distMat(c(x0[[j]], x1[[j]]), d=d)
-        expect_silent(tt[[j]] <- ATTOptPath(d, d, D0))
+        expect_silent(tt[[j]] <- ATTOptPath(d, d, D0, check=TRUE))
 
         ## Check maximum bias matches that from LP
         r0 <- ATTOptEstimate(tt[[j]], sigma2=1, C=0.5)
-        expect_equal(0.5*ATTbias(r0$k[d==0], D0), r0$e$maxbias)
+        expect_equal(0.5*ATTbias(r0$k[d==0], D0), unname(r0$e["maxbias"]))
         r1 <- ATTOptEstimate(tt[[j]], sigma2=1, C=1)
-        expect_equal(1*ATTbias(r1$k[d==0], D0), r1$e$maxbias)
+        expect_equal(1*ATTbias(r1$k[d==0], D0), unname(r1$e["maxbias"]))
         ## Check optimum matches CVX
         rmse <- function(delta, C) {
             op <- tt[[j]]
             op$res <- matrix(ATTbrute(delta2=delta^2, D0), nrow=1)
-            unlist(ATTOptEstimate(ATTOptPath(path=op, check=FALSE), sigma2=1, C=C)$e)
+            unlist(ATTOptEstimate(ATTOptPath(path=op, check=FALSE),
+                                  sigma2=1, C=C)$e)
         }
         expect_lt(max(abs(rmse(r0$res[1], C=0.5)-r0$e)), 1e-4)
         expect_lt(max(abs(rmse(r1$res[1], C=1)/r1$e-1)), 1e-3)
@@ -62,10 +63,9 @@ test_that("Solution path for ATT in small examples", {
         check_equiv(matrix(r1$res, nrow=1))
         ## delta and omega in the $e
         check_d0 <- function(r0, C) {
-            ## delta
-            expect_equal(unname(r0$res[1])*C/1, r0$e$delta)
-            ## omega
-            expect_equal(C*unname(2*sum(r0$res[2:(length(d)+1)])/sum(d)), r0$e$omega)
+            expect_equal(unname(r0$res[1])*C/1, unname(r0$e["delta"]))
+            expect_equal(C*unname(2*sum(r0$res[2:(length(d)+1)])/sum(d)),
+                         unname(r0$e["omega"]))
         }
         check_d0(r0, C=0.5)
         check_d0(r1, C=1)
@@ -138,7 +138,7 @@ test_that("Alternative way of computing modulus efficiency", {
         den <- 2*ATTOptEstimate(op,
                                 mean(sigma2), C=C,
                                 sigma2final=mean(sigma2), alpha,
-                                opt.criterion="FLCI")$e$hl
+                                opt.criterion="FLCI")$e["hl"]
         C*num/den
     }
     expect_lt(abs(eb$twosided-ATTEffBounds2(op, sigma2, C=1)), 1e-5)

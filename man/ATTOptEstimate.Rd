@@ -11,7 +11,8 @@ ATTOptEstimate(
   sigma2final = sigma2,
   alpha = 0.05,
   beta = 0.8,
-  opt.criterion = "RMSE"
+  opt.criterion = "RMSE",
+  M = 1
 )
 }
 \arguments{
@@ -34,6 +35,8 @@ performance of one-sided CIs.}
 \item{opt.criterion}{One of \code{"RMSE"} (root mean squared error),
 \code{"OCI"} (one-sided confidence intervals), \code{"FLCI"}
 (fixed-length two-sided confidence intervals)}
+
+\item{M}{number of matches for computing marginal variance}
 }
 \value{
 Returns an object of class \code{"ATTEstimate"}. An object of class

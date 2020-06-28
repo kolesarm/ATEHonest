@@ -68,15 +68,16 @@ ATTbias <- function(w, D0) {
 ATTMatchPath <- function(y, d, D0, M=1:25, tol=1e-12) {
     n1 <- nrow(D0)
     maxbias <- vector(length=length(M))
-    resw <- matrix(nrow=length(M), ncol=(ncol(D0)+n1))
-    resw[, d==1] <- 1/n1
+    K <- matrix(nrow=length(M), ncol=(ncol(D0)+n1))
+    K[, d==1] <- 1/n1
 
     for (j in seq_along(M)) {
-        resw[j, d==0] <- ATTMatchK0(D0, M[j], tol)
-        maxbias[j] <- ATTbias(resw[j, d==0], D0)
+        K[j, d==0] <- ATTMatchK0(D0, M[j], tol)
+        maxbias[j] <- ATTbias(K[j, d==0], D0)
     }
-    list(ep=data.frame(att=drop(resw %*% y), maxbias=maxbias, M=M),
-         K=resw, d=d)
+    list(ep=data.frame(att=drop(K %*% y), maxbias=maxbias, M=M,
+                       lindw=apply(K^2, 1, max)/rowSums(K^2)),
+         K=K, d=d, y=y, tol=tol, D0=D0)
 }
 
 
@@ -129,12 +130,15 @@ ATTMatchEstimate <- function(mp, sigma2, C=1, sigma2final=sigma2, alpha=0.05,
         warning("Optimum found at end of path")
 
     ## Robust se, C=1 to keep bias the same
-    er <- UpdatePath(mp$ep[i, ], mp$K[i, ], Cratio=1, sigma2final, alpha,
+    er <- UpdatePath(mp$ep[i, ], mp$K[i, , drop=FALSE], Cratio=1, sigma2final, alpha,
                      beta)
-
-    structure(list(e=cbind(mp$ep[i, ],
-                           data.frame(rsd=er$sd, rlower=er$lower,
-                                      rupper=er$upper, rhl=er$hl, rrmse=er$rmse,
-                                      rmaxel=er$maxel, C=C)),
-                   k=mp$K[i, mp$d==0]), class="ATTEstimate")
+    ## SE for ATE
+    mv <- nnMarginalVar(mp$D0, er$M, mp$tol, mp$d, mp$y, sigma2final)
+    eu <- UpdatePath(mp$ep[i, ], mp$K[i, , drop=FALSE], Cratio=1, sigma2final, alpha,
+                     beta, ucse=sqrt(er$sd^2+mv))
+    structure(list(e=c(unlist(mp$ep[i, ]), rsd=er$sd, rlower=er$lower,
+                       rupper=er$upper, rhl=er$hl, rrmse=er$rmse,
+                       rmaxel=er$maxel, usd=eu$sd, ulower=eu$lower,
+                       uupper=eu$upper, uhl=eu$hl, C=C),
+                   k=mp$K[i, ]), class="ATTEstimate")
 }
