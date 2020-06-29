@@ -59,29 +59,12 @@ test_that("Standard errors for matching estimator are correct", {
     r <- ATTMatchEstimate(mp, C=1, DM=DM)
     expect_equal(unname(r$e[c("sd", "hl")]), c(0.692625208, 2.437109605))
     o1 <- utils::capture.output(print(r, digits=6))
-    expect1 <- c("", "",
-                 "|Estimate |Max. bias |SE       |CI                   |  M|",
-                 "|:--------|:---------|:--------|:--------------------|--:|",
-                 "|1.92327  |1.29784   |0.709765 |(-0.542033, 4.38857) |  2|",
-                 "")
-    expect_equal(o1, expect1)
-})
-
-context("Matching estimator for ATT in NSWexper")
-test_that("Standard errors for matching estimator are correct", {
-    Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
-    DM <- distMat(NSWexper[, 2:10], Ahalf, method="manhattan")
-    mp <- ATTMatchPath(NSWexper$re78, NSWexper$treated,
-                       DM[NSWexper$treated, !NSWexper$treated], M=2, tol=1e-12)
-    r <- ATTMatchEstimate(mp, C=1, DM=DM)
-    expect_equal(unname(r$e[c("sd", "hl")]), c(0.692625208, 2.437109605))
-    o1 <- utils::capture.output(print(r, digits=6))
-    expect1 <- c("", "",
-                 "|Estimate |Max. bias |SE       |CI                   |  M|",
-                 "|:--------|:---------|:--------|:--------------------|--:|",
-                 "|1.92327  |1.29784   |0.709765 |(-0.542033, 4.38857) |  2|",
-                 "")
-    expect_equal(o1, expect1)
+    e1 <- c("", "",
+            "|     | Estimate| Max. bias|       SE|CI                   |  M|",
+            "|:----|--------:|---------:|--------:|:--------------------|--:|",
+            "|CATT |  1.92327|   1.29784| 0.709765|(-0.542033, 4.38857) |  2|",
+            "|PATT |  1.92327|          | 0.738429|(-0.821869, 4.66841) |   |")
+    expect_equal(o1, e1)
 })
 
 context("Variance for the ATE")

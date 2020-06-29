@@ -24,7 +24,7 @@ install.packages("remotes") # if the remotes package is not installed
 remotes::install_github("kolesarm/ATEHonest")
 ```
 
-- This package depends on the `'Rmpfr` package (it's a dependency of the `CVXR`
+- This package depends on the `Rmpfr` package (it's a dependency of the `CVXR`
   package that this package uses). In order to install this package, the system
   library `libmpfr-dev` needs to be installed. On Ubuntu/Debian, the library can
   be installed by running `sudo apt-get install libmpfr-dev`.

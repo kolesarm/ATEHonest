@@ -259,22 +259,26 @@ print.ATTEstimate <- function(x, digits = getOption("digits"), ...) {
 
     fmt <- function(x) format(x, digits=digits, width=digits+1)
 
-    x$e <- data.frame(t(x$e))
-    r <- x$e[c("att", "maxbias", "rsd", "rhl")]
+    r <- data.frame(rbind(x$e[c("att", "maxbias", "rsd", "rhl")],
+               c(x$e["att"], NA, unlist(x$e[c("usd", "uhl")]))))
     r <- cbind(r, l=r$att-r$rhl, u=r$att+r$rhl)
-    r <- fmt(r)
+    r[, c("l", "u")] <- fmt(r[, c("l", "u")])
+
     r$ci <- paste0("(", r$l, ", ",  r$u, ")")
     r$rhl <- r$l <- r$u <- NULL
 
-    names(r) <- c("Estimate", "Max. bias", "SE", "CI")
+    colnames(r) <- c("Estimate", "Max. bias", "SE", "CI")
+    rownames(r) <- c("CATT", "PATT")
 
     if ("M" %in% names(x$e))
-        r$M <- c("M"=x$e$M)
+        r$M <- c("M"=x$e["M"], NA)
     else
-        r$delta <- c("delta"=x$e$delta)
+        r$delta <- c("delta"=x$e["delta"], NA)
 
+    backup_options <- options(knitr.kable.NA = "", digits=digits)
     print(knitr::kable(r))
-    cat("\n")
+    options(backup_options)
+
     invisible(x)
 }
 
