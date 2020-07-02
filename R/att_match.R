@@ -161,7 +161,7 @@ ATTMatchEstimate <- function(mp, C=1, opt.criterion="RMSE", sigma2init,
                      alpha, beta)
     ## SE for PATE
     if (missing(mvar))
-        mvar <- nnMarginalVar(mp$D0, er$M, mp$tol, mp$d, mp$y, sigma2)
+        mvar <- nnMarginalVar(mp$D0, er$M, mp$d, mp$y, sigma2, mp$tol)
 
     eu <- UpdatePath(mp$ep[i, ], mp$K[i, , drop=FALSE], Cratio=1, sigma2,
                      alpha, beta, ucse=sqrt(er$sd^2+mvar))

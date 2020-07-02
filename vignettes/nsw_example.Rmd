@@ -24,6 +24,7 @@ library("knitr")
 knitr::opts_knit$set(self.contained = FALSE)
 knitr::opts_chunk$set(tidy = TRUE, collapse=TRUE, comment = "#>",
                       tidy.opts=list(blank=FALSE, width.cutoff=55))
+oldoptions <- options(digits=5)
 ```
 
 The package `ATEHonest` implements honest confidence intervals and estimators
@@ -104,3 +105,9 @@ ATTMatchEstimate(mp, C=1, DM=DM, opt.criterion="RMSE")
 
 We can see that a single match is in fact optimal for both estimation and
 construction of two-sided CIs.
+
+```{r cleanup, include=FALSE}
+options(oldoptions)
+```
+
+# References

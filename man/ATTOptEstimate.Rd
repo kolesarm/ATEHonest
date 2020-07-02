@@ -14,7 +14,6 @@ ATTOptEstimate(
   DM,
   alpha = 0.05,
   beta = 0.8,
-  M = 1,
   J = 3
 )
 }
@@ -51,8 +50,6 @@ nearest neighbors when when estimating \code{sigma2init} and
 \item{beta}{quantile \code{beta} of excess length for determining performance
 of one-sided CIs.}
 
-\item{M}{number of matches for computing the marginal variance \code{mvar}.}
-
 \item{J}{number of nearest neighbors to use when estimating \code{sigma2init}
 and \code{sigma2}.}
 }
@@ -68,8 +65,8 @@ PATT. The tuning parameter is chosen to optimize \code{opt.criterion}
 criterion.
 }
 \examples{
-## Use NSW experimental subsample with 30 treated and untreated units
-dt <- NSWexper[c(1:20, 426:445), ]
+## Use NSW experimental subsample with 25 treated and untreated units
+dt <- NSWexper[c(1:25, 421:445), ]
 Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
 D0 <- distMat(dt[, 2:10], Ahalf, method="manhattan", dt$treated)
 ## Distance matrix for variance estimation

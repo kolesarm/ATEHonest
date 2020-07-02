@@ -38,14 +38,18 @@ test_that("Solution path for ATT in small examples", {
         r1 <- ATTOptEstimate(tt[[j]], sigma2=1, C=1)
         expect_equal(1*ATTbias(r1$k[d==0], D0), unname(r1$e["maxbias"]))
         ## Check optimum matches CVX
-        rmse <- function(delta, C) {
+        rmse <- function(delta, C, mvar) {
             op <- tt[[j]]
             op$res <- matrix(ATTbrute(delta2=delta^2, D0), nrow=1)
+            ## Use previous mvar, since CVX path is not exact, determining
+            ## binding constraints is tricky.
             unlist(ATTOptEstimate(ATTOptPath(path=op, check=FALSE),
-                                  sigma2=1, C=C)$e)
+                                  sigma2=1, C=C, mvar=mvar)$e)
         }
-        expect_lt(max(abs(rmse(r0$res[1], C=0.5)-r0$e)), 1e-4)
-        expect_lt(max(abs(rmse(r1$res[1], C=1)/r1$e-1)), 1e-3)
+        expect_lt(max(abs(rmse(r0$res[1], C=0.5,
+                               r0$e["usd"]^2-r0$e["rsd"]^2)-r0$e)), 1e-4)
+        expect_lt(max(abs(rmse(r1$res[1], C=1.0,
+                               r1$e["usd"]^2-r1$e["rsd"]^2)/r1$e-1)), 1e-3)
 
         ## Check delta and omega
         check_equiv <- function(res) {

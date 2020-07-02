@@ -28,7 +28,3 @@ remotes::install_github("kolesarm/ATEHonest")
   package that this package uses). In order to install this package, the system
   library `libmpfr-dev` needs to be installed. On Ubuntu/Debian, the library can
   be installed by running `sudo apt-get install libmpfr-dev`.
-
-## Example
-
-To be added

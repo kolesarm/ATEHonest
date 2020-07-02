@@ -3,6 +3,7 @@ library("knitr")
 knitr::opts_knit$set(self.contained = FALSE)
 knitr::opts_chunk$set(tidy = TRUE, collapse=TRUE, comment = "#>",
                       tidy.opts=list(blank=FALSE, width.cutoff=55))
+oldoptions <- options(digits=5)
 
 ## -----------------------------------------------------------------------------
 library("ATEHonest")
@@ -38,4 +39,7 @@ ATTMatchEstimate(ATTMatchPath(y, d, D0, M=1, tol=1e-12), C=1, DM=DM)
 mp <- ATTMatchPath(y, d, D0, M=1:10, tol=1e-12)
 ATTMatchEstimate(mp, C=1, DM=DM, opt.criterion="FLCI")
 ATTMatchEstimate(mp, C=1, DM=DM, opt.criterion="RMSE")
+
+## ----cleanup, include=FALSE---------------------------------------------------
+options(oldoptions)
 

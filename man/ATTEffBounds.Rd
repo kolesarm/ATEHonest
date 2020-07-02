@@ -26,7 +26,7 @@ based on a nearest neighbor variance estimator.}
 nearest neighbors when when estimating \code{sigma2}.}
 }
 \value{
-a list with two elements, \code{onesided} and \code{twosided}, for
+A list with two elements, \code{onesided} and \code{twosided}, for
     one- and two-sided efficiency.
 }
 \description{
@@ -37,15 +37,15 @@ length, using the formula described in Appendix A of Armstrong and Kolesár
 (2018)
 }
 \examples{
-## Use NSW experimental subsample with 30 treated and untreated units
-dt <- NSWexper[c(1:20, 426:445), ]
+## Use NSW experimental subsample with 25 treated and untreated units
+dt <- NSWexper[c(1:25, 421:445), ]
 Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
 D0 <- distMat(dt[, 2:10], Ahalf, method="manhattan", dt$treated)
 ## Distance matrix for variance estimation
 DM <- distMat(dt[, 2:10], Ahalf, method="manhattan")
 ## Compute the solution path, first 50 steps will be sufficient
 op <- ATTOptPath(dt$re78, dt$treated, D0, maxsteps=50)
-eb <- ATTEffBounds(op, C=1, DM=DM)
+ATTEffBounds(op, C=1, DM=DM)
 }
 \references{
 \cite{Armstrong, T. B., and M. Kolesár (2018): Finite-Sample

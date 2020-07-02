@@ -87,8 +87,8 @@ nnvar <- function(DM, d, y, J=3, tol=0) {
     ehat2
 }
 
-## Marginal variance estimate
-nnMarginalVar <- function(D0, M, tol, d, y, sigma2) {
+## Matching Marginal variance estimate
+nnMarginalVar <- function(D0, M, d, y, sigma2, tol) {
     if (length(sigma2)==1)
         sigma2 <- rep(sigma2, length(d))
 
@@ -97,11 +97,35 @@ nnMarginalVar <- function(D0, M, tol, d, y, sigma2) {
 
     for (i in seq_len(nrow(D0))) {
         ## Find NN of i, within tolerance
-        idx <- D0[i, ] <= sort(D0[i, ])[M]+tol
+        idx <- D0[i, ] <= sort(D0[i, ])[min(M, ncol(D0))]+tol
         Y0[i] <- mean(y[!d][idx])
         w0[idx] <- w0[idx] + 1/sum(idx)^2
     }
     tau <- mean(y[d]-Y0)
 
     (sum((y[d]-Y0-tau)^2)-sum(sigma2[d])-sum(w0*sigma2[!d]))/nrow(D0)^2
+}
+
+## Marginal variance for optimal estimator
+nnMarginalVarO <- function(D0, res, d, y, sigma2, tol=1e-12) {
+    if (length(sigma2)==1)
+        sigma2 <- rep(sigma2, length(d))
+
+    n0 <- ncol(D0)
+    n1 <- nrow(D0)
+    ## Which constraints are binding
+    m0 <- res[2:(n0+1)]
+    r0 <- res[(n0+2):(n0+n1+1)]
+    N0 <- Matrix::Matrix(outer(r0, m0, "-") >= D0-tol, sparse=TRUE)
+    N <- cbind(rbind(Matrix::Matrix(0L, nrow=n0, ncol=n0), N0),
+               Matrix::Matrix(0L, nrow=(n0+n1), ncol=n1))
+    cl <- igraph::components(igraph::graph.adjacency(N))
+    W <- solveLam(cl, N0, m0/res[(n0+n1+2)])
+
+    Y0 <-  Matrix::drop(W %*% y[d==0])
+    tau <- mean(y[d]-Y0)
+    w0 <- Matrix::colSums(W^2)
+
+    (sum((y[d]-Y0-tau)^2)-sum(sigma2[d])-sum(w0*sigma2[!d])) / n1^2
+
 }

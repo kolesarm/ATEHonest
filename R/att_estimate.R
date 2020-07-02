@@ -99,7 +99,7 @@ ATTOptK <- function(res, d) {
 #' \item{N0}{A sparse matrix of effective nearest neighbors with dimension
 #'             \code{n1} by \code{n0}.}
 #'
-#' \item{drop}{An indicator if an observations has been dropped from an active
+#' \item{drop}{An indicator if an observation has been dropped from an active
 #'   set, or added.}
 #'
 #' }
@@ -114,7 +114,7 @@ ATTOptK <- function(res, d) {
 #' ## Compute first three steps
 #' p1 <- ATTOptPath(d, d, D0, maxsteps=3)
 #' ## Compute the remaining steps, checking them against CVX solution
-#' p2 <- ATTOptPath(path=p1, maxsteps=50, check=TRUE)
+#' ATTOptPath(path=p1, maxsteps=50, check=TRUE)
 #' @export
 ATTOptPath <- function(y, d, D0, maxsteps=50, tol, path=NULL, check=FALSE) {
     if (is.null(path))
@@ -145,7 +145,6 @@ ATTOptPath <- function(y, d, D0, maxsteps=50, tol, path=NULL, check=FALSE) {
 #' PATT. The tuning parameter is chosen to optimize \code{opt.criterion}
 #' criterion.
 #' @param op Output of \code{ATTOptPath}.
-#' @param M number of matches for computing the marginal variance \code{mvar}.
 #' @param sigma2init estimate of the conditional variance of the outcome, used
 #'     to choose the optimal smoothing parameter \eqn{\delta}. If not supplied,
 #'     use homoskedastic variance estimate based on a nearest neighbor variance
@@ -159,8 +158,8 @@ ATTOptPath <- function(y, d, D0, maxsteps=50, tol, path=NULL, check=FALSE) {
 #'     Optimal Estimation and Inference on Average Treatment Effects Under
 #'     Unconfoundedness, \url{https://arxiv.org/abs/1712.04594}}
 #' @examples
-#' ## Use NSW experimental subsample with 30 treated and untreated units
-#' dt <- NSWexper[c(1:20, 426:445), ]
+#' ## Use NSW experimental subsample with 25 treated and untreated units
+#' dt <- NSWexper[c(1:25, 421:445), ]
 #' Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
 #' D0 <- distMat(dt[, 2:10], Ahalf, method="manhattan", dt$treated)
 #' ## Distance matrix for variance estimation
@@ -171,7 +170,7 @@ ATTOptPath <- function(y, d, D0, maxsteps=50, tol, path=NULL, check=FALSE) {
 #' ATTOptEstimate(op, C=1, DM=DM, opt.criterion="FLCI")
 #' @export
 ATTOptEstimate <- function(op, C=1, opt.criterion="RMSE", sigma2init, sigma2,
-                           mvar, DM, alpha=0.05, beta=0.8, M=1, J=3) {
+                           mvar, DM, alpha=0.05, beta=0.8, J=3) {
     if (missing(sigma2))
         sigma2 <- nnvar(DM, op$d, op$y, J=J)
     if (missing(sigma2init))
@@ -222,7 +221,6 @@ ATTOptEstimate <- function(op, C=1, opt.criterion="RMSE", sigma2init, sigma2,
         } else {
             opt0 <- list(minimum=1, objective=min(ep[[idx]]))
         }
-
         if (opt1$objective < opt0$objective) {
             resopt <- (1-opt1$minimum)*res[i, , drop=FALSE] +
                 opt1$minimum*res[min(i+1, nrow(res)), , drop=FALSE]
@@ -243,10 +241,11 @@ ATTOptEstimate <- function(op, C=1, opt.criterion="RMSE", sigma2init, sigma2,
     ## Robust variance, C=1 to keep bias the same
     or <- UpdatePath(oh, K, Cratio=1, sigma2, alpha, beta)
     if (missing(mvar))
-        mvar <- nnMarginalVar(op$D0, M, tol=1e-12, op$d, op$y, sigma2)
+        mvar <- nnMarginalVarO(op$D0, drop(resopt), op$d, op$y, sigma2,
+                               tol=1e-12)
     ## Marginal variance could be negative in small samples
     ou <- UpdatePath(or, K, Cratio=1, sigma2, alpha, beta,
-                     ucse=sqrt(or$sd^2+max(mvar, 0)))
+                     ucse=sqrt(or$sd^2+mvar))
     structure(list(e=c(unlist(oh), rsd=or$sd, rlower=or$lower, rupper=or$upper,
                        rhl=or$hl, rrmse=or$rmse, rmaxel=or$maxel, usd=ou$sd,
                        ulower=ou$lower, uupper=ou$upper, uhl=ou$hl, C=C),
@@ -298,21 +297,21 @@ print.ATTEstimate <- function(x, digits = getOption("digits"), ...) {
 #' @param DM distance matrix with dimension \code{n} by \code{n} to determine
 #'     nearest neighbors when when estimating \code{sigma2}.
 #' @param J number of nearest neighbors to use when estimating \code{sigma2}.
-#' @return a list with two elements, \code{onesided} and \code{twosided}, for
+#' @return A list with two elements, \code{onesided} and \code{twosided}, for
 #'     one- and two-sided efficiency.
 #' @references \cite{Armstrong, T. B., and M. Kolesár (2018): Finite-Sample
 #'     Optimal Estimation and Inference on Average Treatment Effects Under
 #'     Unconfoundedness, \url{https://arxiv.org/abs/1712.04594}}
 #' @examples
-#' ## Use NSW experimental subsample with 30 treated and untreated units
-#' dt <- NSWexper[c(1:20, 426:445), ]
+#' ## Use NSW experimental subsample with 25 treated and untreated units
+#' dt <- NSWexper[c(1:25, 421:445), ]
 #' Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
 #' D0 <- distMat(dt[, 2:10], Ahalf, method="manhattan", dt$treated)
 #' ## Distance matrix for variance estimation
 #' DM <- distMat(dt[, 2:10], Ahalf, method="manhattan")
 #' ## Compute the solution path, first 50 steps will be sufficient
 #' op <- ATTOptPath(dt$re78, dt$treated, D0, maxsteps=50)
-#' eb <- ATTEffBounds(op, C=1, DM=DM)
+#' ATTEffBounds(op, C=1, DM=DM)
 #' @export
 ATTEffBounds <- function(op, C=1, beta=0.8, alpha=0.05, sigma2, J=3, DM) {
     if (missing(sigma2))
@@ -375,7 +374,7 @@ ATTEffBounds <- function(op, C=1, beta=0.8, alpha=0.05, sigma2, J=3, DM) {
             m <- mod11(del)
             2*sig*cv((m$omega/(m$domega*sig)-del/sig)/2, alpha)*m$domega
         }
-        idx <- min(which.min(sapply(del0, len)), length(del0)-1)
+        idx <- min(which.min(vapply(del0, len, numeric(1))), length(del0)-1)
         den <- stats::optimize(len, interval=del0[c(idx-1, (idx+1))])$objective
     }
     list(onesided=eff1, twosided=num/den)

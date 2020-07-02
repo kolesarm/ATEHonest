@@ -77,36 +77,9 @@ ATTstep <- function(s, tol=.Machine$double.eps*n0*n1) {
     d1 <- (s$D-s$r0)/den
     d1[is.nan(d1) | den<=0] <- Inf
 
-    DL <- Matrix::Matrix(0, nrow=n1, ncol=n0)
-    ## R_k x M_k block of Lambda
-    for (k in 1:cl$no) {
-        if (cl$csize[k]>1) {
-            ## Extract block of Lambda
-            ind <- which(cl$membership==k)
-            M0 <- ind[ind<=n0]
-            M1 <- ind[ind>n0]-n0
-            l0 <- length(M0)
-            l1 <- length(M1)
+    ## Step 2b
+    DL <- solveLam(cl, s$N0, delta)
 
-            if (l0==1) {
-                DL[M1, M0] <- 1L
-            } else if (l1==1) {
-                DL[M1, M0] <- 1/length(M0)
-            } else {
-                lN0 <- s$N0[M1, M0]
-                A <- rbind(kronecker(Matrix::Diagonal(l0),
-                                     Matrix::Matrix(1, nrow=1, ncol=l1)),
-                           kronecker(Matrix::Matrix(1, nrow=1, ncol=l0),
-                                     Matrix::Diagonal(l1)))
-                A <- as.matrix(A[, as.vector(lN0)])
-                lN0 <- methods::as(lN0, "dgCMatrix")
-                ## If some of the sparse elements are zero
-                lN0@x[lN0@x!=0] <- drop(MASS::ginv(A) %*%
-                                        c(delta[M0], rep(1, l1)))
-                DL[M1, M0] <- lN0
-            }
-        }
-    }
     if (min(DL)>=0) {
         d2 <- Inf
     } else {
@@ -182,4 +155,46 @@ ATTh <- function(h, maxsteps=50, check=FALSE,
         })
     }
     h
+}
+
+solveLam <- function(cl, N0, delta) {
+    n0 <- ncol(N0)
+    n1 <- nrow(N0)
+    DL <- Matrix::Matrix(0, nrow=n1, ncol=n0)
+    ## R_k x M_k block of Lambda
+    for (k in seq_len(cl$no)) {
+        if (cl$csize[k]>1) {
+            ## Extract block of Lambda
+            ind <- which(cl$membership==k)
+            M0 <- ind[ind<=n0]
+
+            M1 <- ind[ind>n0]-n0
+            l0 <- length(M0)
+            l1 <- length(M1)
+
+            if (l0==1) {
+                DL[M1, M0] <- 1L
+            } else if (l1==1) {
+                ## DL[M1, M0] <- 1/length(M0)
+                DL[M1, M0] <- delta[M0]
+            } else {
+                lN0 <- N0[M1, M0]
+                A <- rbind(kronecker(Matrix::Diagonal(l0),
+                                     Matrix::Matrix(1, nrow=1, ncol=l1)),
+                           kronecker(Matrix::Matrix(1, nrow=1, ncol=l0),
+                                     Matrix::Diagonal(l1)))
+                A <- as.matrix(A[, as.vector(lN0)])
+                lN0 <- methods::as(lN0, "dgCMatrix")
+                ## If some of the sparse elements are zero
+                lN0@x[lN0@x!=0] <- drop(MASS::ginv(A) %*%
+                                        c(delta[M0], rep(1, l1)))
+                DL[M1, M0] <- lN0
+            }
+        }
+    }
+    ## Check rows sum to 1, columns to delta
+    stopifnot(max(abs(Matrix::colSums(DL)-delta))<1e-12)
+    stopifnot(max(abs(Matrix::rowSums(DL)-1))<1e-12)
+
+    DL
 }

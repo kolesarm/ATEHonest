@@ -73,7 +73,7 @@ notation): \describe{
 \item{N0}{A sparse matrix of effective nearest neighbors with dimension
             \code{n1} by \code{n0}.}
 
-\item{drop}{An indicator if an observations has been dropped from an active
+\item{drop}{An indicator if an observation has been dropped from an active
   set, or added.}
 
 }
@@ -93,7 +93,7 @@ D0 <- distMat(c(x0, x1), d=d)
 ## Compute first three steps
 p1 <- ATTOptPath(d, d, D0, maxsteps=3)
 ## Compute the remaining steps, checking them against CVX solution
-p2 <- ATTOptPath(path=p1, maxsteps=50, check=TRUE)
+ATTOptPath(path=p1, maxsteps=50, check=TRUE)
 }
 \references{
 \cite{Armstrong, T. B., and M. Kolesár (2018): Finite-Sample
