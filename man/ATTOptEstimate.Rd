@@ -14,7 +14,8 @@ ATTOptEstimate(
   DM,
   alpha = 0.05,
   beta = 0.8,
-  J = 3
+  J = 3,
+  extrasteps = 50
 )
 }
 \arguments{
@@ -27,9 +28,9 @@ squared error), \code{"OCI"} (one-sided confidence intervals),
 \code{"FLCI"} (fixed-length two-sided confidence intervals)}
 
 \item{sigma2init}{estimate of the conditional variance of the outcome, used
-to choose the optimal smoothing parameter \eqn{\delta}. If not supplied,
-use homoskedastic variance estimate based on a nearest neighbor variance
-estimator.}
+to choose the optimal smoothing parameter \eqn{\delta}{delta}. If not
+supplied, use homoskedastic variance estimate based on a nearest neighbor
+variance estimator.}
 
 \item{sigma2}{vector of variance estimates with length \code{n} for
 determining the conditional standard error of the optimal estimator. In
@@ -52,17 +53,31 @@ of one-sided CIs.}
 
 \item{J}{number of nearest neighbors to use when estimating \code{sigma2init}
 and \code{sigma2}.}
+
+\item{extrasteps}{If the optimal smoothing parameter \eqn{\delta}{delta} is
+attained at the end of the solution path, compute additional
+\code{extrasteps} steps in the solution path and estimate it again. If
+\code{extrasteps==0}, then do not compute extra steps.}
 }
 \value{
 Returns an object of class \code{"ATTEstimate"}. An object of class
     \code{"ATTEstimate"} is a list containing the following components:
-    \describe{ \item{e}{Data frame with columns TODO} \item{k}{weights TODO}
+    \describe{
+
+    \item{e}{Data frame with columns TODO}
+
+    \item{k}{weights TODO}
+
+    \item{res}{TODO}
+
+    \item{op}{TODO}
+
     }
 }
 \description{
 Computes the estimator and confidence intervals (CIs) for the CATT and the
-PATT. The tuning parameter is chosen to optimize \code{opt.criterion}
-criterion.
+PATT. The tuning parameter \eqn{\delta}{delta} is chosen to optimize
+\code{opt.criterion} criterion.
 }
 \examples{
 ## Use NSW experimental subsample with 25 treated and untreated units

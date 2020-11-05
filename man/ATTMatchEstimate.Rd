@@ -55,7 +55,13 @@ and \code{sigma2}.}
 \value{
 Returns an object of class \code{"ATTEstimate"}. An object of class
     \code{"ATTEstimate"} is a list containing the following components:
-    \describe{ \item{e}{Data frame with columns TODO} \item{k}{weights TODO}
+    \describe{
+
+    \item{e}{Data frame with columns TODO}
+
+    \item{k}{weights TODO}
+
+    \item{mp}{TODO}
     }
 }
 \description{

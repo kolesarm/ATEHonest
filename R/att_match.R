@@ -135,7 +135,13 @@ ATTMatchPath <- function(y, d, D0, M=1:25, tol=1e-12) {
 #' ATTMatchEstimate(mp, C=1, DM=DM)
 #' @return Returns an object of class \code{"ATTEstimate"}. An object of class
 #'     \code{"ATTEstimate"} is a list containing the following components:
-#'     \describe{ \item{e}{Data frame with columns TODO} \item{k}{weights TODO}
+#'     \describe{
+#'
+#'     \item{e}{Data frame with columns TODO}
+#'
+#'     \item{k}{weights TODO}
+#'
+#'     \item{mp}{TODO}
 #'     }
 #' @export
 ATTMatchEstimate <- function(mp, C=1, opt.criterion="RMSE", sigma2init,

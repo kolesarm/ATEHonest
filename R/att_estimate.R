@@ -142,17 +142,30 @@ ATTOptPath <- function(y, d, D0, maxsteps=50, tol, path=NULL, check=FALSE) {
 #' Optimal estimation and inference for the CATT and the PATT
 #'
 #' Computes the estimator and confidence intervals (CIs) for the CATT and the
-#' PATT. The tuning parameter is chosen to optimize \code{opt.criterion}
-#' criterion.
+#' PATT. The tuning parameter \eqn{\delta}{delta} is chosen to optimize
+#' \code{opt.criterion} criterion.
 #' @param op Output of \code{ATTOptPath}.
 #' @param sigma2init estimate of the conditional variance of the outcome, used
-#'     to choose the optimal smoothing parameter \eqn{\delta}. If not supplied,
-#'     use homoskedastic variance estimate based on a nearest neighbor variance
-#'     estimator.
+#'     to choose the optimal smoothing parameter \eqn{\delta}{delta}. If not
+#'     supplied, use homoskedastic variance estimate based on a nearest neighbor
+#'     variance estimator.
+#' @param extrasteps If the optimal smoothing parameter \eqn{\delta}{delta} is
+#'     attained at the end of the solution path, compute additional
+#'     \code{extrasteps} steps in the solution path and estimate it again. If
+#'     \code{extrasteps==0}, then do not compute extra steps.
 #' @inheritParams ATTMatchEstimate
 #' @return Returns an object of class \code{"ATTEstimate"}. An object of class
 #'     \code{"ATTEstimate"} is a list containing the following components:
-#'     \describe{ \item{e}{Data frame with columns TODO} \item{k}{weights TODO}
+#'     \describe{
+#'
+#'     \item{e}{Data frame with columns TODO}
+#'
+#'     \item{k}{weights TODO}
+#'
+#'     \item{res}{TODO}
+#'
+#'     \item{op}{TODO}
+#'
 #'     }
 #' @references \cite{Armstrong, T. B., and M. Kolesár (2018): Finite-Sample
 #'     Optimal Estimation and Inference on Average Treatment Effects Under
@@ -170,7 +183,7 @@ ATTOptPath <- function(y, d, D0, maxsteps=50, tol, path=NULL, check=FALSE) {
 #' ATTOptEstimate(op, C=1, DM=DM, opt.criterion="FLCI")
 #' @export
 ATTOptEstimate <- function(op, C=1, opt.criterion="RMSE", sigma2init, sigma2,
-                           mvar, DM, alpha=0.05, beta=0.8, J=3) {
+                           mvar, DM, alpha=0.05, beta=0.8, J=3, extrasteps=50) {
     if (missing(sigma2))
         sigma2 <- nnvar(DM, op$d, op$y, J=J)
     if (missing(sigma2init))
@@ -235,8 +248,18 @@ ATTOptEstimate <- function(op, C=1, opt.criterion="RMSE", sigma2init, sigma2,
     oh <- up(resopt) # homoskedastic
 
     K <- ATTOptK(resopt, op$d)
-    if (oh$delta==max(ep$delta) & nrow(res)>1)
-        warning("Optimum found at end of path")
+
+    if (oh$delta==max(ep$delta) & nrow(res)>1) {
+        if (extrasteps>0) {
+            path_len <- nrow(op$ep)+extrasteps
+            message("Increasing length of solution path to ", path_len)
+            op <- ATTOptPath(path=op, maxsteps=path_len)
+            return(ATTOptEstimate(op, C, opt.criterion, sigma2init, sigma2,
+                           mvar, DM, alpha, beta, J, extrasteps))
+        } else
+            warning("Optimum found at end of path")
+    }
+
 
     ## Robust variance, C=1 to keep bias the same
     or <- UpdatePath(oh, K, Cratio=1, sigma2, alpha, beta)
@@ -249,7 +272,7 @@ ATTOptEstimate <- function(op, C=1, opt.criterion="RMSE", sigma2init, sigma2,
     structure(list(e=c(unlist(oh), rsd=or$sd, rlower=or$lower, rupper=or$upper,
                        rhl=or$hl, rrmse=or$rmse, rmaxel=or$maxel, usd=ou$sd,
                        ulower=ou$lower, uupper=ou$upper, uhl=ou$hl, C=C),
-              res=drop(resopt), k=drop(K)),
+              res=drop(resopt), k=drop(K), op=op),
               class="ATTEstimate")
 }
 
