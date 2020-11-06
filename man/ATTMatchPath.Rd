@@ -43,7 +43,9 @@ bias, the ATT estimate, and the largest Lindeberg weight.}
 \description{
 Computes the matching estimator and the matching weights for a range of
 matches \code{M}. The output of this function is used as an input for
-\code{\link{ATTMatchEstimate}} for inference on the CATT and the PATT.
+\code{\link{ATTMatchEstimate}} for inference on the conditional average
+treatment effect for the treated (CATT) and population average treatment
+effect for the treated (PATT).
 }
 \examples{
 ## Construct distance matrix

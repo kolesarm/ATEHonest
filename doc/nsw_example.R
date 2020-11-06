@@ -16,20 +16,20 @@ Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
 D0 <- distMat(X, Ahalf, method="manhattan", d)
 
 ## -----------------------------------------------------------------------------
-op <- ATTOptPath(y, d, D0, maxsteps=120)
-
-## -----------------------------------------------------------------------------
 DM <- distMat(X, chol(solve(cov(X))), method="euclidean")
 
 ## -----------------------------------------------------------------------------
-ATTOptEstimate(op, C=1, DM=DM, opt.criterion="RMSE")
-ATTOptEstimate(op, C=1, DM=DM, opt.criterion="FLCI")
+c1 <- ATTOptEstimate(y=y, d=d, D0=D0, C=1, DM=DM, opt.criterion="RMSE")
+print(c1)
 
 ## -----------------------------------------------------------------------------
-ATTEffBounds(op, DM=DM, C=1)
+ATTOptEstimate(op=c1$op, C=1, DM=DM, opt.criterion="FLCI")
 
 ## -----------------------------------------------------------------------------
-op <- ATTOptPath(path=op, maxsteps=290)
+ATTEffBounds(c1$op, DM=DM, C=1)
+
+## -----------------------------------------------------------------------------
+op <- ATTOptPath(path=c1$op, maxsteps=290)
 ATTEffBounds(op, DM=DM, C=1)
 
 ## -----------------------------------------------------------------------------

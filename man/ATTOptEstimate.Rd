@@ -5,6 +5,9 @@
 \title{Optimal estimation and inference for the CATT and the PATT}
 \usage{
 ATTOptEstimate(
+  y,
+  d,
+  D0,
   op,
   C = 1,
   opt.criterion = "RMSE",
@@ -19,7 +22,19 @@ ATTOptEstimate(
 )
 }
 \arguments{
-\item{op}{Output of \code{ATTOptPath}.}
+\item{y}{outcome vector with length \code{n}.}
+
+\item{d}{vector of treatment indicators with length \code{n}.}
+
+\item{D0}{matrix of distances with dimension \code{n1} by \code{n0} between
+untreated and treated units, where \code{n0} is the number of untreated
+units and \code{n1} is the number of treated units.}
+
+\item{op}{Output of \code{ATTOptPath}. If this parameter is omitted, and the
+parameters \code{y}, \code{d}, and \code{D0} are supplied,
+\code{ATTOptEstimate} computes the path internally. Conversely, if
+\code{op} is supplied, the parameters \code{y}, \code{d}, and \code{D0}
+are ignored.}
 
 \item{C}{Lipschitz smoothness constant}
 
@@ -55,7 +70,7 @@ of one-sided CIs.}
 and \code{sigma2}.}
 
 \item{extrasteps}{If the optimal smoothing parameter \eqn{\delta}{delta} is
-attained at the end of the solution path, compute additional
+attained at the end of the solution path \code{op}, compute additional
 \code{extrasteps} steps in the solution path and estimate it again. If
 \code{extrasteps==0}, then do not compute extra steps.}
 }
@@ -64,20 +79,37 @@ Returns an object of class \code{"ATTEstimate"}. An object of class
     \code{"ATTEstimate"} is a list containing the following components:
     \describe{
 
-    \item{e}{Data frame with columns TODO}
+    \item{e}{Vector with elements \code{"att"} (value of ATT estimate),
+    \code{"maxbias"} (worst-case bias), \code{"delta"} (tuning parameter
+    \eqn{\delta}{delta}), "omega" (\eqn{\omega(\delta)}{omega(delta)})
+    \code{"lindw"} (maximal Lindeberg weight \eqn{Lind(k)}), \code{"sd"},
+    \code{"hl"}, \code{"lower"}, \code{"upper"}, \code{"maxel"},
+    \code{"rmse"} (standard deviation, half-length of two-sided CI, lower and
+    upper endpoint of one-sided CIs, worst-case excess length of one-sided CI
+    at quantile \code{beta} and RMSE of estimator, assuming conditional
+    variance equals \code{sigma2inint}) \code{"rsd"}, \code{"rlower"},
+    \code{"rupper"}, \code{"rhl"}, \code{"rrmse"}, \code{"rmaxel"} (same
+    quantities, but calculated using \code{sigma2}), \code{"usd"},
+    \code{"ulower"}, \code{"uupper"}, \code{"uhl"} (standard deviation,
+    endpoints for one-sided CIs and half-length of two-sided CI for PATE),
+    and \code{"C"} (Value of Lipschitz constant \code{C})}
 
-    \item{k}{weights TODO}
+    \item{k}{Vector of optimal weights \eqn{k(x_i, d_i)}}
 
-    \item{res}{TODO}
+    \item{res}{A vector with elements corresponding to the value of the state
+    variables \eqn{\delta}, \eqn{m}, \eqn{r}, \eqn{\mu}, and \code{drop} of
+    the solution path at the optimal value of \eqn{\delta}{delta}}
 
-    \item{op}{TODO}
+    \item{op}{The solution path, output of \code{ATTOptPath}.}
 
     }
 }
 \description{
-Computes the estimator and confidence intervals (CIs) for the CATT and the
-PATT. The tuning parameter \eqn{\delta}{delta} is chosen to optimize
-\code{opt.criterion} criterion.
+Computes the estimator and confidence intervals (CIs) for the conditional
+average treatment effect for the treated (CATT) and population average
+treatment effect for the treated (PATT). The tuning parameter
+\eqn{\delta}{delta} is chosen to optimize the criterion specified by
+\code{opt.criterion}.
 }
 \examples{
 ## Use NSW experimental subsample with 25 treated and untreated units
@@ -86,13 +118,13 @@ Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
 D0 <- distMat(dt[, 2:10], Ahalf, method="manhattan", dt$treated)
 ## Distance matrix for variance estimation
 DM <- distMat(dt[, 2:10], Ahalf, method="manhattan")
-## Compute the solution path, first 50 steps will be sufficient
-op <- ATTOptPath(dt$re78, dt$treated, D0, maxsteps=50)
-ATTOptEstimate(op, C=1, DM=DM, opt.criterion="RMSE")
-ATTOptEstimate(op, C=1, DM=DM, opt.criterion="FLCI")
+c1 <- ATTOptEstimate(y=dt$re78, d=dt$treated, D0=D0, C=1, DM=DM,
+                     opt.criterion="RMSE")
+## Re-use the solution path already computed
+c2 <- ATTOptEstimate(op=c1$op, C=1, DM=DM, opt.criterion="FLCI")
 }
 \references{
-\cite{Armstrong, T. B., and M. Kolesár (2018): Finite-Sample
+\cite{Armstrong, T. B., and M. Kolesár (2020): Finite-Sample
     Optimal Estimation and Inference on Average Treatment Effects Under
     Unconfoundedness, \url{https://arxiv.org/abs/1712.04594}}
 }

@@ -57,18 +57,30 @@ Returns an object of class \code{"ATTEstimate"}. An object of class
     \code{"ATTEstimate"} is a list containing the following components:
     \describe{
 
-    \item{e}{Data frame with columns TODO}
+    \item{e}{Vector with elements \code{"att"} (value of ATT estimate),
+    \code{"maxbias"} (worst-case bias), \code{"M"} (number of matches),
+    \code{"lindw"} (maximal Lindeberg weight \eqn{Lind(k)}), \code{"sd"},
+    \code{"hl"}, \code{"lower"}, \code{"upper"}, \code{"maxel"},
+    \code{"rmse"} (standard deviation, half-length of two-sided CI, lower and
+    upper endpoint of one-sided CIs, worst-case excess length of one-sided CI
+    at quantile \code{beta} and RMSE of estimator, assuming conditional
+    variance equals \code{sigma2inint}) \code{"rsd"}, \code{"rlower"},
+    \code{"rupper"}, \code{"rhl"}, \code{"rrmse"}, \code{"rmaxel"} (same
+    quantities, but calculated using \code{sigma2}), \code{"usd"},
+    \code{"ulower"}, \code{"uupper"}, \code{"uhl"} (standard deviation,
+    endpoints for one-sided CIs and half-length of two-sided CI for PATE),
+    and \code{"C"} (Value of Lipschitz constant \code{C})}
 
-    \item{k}{weights TODO}
-
-    \item{mp}{TODO}
+    \item{k}{Vector of matching weights \eqn{k(x_i, d_i)}}
     }
 }
 \description{
-Computes the matching estimator and confidence intervals (CIs) for the CATT
-and the PATT. If \code{ATTMatchPath} used a single \code{M}, the estimator
-and CIs are based on a matching estimator with this number of matches.
-Otherwise, optimize the number of matches according to \code{opt.criterion}.
+Computes the matching estimator and confidence intervals (CIs) for the
+conditional average treatment effect for the treated (CATT) and population
+average treatment effect for the treated (PATT). If \code{ATTMatchPath} used
+a single \code{M}, the estimator and CIs are based on a matching estimator
+with this number of matches. Otherwise, optimize the number of matches
+according to \code{opt.criterion}.
 }
 \examples{
 Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
@@ -81,11 +93,10 @@ ATTMatchEstimate(mp, C=1, DM=DM)
 }
 \references{
 \cite{Abadie, A. and G. W. Imbens (2006):
-    "Large sample properties of matching estimators
-    for average treatment effects,"
+    "Large sample properties of matching estimators for average treatment effects,"
     Econometrica, 74, 235–267.}
 
-\cite{Armstrong, T. B., and M. Kolesár (2018): Finite-Sample
+\cite{Armstrong, T. B., and M. Kolesár (2020): Finite-Sample
     Optimal Estimation and Inference on Average Treatment Effects Under
     Unconfoundedness, \url{https://arxiv.org/abs/1712.04594}}
 }

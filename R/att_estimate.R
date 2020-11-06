@@ -43,7 +43,9 @@ ATTOptK <- function(res, d) {
 #' \eqn{\{\hat{L}_{\delta}:\delta>0\}}{{hatL_delta}_{delta>0}} tracing out the
 #' class of optimal linear estimators that minimize variance subject to a bound
 #' on bias. The output of this function is used by \code{\link{ATTOptEstimate}}
-#' for optimal estimation and inference on the CATT and PATT
+#' for optimal estimation and inference on the conditional average treatment
+#' effect for the treated (CATT) and population average treatment effect for
+#' the treated (PATT).
 #' @param maxsteps maximum number of steps in the solution path. If the full
 #'     solution path is shorter than \code{maxsteps}, compute the whole path.
 #' @param tol numerical tolerance for rounding error when finding the nearest
@@ -81,7 +83,7 @@ ATTOptK <- function(res, d) {
 #' }
 #'
 #' The remaining elements are state variables at the last step of the solution
-#' path (see Appendix A in Armstrong and Kolesár (2018) for details and
+#' path (see Appendix A in Armstrong and Kolesár (2020) for details and
 #' notation): \describe{
 #'
 #' \item{m0}{A vector of length \code{n0} of corresponding to \eqn{m}.}
@@ -103,7 +105,7 @@ ATTOptK <- function(res, d) {
 #'   set, or added.}
 #'
 #' }
-#' @references \cite{Armstrong, T. B., and M. Kolesár (2018): Finite-Sample
+#' @references \cite{Armstrong, T. B., and M. Kolesár (2020): Finite-Sample
 #'     Optimal Estimation and Inference on Average Treatment Effects Under
 #'     Unconfoundedness, \url{https://arxiv.org/abs/1712.04594}}
 #' @examples
@@ -141,16 +143,24 @@ ATTOptPath <- function(y, d, D0, maxsteps=50, tol, path=NULL, check=FALSE) {
 
 #' Optimal estimation and inference for the CATT and the PATT
 #'
-#' Computes the estimator and confidence intervals (CIs) for the CATT and the
-#' PATT. The tuning parameter \eqn{\delta}{delta} is chosen to optimize
-#' \code{opt.criterion} criterion.
-#' @param op Output of \code{ATTOptPath}.
+#' Computes the estimator and confidence intervals (CIs) for the conditional
+#' average treatment effect for the treated (CATT) and population average
+#' treatment effect for the treated (PATT). The tuning parameter
+#' \eqn{\delta}{delta} is chosen to optimize the criterion specified by
+#' \code{opt.criterion}.
+#' @template D0
+#' @template data
+#' @param op Output of \code{ATTOptPath}. If this parameter is omitted, and the
+#'     parameters \code{y}, \code{d}, and \code{D0} are supplied,
+#'     \code{ATTOptEstimate} computes the path internally. Conversely, if
+#'     \code{op} is supplied, the parameters \code{y}, \code{d}, and \code{D0}
+#'     are ignored.
 #' @param sigma2init estimate of the conditional variance of the outcome, used
 #'     to choose the optimal smoothing parameter \eqn{\delta}{delta}. If not
 #'     supplied, use homoskedastic variance estimate based on a nearest neighbor
 #'     variance estimator.
 #' @param extrasteps If the optimal smoothing parameter \eqn{\delta}{delta} is
-#'     attained at the end of the solution path, compute additional
+#'     attained at the end of the solution path \code{op}, compute additional
 #'     \code{extrasteps} steps in the solution path and estimate it again. If
 #'     \code{extrasteps==0}, then do not compute extra steps.
 #' @inheritParams ATTMatchEstimate
@@ -158,16 +168,31 @@ ATTOptPath <- function(y, d, D0, maxsteps=50, tol, path=NULL, check=FALSE) {
 #'     \code{"ATTEstimate"} is a list containing the following components:
 #'     \describe{
 #'
-#'     \item{e}{Data frame with columns TODO}
+#'     \item{e}{Vector with elements \code{"att"} (value of ATT estimate),
+#'     \code{"maxbias"} (worst-case bias), \code{"delta"} (tuning parameter
+#'     \eqn{\delta}{delta}), "omega" (\eqn{\omega(\delta)}{omega(delta)})
+#'     \code{"lindw"} (maximal Lindeberg weight \eqn{Lind(k)}), \code{"sd"},
+#'     \code{"hl"}, \code{"lower"}, \code{"upper"}, \code{"maxel"},
+#'     \code{"rmse"} (standard deviation, half-length of two-sided CI, lower and
+#'     upper endpoint of one-sided CIs, worst-case excess length of one-sided CI
+#'     at quantile \code{beta} and RMSE of estimator, assuming conditional
+#'     variance equals \code{sigma2inint}) \code{"rsd"}, \code{"rlower"},
+#'     \code{"rupper"}, \code{"rhl"}, \code{"rrmse"}, \code{"rmaxel"} (same
+#'     quantities, but calculated using \code{sigma2}), \code{"usd"},
+#'     \code{"ulower"}, \code{"uupper"}, \code{"uhl"} (standard deviation,
+#'     endpoints for one-sided CIs and half-length of two-sided CI for PATE),
+#'     and \code{"C"} (Value of Lipschitz constant \code{C})}
 #'
-#'     \item{k}{weights TODO}
+#'     \item{k}{Vector of optimal weights \eqn{k(x_i, d_i)}}
 #'
-#'     \item{res}{TODO}
+#'     \item{res}{A vector with elements corresponding to the value of the state
+#'     variables \eqn{\delta}, \eqn{m}, \eqn{r}, \eqn{\mu}, and \code{drop} of
+#'     the solution path at the optimal value of \eqn{\delta}{delta}}
 #'
-#'     \item{op}{TODO}
+#'     \item{op}{The solution path, output of \code{ATTOptPath}.}
 #'
 #'     }
-#' @references \cite{Armstrong, T. B., and M. Kolesár (2018): Finite-Sample
+#' @references \cite{Armstrong, T. B., and M. Kolesár (2020): Finite-Sample
 #'     Optimal Estimation and Inference on Average Treatment Effects Under
 #'     Unconfoundedness, \url{https://arxiv.org/abs/1712.04594}}
 #' @examples
@@ -177,17 +202,21 @@ ATTOptPath <- function(y, d, D0, maxsteps=50, tol, path=NULL, check=FALSE) {
 #' D0 <- distMat(dt[, 2:10], Ahalf, method="manhattan", dt$treated)
 #' ## Distance matrix for variance estimation
 #' DM <- distMat(dt[, 2:10], Ahalf, method="manhattan")
-#' ## Compute the solution path, first 50 steps will be sufficient
-#' op <- ATTOptPath(dt$re78, dt$treated, D0, maxsteps=50)
-#' ATTOptEstimate(op, C=1, DM=DM, opt.criterion="RMSE")
-#' ATTOptEstimate(op, C=1, DM=DM, opt.criterion="FLCI")
+#' c1 <- ATTOptEstimate(y=dt$re78, d=dt$treated, D0=D0, C=1, DM=DM,
+#'                      opt.criterion="RMSE")
+#' ## Re-use the solution path already computed
+#' c2 <- ATTOptEstimate(op=c1$op, C=1, DM=DM, opt.criterion="FLCI")
 #' @export
-ATTOptEstimate <- function(op, C=1, opt.criterion="RMSE", sigma2init, sigma2,
-                           mvar, DM, alpha=0.05, beta=0.8, J=3, extrasteps=50) {
+ATTOptEstimate <- function(y, d, D0, op, C=1, opt.criterion="RMSE", sigma2init,
+                           sigma2, mvar, DM, alpha=0.05, beta=0.8, J=3,
+                           extrasteps=50) {
+    if (missing(op))
+        op <- ATTOptPath(y, d, D0, maxsteps=extrasteps)
     if (missing(sigma2))
         sigma2 <- nnvar(DM, op$d, op$y, J=J)
     if (missing(sigma2init))
         sigma2init <- mean(sigma2)
+    sigma2init <- mean(sigma2init)
 
     ## Drop delta=0
     keep <- op$ep$delta > 0
@@ -195,9 +224,6 @@ ATTOptEstimate <- function(op, C=1, opt.criterion="RMSE", sigma2init, sigma2,
     ep <- UpdatePath(op$ep[keep, ], op$K[keep, , drop=FALSE],
                      C, sigma2init, alpha, beta)
     ## update delta
-    if (length(sigma2init)>1)
-        warning(paste("The solution path is assuming homoskedastic variance,",
-                      "but supplied sigma2init implies it's not homoskedastic"))
     up <- function(res) {
         op$res <- res
         r <- ATTOptPath(path=op, maxsteps=0, check=FALSE)
@@ -254,10 +280,19 @@ ATTOptEstimate <- function(op, C=1, opt.criterion="RMSE", sigma2init, sigma2,
             path_len <- nrow(op$ep)+extrasteps
             message("Increasing length of solution path to ", path_len)
             op <- ATTOptPath(path=op, maxsteps=path_len)
-            return(ATTOptEstimate(op, C, opt.criterion, sigma2init, sigma2,
-                           mvar, DM, alpha, beta, J, extrasteps))
+
+            if (nrow(op$ep) < path_len) {
+                message("End of solution path reached")
+                extrasteps <- 0
+            }
+            return(ATTOptEstimate(op=op, C=C, opt.criterion=opt.criterion,
+                                  sigma2init=sigma2init, sigma2=sigma2,
+                                  mvar=mvar, DM=DM, alpha=alpha, beta=beta, J=J,
+                                  extrasteps=extrasteps))
+
+
         } else
-            warning("Optimum found at end of path")
+            message("Optimum found at end of path")
     }
 
 
@@ -311,7 +346,7 @@ print.ATTEstimate <- function(x, digits = getOption("digits"), ...) {
 #' intervals at smooth functions, as well as the efficiency of one-sided
 #' confidence intervals that optimize a given \code{beta} quantile of excess
 #' length, using the formula described in Appendix A of Armstrong and Kolesár
-#' (2018)
+#' (2020)
 #' @inheritParams ATTMatchEstimate
 #' @param op The output of \code{ATTOptPath}.
 #' @param sigma2 estimate of the conditional variance of the outcome (assuming
@@ -322,7 +357,7 @@ print.ATTEstimate <- function(x, digits = getOption("digits"), ...) {
 #' @param J number of nearest neighbors to use when estimating \code{sigma2}.
 #' @return A list with two elements, \code{onesided} and \code{twosided}, for
 #'     one- and two-sided efficiency.
-#' @references \cite{Armstrong, T. B., and M. Kolesár (2018): Finite-Sample
+#' @references \cite{Armstrong, T. B., and M. Kolesár (2020): Finite-Sample
 #'     Optimal Estimation and Inference on Average Treatment Effects Under
 #'     Unconfoundedness, \url{https://arxiv.org/abs/1712.04594}}
 #' @examples

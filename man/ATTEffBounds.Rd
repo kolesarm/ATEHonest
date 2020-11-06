@@ -34,7 +34,7 @@ Computes the asymptotic efficiency of two-sided fixed-length confidence
 intervals at smooth functions, as well as the efficiency of one-sided
 confidence intervals that optimize a given \code{beta} quantile of excess
 length, using the formula described in Appendix A of Armstrong and Kolesár
-(2018)
+(2020)
 }
 \examples{
 ## Use NSW experimental subsample with 25 treated and untreated units
@@ -48,7 +48,7 @@ op <- ATTOptPath(dt$re78, dt$treated, D0, maxsteps=50)
 ATTEffBounds(op, C=1, DM=DM)
 }
 \references{
-\cite{Armstrong, T. B., and M. Kolesár (2018): Finite-Sample
+\cite{Armstrong, T. B., and M. Kolesár (2020): Finite-Sample
     Optimal Estimation and Inference on Average Treatment Effects Under
     Unconfoundedness, \url{https://arxiv.org/abs/1712.04594}}
 }

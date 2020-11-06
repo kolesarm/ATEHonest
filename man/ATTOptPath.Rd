@@ -55,7 +55,7 @@ each step}
 }
 
 The remaining elements are state variables at the last step of the solution
-path (see Appendix A in Armstrong and Kolesár (2018) for details and
+path (see Appendix A in Armstrong and Kolesár (2020) for details and
 notation): \describe{
 
 \item{m0}{A vector of length \code{n0} of corresponding to \eqn{m}.}
@@ -83,7 +83,9 @@ Use a LASSO-like algorithm to compute the solution path
 \eqn{\{\hat{L}_{\delta}:\delta>0\}}{{hatL_delta}_{delta>0}} tracing out the
 class of optimal linear estimators that minimize variance subject to a bound
 on bias. The output of this function is used by \code{\link{ATTOptEstimate}}
-for optimal estimation and inference on the CATT and PATT
+for optimal estimation and inference on the conditional average treatment
+effect for the treated (CATT) and population average treatment effect for
+the treated (PATT).
 }
 \examples{
 x0 <- c(0, 1, 2, 3)
@@ -96,7 +98,7 @@ p1 <- ATTOptPath(d, d, D0, maxsteps=3)
 ATTOptPath(path=p1, maxsteps=50, check=TRUE)
 }
 \references{
-\cite{Armstrong, T. B., and M. Kolesár (2018): Finite-Sample
+\cite{Armstrong, T. B., and M. Kolesár (2020): Finite-Sample
     Optimal Estimation and Inference on Average Treatment Effects Under
     Unconfoundedness, \url{https://arxiv.org/abs/1712.04594}}
 }

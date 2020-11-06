@@ -33,9 +33,9 @@ test_that("Solution path for ATT in small examples", {
         expect_silent(tt[[j]] <- ATTOptPath(d, d, D0, check=TRUE))
 
         ## Check maximum bias matches that from LP
-        r0 <- ATTOptEstimate(tt[[j]], sigma2=1, C=0.5)
+        r0 <- ATTOptEstimate(op=tt[[j]], sigma2=1, C=0.5)
         expect_equal(0.5*ATTbias(r0$k[d==0], D0), unname(r0$e["maxbias"]))
-        r1 <- ATTOptEstimate(tt[[j]], sigma2=1, C=1)
+        r1 <- ATTOptEstimate(op=tt[[j]], sigma2=1, C=1)
         expect_equal(1*ATTbias(r1$k[d==0], D0), unname(r1$e["maxbias"]))
         ## Check optimum matches CVX
         rmse <- function(delta, C, mvar) {
@@ -43,7 +43,7 @@ test_that("Solution path for ATT in small examples", {
             op$res <- matrix(ATTbrute(delta2=delta^2, D0), nrow=1)
             ## Use previous mvar, since CVX path is not exact, determining
             ## binding constraints is tricky.
-            unlist(ATTOptEstimate(ATTOptPath(path=op, check=FALSE),
+            unlist(ATTOptEstimate(op=ATTOptPath(path=op, check=FALSE),
                                   sigma2=1, C=C, mvar=mvar)$e)
         }
         expect_lt(max(abs(rmse(r0$res[1], C=0.5,
@@ -78,6 +78,16 @@ test_that("Solution path for ATT in small examples", {
     expect_lt(nrow(tt[[2]]$res), 9)
     expect_lt(nrow(tt[[3]]$res), 9)
     expect_lt(nrow(tt[[4]]$res), 25)
+
+    ## Make path longer if necessary
+    d <- dd(x0[[5]], x1[[5]])
+    D0 <- distMat(c(x0[[5]], x1[[5]]), d=d)
+    op <- ATTOptPath(d, d, D0, check=FALSE, maxsteps=10)
+    expect_message(r0 <- ATTOptEstimate(op=op, sigma2=1, C=0.5))
+    ## Solution at end of path
+    expect_message(r0 <- ATTOptEstimate(d=d, y=d, D0=D0, sigma2=1, C=0.1))
+    expect_equal(nrow(r0$op$ep), 45)
+
 })
 
 context("Efficiency calculations")
@@ -139,8 +149,8 @@ test_that("Alternative way of computing modulus efficiency", {
         lo <- -zal                          # lower endpoint
         while(integrand(lo)>1e-8) lo <- max(lo-2, lbar)
         num <- stats::integrate(integrand, lo, zal, abs.tol=1e-6)$value
-        den <- 2*ATTOptEstimate(op,
-                                mean(sigma2), C=C,
+        den <- 2*ATTOptEstimate(op=op,
+                                sigma2init=mean(sigma2), C=C,
                                 sigma2=mean(sigma2), alpha,
                                 opt.criterion="FLCI")$e["hl"]
         C*num/den

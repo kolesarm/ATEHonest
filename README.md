@@ -1,10 +1,10 @@
-[![Travis build status](https://travis-ci.org/kolesarm/ATEHonest.svg?branch=master)](https://travis-ci.org/kolesarm/ATEHonest) [![Coverage status](https://codecov.io/gh/kolesarm/ATEHonest/branch/master/graph/badge.svg)](https://codecov.io/github/kolesarm/ATEHonest?branch=master)
+[![Travis build status](https://travis-ci.com/kolesarm/ATEHonest.svg?branch=master)](https://travis-ci.com/kolesarm/ATEHonest) [![Coverage status](https://codecov.io/gh/kolesarm/ATEHonest/branch/master/graph/badge.svg)](https://codecov.io/github/kolesarm/ATEHonest?branch=master)
 
 # ATEHonest
 
 This R package implements estimators and confidence intervals for average
 treatment effects under unconfoundedness using methods from [Armstrong and
-Kolesár (2018)](https://arxiv.org/abs/1712.04594).
+Kolesár (2020)](https://arxiv.org/abs/1712.04594).
 
 
 See the [package vignette](doc/nsw_example.pdf) for a description of the package
@@ -20,7 +20,9 @@ Foundation under grant numbers SES-1628939 (Armstrong) and SES-1628878
 You can get the current development version from GitHub:
 
 ``` r
-install.packages("remotes") # if the remotes package is not installed
+if (!requireNamespace("remotes")) {
+  install.packages("remotes")
+}
 remotes::install_github("kolesarm/ATEHonest")
 ```
 

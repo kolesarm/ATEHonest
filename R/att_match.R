@@ -41,7 +41,9 @@ ATTbias <- function(w, D0) {
 #'
 #' Computes the matching estimator and the matching weights for a range of
 #' matches \code{M}. The output of this function is used as an input for
-#' \code{\link{ATTMatchEstimate}} for inference on the CATT and the PATT.
+#' \code{\link{ATTMatchEstimate}} for inference on the conditional average
+#' treatment effect for the treated (CATT) and population average treatment
+#' effect for the treated (PATT).
 #' @param M a vector of integers determining the number of matches. If
 #'     \code{Inf}, then use the simple difference in means estimator.
 #' @template D0
@@ -89,10 +91,12 @@ ATTMatchPath <- function(y, d, D0, M=1:25, tol=1e-12) {
 
 #' Inference on the CATT and the PATT using the matching estimator
 #'
-#' Computes the matching estimator and confidence intervals (CIs) for the CATT
-#' and the PATT. If \code{ATTMatchPath} used a single \code{M}, the estimator
-#' and CIs are based on a matching estimator with this number of matches.
-#' Otherwise, optimize the number of matches according to \code{opt.criterion}.
+#' Computes the matching estimator and confidence intervals (CIs) for the
+#' conditional average treatment effect for the treated (CATT) and population
+#' average treatment effect for the treated (PATT). If \code{ATTMatchPath} used
+#' a single \code{M}, the estimator and CIs are based on a matching estimator
+#' with this number of matches. Otherwise, optimize the number of matches
+#' according to \code{opt.criterion}.
 #' @param mp output of \code{ATTMatchPath}
 #' @param C Lipschitz smoothness constant
 #' @param opt.criterion criterion to optimize. One of \code{"RMSE"} (root mean
@@ -118,11 +122,11 @@ ATTMatchPath <- function(y, d, D0, M=1:25, tol=1e-12) {
 #' @param J number of nearest neighbors to use when estimating \code{sigma2init}
 #'     and \code{sigma2}.
 #' @references \cite{Abadie, A. and G. W. Imbens (2006):
-#'     "Large sample properties of matching estimators
-#'     for average treatment effects,"
+#'     "Large sample properties of matching estimators for
+#'      average treatment effects,"
 #'     Econometrica, 74, 235–267.}
 #'
-#' \cite{Armstrong, T. B., and M. Kolesár (2018): Finite-Sample
+#' \cite{Armstrong, T. B., and M. Kolesár (2020): Finite-Sample
 #'     Optimal Estimation and Inference on Average Treatment Effects Under
 #'     Unconfoundedness, \url{https://arxiv.org/abs/1712.04594}}
 #' @examples
@@ -137,11 +141,21 @@ ATTMatchPath <- function(y, d, D0, M=1:25, tol=1e-12) {
 #'     \code{"ATTEstimate"} is a list containing the following components:
 #'     \describe{
 #'
-#'     \item{e}{Data frame with columns TODO}
+#'     \item{e}{Vector with elements \code{"att"} (value of ATT estimate),
+#'     \code{"maxbias"} (worst-case bias), \code{"M"} (number of matches),
+#'     \code{"lindw"} (maximal Lindeberg weight \eqn{Lind(k)}), \code{"sd"},
+#'     \code{"hl"}, \code{"lower"}, \code{"upper"}, \code{"maxel"},
+#'     \code{"rmse"} (standard deviation, half-length of two-sided CI, lower and
+#'     upper endpoint of one-sided CIs, worst-case excess length of one-sided CI
+#'     at quantile \code{beta} and RMSE of estimator, assuming conditional
+#'     variance equals \code{sigma2inint}) \code{"rsd"}, \code{"rlower"},
+#'     \code{"rupper"}, \code{"rhl"}, \code{"rrmse"}, \code{"rmaxel"} (same
+#'     quantities, but calculated using \code{sigma2}), \code{"usd"},
+#'     \code{"ulower"}, \code{"uupper"}, \code{"uhl"} (standard deviation,
+#'     endpoints for one-sided CIs and half-length of two-sided CI for PATE),
+#'     and \code{"C"} (Value of Lipschitz constant \code{C})}
 #'
-#'     \item{k}{weights TODO}
-#'
-#'     \item{mp}{TODO}
+#'     \item{k}{Vector of matching weights \eqn{k(x_i, d_i)}}
 #'     }
 #' @export
 ATTMatchEstimate <- function(mp, C=1, opt.criterion="RMSE", sigma2init,

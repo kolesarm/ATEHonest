@@ -120,7 +120,7 @@ ATTstep <- function(s, tol=.Machine$double.eps*n0*n1) {
 ##
 ## Calculates optimal weights \eqn{m} and \eqn{r} for the control and treated
 ## observations as a function of \eqn{\delta}, or equivalently \eqn{\mu}, using
-## the algorithm described in the appendix to Armstrong and Kolesár (2018)
+## the algorithm described in the appendix to Armstrong and Kolesár (2020)
 ## @param h Optionally, supply previous output of \code{ATTh}. If not provided,
 ##     the homotopy is started at the beginning. If provided, it starts at the
 ##     step where the previous call to \code{ATTh} ended.
