@@ -5,7 +5,7 @@
 \title{Inference on the CATT and the PATT using the matching estimator}
 \usage{
 ATTMatchEstimate(
-  mp,
+  path,
   C = 1,
   opt.criterion = "RMSE",
   sigma2init,
@@ -18,7 +18,7 @@ ATTMatchEstimate(
 )
 }
 \arguments{
-\item{mp}{output of \code{ATTMatchPath}}
+\item{path}{output of \code{ATTMatchPath}}
 
 \item{C}{Lipschitz smoothness constant}
 
@@ -89,11 +89,12 @@ mp <- ATTMatchPath(NSWexper$re78, NSWexper$treated, D0, M=c(1, 2), tol=1e-12)
 ## Distance matrix for variance estimation
 DM <- distMat(NSWexper[, 2:10], Ahalf, method="manhattan")
 ## Estimator based on a single match is better than with 2 matches for RMSE
-ATTMatchEstimate(mp, C=1, DM=DM)
+ATTMatchEstimate(path=mp, C=1, DM=DM)
 }
 \references{
 \cite{Abadie, A. and G. W. Imbens (2006):
-    "Large sample properties of matching estimators for average treatment effects,"
+    "Large sample properties of matching estimators for
+     average treatment effects,"
     Econometrica, 74, 235–267.}
 
 \cite{Armstrong, T. B., and M. Kolesár (2020): Finite-Sample

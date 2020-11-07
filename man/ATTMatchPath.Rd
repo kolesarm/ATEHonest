@@ -51,5 +51,5 @@ effect for the treated (PATT).
 ## Construct distance matrix
 Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
 D0 <- distMat(NSWexper[, 2:10], Ahalf, method="manhattan", NSWexper$treated)
-mp <- ATTMatchPath(NSWexper$re78, NSWexper$treated, D0, M=1:2, tol=1e-12)
+ATTMatchPath(NSWexper$re78, NSWexper$treated, D0, M=1:2, tol=1e-12)
 }

@@ -150,17 +150,17 @@ ATTOptPath <- function(y, d, D0, maxsteps=50, tol, path=NULL, check=FALSE) {
 #' \code{opt.criterion}.
 #' @template D0
 #' @template data
-#' @param op Output of \code{ATTOptPath}. If this parameter is omitted, and the
-#'     parameters \code{y}, \code{d}, and \code{D0} are supplied,
+#' @param path Output of \code{ATTOptPath}. If this parameter is omitted, and
+#'     the parameters \code{y}, \code{d}, and \code{D0} are supplied,
 #'     \code{ATTOptEstimate} computes the path internally. Conversely, if
-#'     \code{op} is supplied, the parameters \code{y}, \code{d}, and \code{D0}
+#'     \code{path} is supplied, the parameters \code{y}, \code{d}, and \code{D0}
 #'     are ignored.
 #' @param sigma2init estimate of the conditional variance of the outcome, used
 #'     to choose the optimal smoothing parameter \eqn{\delta}{delta}. If not
 #'     supplied, use homoskedastic variance estimate based on a nearest neighbor
 #'     variance estimator.
 #' @param extrasteps If the optimal smoothing parameter \eqn{\delta}{delta} is
-#'     attained at the end of the solution path \code{op}, compute additional
+#'     attained at the end of the solution path \code{path}, compute additional
 #'     \code{extrasteps} steps in the solution path and estimate it again. If
 #'     \code{extrasteps==0}, then do not compute extra steps.
 #' @inheritParams ATTMatchEstimate
@@ -189,7 +189,7 @@ ATTOptPath <- function(y, d, D0, maxsteps=50, tol, path=NULL, check=FALSE) {
 #'     variables \eqn{\delta}, \eqn{m}, \eqn{r}, \eqn{\mu}, and \code{drop} of
 #'     the solution path at the optimal value of \eqn{\delta}{delta}}
 #'
-#'     \item{op}{The solution path, output of \code{ATTOptPath}.}
+#'     \item{path}{The solution path, output of \code{ATTOptPath}.}
 #'
 #'     }
 #' @references \cite{Armstrong, T. B., and M. Kolesár (2020): Finite-Sample
@@ -205,28 +205,28 @@ ATTOptPath <- function(y, d, D0, maxsteps=50, tol, path=NULL, check=FALSE) {
 #' c1 <- ATTOptEstimate(y=dt$re78, d=dt$treated, D0=D0, C=1, DM=DM,
 #'                      opt.criterion="RMSE")
 #' ## Re-use the solution path already computed
-#' c2 <- ATTOptEstimate(op=c1$op, C=1, DM=DM, opt.criterion="FLCI")
+#' c2 <- ATTOptEstimate(path=c1$path, C=1, DM=DM, opt.criterion="FLCI")
 #' @export
-ATTOptEstimate <- function(y, d, D0, op, C=1, opt.criterion="RMSE", sigma2init,
-                           sigma2, mvar, DM, alpha=0.05, beta=0.8, J=3,
-                           extrasteps=50) {
-    if (missing(op))
-        op <- ATTOptPath(y, d, D0, maxsteps=extrasteps)
+ATTOptEstimate <- function(y, d, D0, path, C=1, opt.criterion="RMSE",
+                           sigma2init, sigma2, mvar, DM, alpha=0.05, beta=0.8,
+                           J=3, extrasteps=50) {
+    if (missing(path))
+        path <- ATTOptPath(y, d, D0, maxsteps=extrasteps)
     if (missing(sigma2))
-        sigma2 <- nnvar(DM, op$d, op$y, J=J)
+        sigma2 <- nnvar(DM, path$d, path$y, J=J)
     if (missing(sigma2init))
         sigma2init <- mean(sigma2)
     sigma2init <- mean(sigma2init)
 
     ## Drop delta=0
-    keep <- op$ep$delta > 0
-    res <- op$res[keep, , drop=FALSE]
-    ep <- UpdatePath(op$ep[keep, ], op$K[keep, , drop=FALSE],
+    keep <- path$ep$delta > 0
+    res <- path$res[keep, , drop=FALSE]
+    ep <- UpdatePath(path$ep[keep, ], path$K[keep, , drop=FALSE],
                      C, sigma2init, alpha, beta)
     ## update delta
     up <- function(res) {
-        op$res <- res
-        r <- ATTOptPath(path=op, maxsteps=0, check=FALSE)
+        path$res <- res
+        r <- ATTOptPath(path=path, maxsteps=0, check=FALSE)
         UpdatePath(r$ep, r$K, C, sigma2init, alpha, beta)
     }
 
@@ -269,23 +269,23 @@ ATTOptEstimate <- function(y, d, D0, op, C=1, opt.criterion="RMSE", sigma2init,
         }
     }
     ## Fix delta
-    resopt[, 1] <- 2*sqrt(sum(op$d)*resopt[, length(op$d)+2]^2 +
-                          sum(resopt[, 2:(sum(1-op$d)+1)]^2))
+    resopt[, 1] <- 2*sqrt(sum(path$d)*resopt[, length(path$d)+2]^2 +
+                          sum(resopt[, 2:(sum(1-path$d)+1)]^2))
     oh <- up(resopt) # homoskedastic
 
-    K <- ATTOptK(resopt, op$d)
+    K <- ATTOptK(resopt, path$d)
 
     if (oh$delta==max(ep$delta) & nrow(res)>1) {
         if (extrasteps>0) {
-            path_len <- nrow(op$ep)+extrasteps
+            path_len <- nrow(path$ep)+extrasteps
             message("Increasing length of solution path to ", path_len)
-            op <- ATTOptPath(path=op, maxsteps=path_len)
+            path <- ATTOptPath(path=path, maxsteps=path_len)
 
-            if (nrow(op$ep) < path_len) {
+            if (nrow(path$ep) < path_len) {
                 message("End of solution path reached")
                 extrasteps <- 0
             }
-            return(ATTOptEstimate(op=op, C=C, opt.criterion=opt.criterion,
+            return(ATTOptEstimate(path=path, C=C, opt.criterion=opt.criterion,
                                   sigma2init=sigma2init, sigma2=sigma2,
                                   mvar=mvar, DM=DM, alpha=alpha, beta=beta, J=J,
                                   extrasteps=extrasteps))
@@ -299,7 +299,7 @@ ATTOptEstimate <- function(y, d, D0, op, C=1, opt.criterion="RMSE", sigma2init,
     ## Robust variance, C=1 to keep bias the same
     or <- UpdatePath(oh, K, Cratio=1, sigma2, alpha, beta)
     if (missing(mvar))
-        mvar <- nnMarginalVarO(op$D0, drop(resopt), op$d, op$y, sigma2,
+        mvar <- nnMarginalVarO(path$D0, drop(resopt), path$d, path$y, sigma2,
                                tol=1e-12)
     ## Marginal variance could be negative in small samples
     ou <- UpdatePath(or, K, Cratio=1, sigma2, alpha, beta,
@@ -307,7 +307,7 @@ ATTOptEstimate <- function(y, d, D0, op, C=1, opt.criterion="RMSE", sigma2init,
     structure(list(e=c(unlist(oh), rsd=or$sd, rlower=or$lower, rupper=or$upper,
                        rhl=or$hl, rrmse=or$rmse, rmaxel=or$maxel, usd=ou$sd,
                        ulower=ou$lower, uupper=ou$upper, uhl=ou$hl, C=C),
-              res=drop(resopt), k=drop(K), op=op),
+              res=drop(resopt), k=drop(K), path=path),
               class="ATTEstimate")
 }
 
@@ -348,7 +348,7 @@ print.ATTEstimate <- function(x, digits = getOption("digits"), ...) {
 #' length, using the formula described in Appendix A of Armstrong and Kolesár
 #' (2020)
 #' @inheritParams ATTMatchEstimate
-#' @param op The output of \code{ATTOptPath}.
+#' @param path The output of \code{ATTOptPath}.
 #' @param sigma2 estimate of the conditional variance of the outcome (assuming
 #'     homoskedasticity). If not supplied, use homoskedastic variance estimate
 #'     based on a nearest neighbor variance estimator.
@@ -368,22 +368,21 @@ print.ATTEstimate <- function(x, digits = getOption("digits"), ...) {
 #' ## Distance matrix for variance estimation
 #' DM <- distMat(dt[, 2:10], Ahalf, method="manhattan")
 #' ## Compute the solution path, first 50 steps will be sufficient
-#' op <- ATTOptPath(dt$re78, dt$treated, D0, maxsteps=50)
-#' ATTEffBounds(op, C=1, DM=DM)
+#' path <- ATTOptPath(dt$re78, dt$treated, D0, maxsteps=50)
+#' ATTEffBounds(path, C=1, DM=DM)
 #' @export
-ATTEffBounds <- function(op, C=1, beta=0.8, alpha=0.05, sigma2, J=3, DM) {
+ATTEffBounds <- function(path, C=1, beta=0.8, alpha=0.05, sigma2, J=3, DM) {
     if (missing(sigma2))
-        sigma2 <- mean(nnvar(DM, op$d, op$y, J=J))
-    if (length(sigma2)>1)
-        warning(paste("The solution path is assuming homoskedastic variance,",
-                      "but supplied sigma2 implies it's not homoskedastic"))
-    n <- length(op$d)
-    n1 <- sum(op$d)
+        sigma2 <- mean(nnvar(DM, path$d, path$y, J=J))
+    sigma2 <- mean(sigma2) # if variance vector supplied
+
+    n <- length(path$d)
+    n1 <- sum(path$d)
     n0 <- n-n1
-    del0 <- op$res[, "delta"]
-    mu0 <- op$res[, "mu"]
-    m0 <- op$res[, 2:(n0+1), drop=FALSE]
-    r0 <- op$res[, (n0+2):(n+1), drop=FALSE]
+    del0 <- path$res[, "delta"]
+    mu0 <- path$res[, "mu"]
+    m0 <- path$res[, 2:(n0+1), drop=FALSE]
+    r0 <- path$res[, (n0+2):(n+1), drop=FALSE]
 
     ## Modulus and its derivative when sigma2=1 and C=1
     mod11 <- function(del) {

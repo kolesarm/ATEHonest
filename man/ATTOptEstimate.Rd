@@ -8,7 +8,7 @@ ATTOptEstimate(
   y,
   d,
   D0,
-  op,
+  path,
   C = 1,
   opt.criterion = "RMSE",
   sigma2init,
@@ -30,10 +30,10 @@ ATTOptEstimate(
 untreated and treated units, where \code{n0} is the number of untreated
 units and \code{n1} is the number of treated units.}
 
-\item{op}{Output of \code{ATTOptPath}. If this parameter is omitted, and the
-parameters \code{y}, \code{d}, and \code{D0} are supplied,
+\item{path}{Output of \code{ATTOptPath}. If this parameter is omitted, and
+the parameters \code{y}, \code{d}, and \code{D0} are supplied,
 \code{ATTOptEstimate} computes the path internally. Conversely, if
-\code{op} is supplied, the parameters \code{y}, \code{d}, and \code{D0}
+\code{path} is supplied, the parameters \code{y}, \code{d}, and \code{D0}
 are ignored.}
 
 \item{C}{Lipschitz smoothness constant}
@@ -70,7 +70,7 @@ of one-sided CIs.}
 and \code{sigma2}.}
 
 \item{extrasteps}{If the optimal smoothing parameter \eqn{\delta}{delta} is
-attained at the end of the solution path \code{op}, compute additional
+attained at the end of the solution path \code{path}, compute additional
 \code{extrasteps} steps in the solution path and estimate it again. If
 \code{extrasteps==0}, then do not compute extra steps.}
 }
@@ -100,7 +100,7 @@ Returns an object of class \code{"ATTEstimate"}. An object of class
     variables \eqn{\delta}, \eqn{m}, \eqn{r}, \eqn{\mu}, and \code{drop} of
     the solution path at the optimal value of \eqn{\delta}{delta}}
 
-    \item{op}{The solution path, output of \code{ATTOptPath}.}
+    \item{path}{The solution path, output of \code{ATTOptPath}.}
 
     }
 }
@@ -121,7 +121,7 @@ DM <- distMat(dt[, 2:10], Ahalf, method="manhattan")
 c1 <- ATTOptEstimate(y=dt$re78, d=dt$treated, D0=D0, C=1, DM=DM,
                      opt.criterion="RMSE")
 ## Re-use the solution path already computed
-c2 <- ATTOptEstimate(op=c1$op, C=1, DM=DM, opt.criterion="FLCI")
+c2 <- ATTOptEstimate(path=c1$path, C=1, DM=DM, opt.criterion="FLCI")
 }
 \references{
 \cite{Armstrong, T. B., and M. Kolesár (2020): Finite-Sample

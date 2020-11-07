@@ -23,13 +23,13 @@ c1 <- ATTOptEstimate(y=y, d=d, D0=D0, C=1, DM=DM, opt.criterion="RMSE")
 print(c1)
 
 ## -----------------------------------------------------------------------------
-ATTOptEstimate(op=c1$op, C=1, DM=DM, opt.criterion="FLCI")
+ATTOptEstimate(path=c1$path, C=1, DM=DM, opt.criterion="FLCI")
 
 ## -----------------------------------------------------------------------------
-ATTEffBounds(c1$op, DM=DM, C=1)
+ATTEffBounds(c1$path, DM=DM, C=1)
 
 ## -----------------------------------------------------------------------------
-op <- ATTOptPath(path=c1$op, maxsteps=290)
+op <- ATTOptPath(path=c1$path, maxsteps=290)
 ATTEffBounds(op, DM=DM, C=1)
 
 ## -----------------------------------------------------------------------------

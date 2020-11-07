@@ -71,7 +71,7 @@ ATTbias <- function(w, D0) {
 #' ## Construct distance matrix
 #' Ahalf <- diag(c(0.15, 0.6, 2.5, 2.5, 2.5, 0.5, 0.5, 0.1, 0.1))
 #' D0 <- distMat(NSWexper[, 2:10], Ahalf, method="manhattan", NSWexper$treated)
-#' mp <- ATTMatchPath(NSWexper$re78, NSWexper$treated, D0, M=1:2, tol=1e-12)
+#' ATTMatchPath(NSWexper$re78, NSWexper$treated, D0, M=1:2, tol=1e-12)
 #' @export
 ATTMatchPath <- function(y, d, D0, M=1:25, tol=1e-12) {
     n1 <- nrow(D0)
@@ -97,7 +97,7 @@ ATTMatchPath <- function(y, d, D0, M=1:25, tol=1e-12) {
 #' a single \code{M}, the estimator and CIs are based on a matching estimator
 #' with this number of matches. Otherwise, optimize the number of matches
 #' according to \code{opt.criterion}.
-#' @param mp output of \code{ATTMatchPath}
+#' @param path output of \code{ATTMatchPath}
 #' @param C Lipschitz smoothness constant
 #' @param opt.criterion criterion to optimize. One of \code{"RMSE"} (root mean
 #'     squared error), \code{"OCI"} (one-sided confidence intervals),
@@ -136,7 +136,7 @@ ATTMatchPath <- function(y, d, D0, M=1:25, tol=1e-12) {
 #' ## Distance matrix for variance estimation
 #' DM <- distMat(NSWexper[, 2:10], Ahalf, method="manhattan")
 #' ## Estimator based on a single match is better than with 2 matches for RMSE
-#' ATTMatchEstimate(mp, C=1, DM=DM)
+#' ATTMatchEstimate(path=mp, C=1, DM=DM)
 #' @return Returns an object of class \code{"ATTEstimate"}. An object of class
 #'     \code{"ATTEstimate"} is a list containing the following components:
 #'     \describe{
@@ -158,36 +158,36 @@ ATTMatchPath <- function(y, d, D0, M=1:25, tol=1e-12) {
 #'     \item{k}{Vector of matching weights \eqn{k(x_i, d_i)}}
 #'     }
 #' @export
-ATTMatchEstimate <- function(mp, C=1, opt.criterion="RMSE", sigma2init,
+ATTMatchEstimate <- function(path, C=1, opt.criterion="RMSE", sigma2init,
                              sigma2, mvar, DM, alpha=0.05, beta=0.8, J=3) {
     if (missing(sigma2))
-        sigma2 <- nnvar(DM, mp$d, mp$y, J=J)
+        sigma2 <- nnvar(DM, path$d, path$y, J=J)
     if (missing(sigma2init))
         sigma2init <- mean(sigma2)
 
     ## Update estimate path with new value of C
-    mp$ep <- UpdatePath(mp$ep, mp$K, C, sigma2init, alpha, beta)
+    path$ep <- UpdatePath(path$ep, path$K, C, sigma2init, alpha, beta)
 
     ## Index of criterion to optimize
-    idx <- which.max(names(mp$ep) ==
+    idx <- which.max(names(path$ep) ==
                      switch(opt.criterion, RMSE = "rmse", OCI = "maxel",
                             FLCI = "hl"))
-    i <- which.min(mp$ep[[idx]])
-    if (i==nrow(mp$ep) & nrow(mp$ep)>1)
+    i <- which.min(path$ep[[idx]])
+    if (i==nrow(path$ep) & nrow(path$ep)>1)
         warning("Optimum found at end of path")
 
     ## Robust se, C=1 to keep bias the same
-    er <- UpdatePath(mp$ep[i, ], mp$K[i, , drop=FALSE], Cratio=1, sigma2,
+    er <- UpdatePath(path$ep[i, ], path$K[i, , drop=FALSE], Cratio=1, sigma2,
                      alpha, beta)
     ## SE for PATE
     if (missing(mvar))
-        mvar <- nnMarginalVar(mp$D0, er$M, mp$d, mp$y, sigma2, mp$tol)
+        mvar <- nnMarginalVar(path$D0, er$M, path$d, path$y, sigma2, path$tol)
 
-    eu <- UpdatePath(mp$ep[i, ], mp$K[i, , drop=FALSE], Cratio=1, sigma2,
+    eu <- UpdatePath(path$ep[i, ], path$K[i, , drop=FALSE], Cratio=1, sigma2,
                      alpha, beta, ucse=sqrt(er$sd^2+mvar))
-    structure(list(e=c(unlist(mp$ep[i, ]), rsd=er$sd, rlower=er$lower,
+    structure(list(e=c(unlist(path$ep[i, ]), rsd=er$sd, rlower=er$lower,
                        rupper=er$upper, rhl=er$hl, rrmse=er$rmse,
                        rmaxel=er$maxel, usd=eu$sd, ulower=eu$lower,
                        uupper=eu$upper, uhl=eu$hl, C=C),
-                   k=mp$K[i, ]), class="ATTEstimate")
+                   k=path$K[i, ]), class="ATTEstimate")
 }

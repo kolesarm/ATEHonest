@@ -4,10 +4,10 @@
 \alias{ATTEffBounds}
 \title{Efficiency bounds for confidence intervals}
 \usage{
-ATTEffBounds(op, C = 1, beta = 0.8, alpha = 0.05, sigma2, J = 3, DM)
+ATTEffBounds(path, C = 1, beta = 0.8, alpha = 0.05, sigma2, J = 3, DM)
 }
 \arguments{
-\item{op}{The output of \code{ATTOptPath}.}
+\item{path}{The output of \code{ATTOptPath}.}
 
 \item{C}{Lipschitz smoothness constant}
 
@@ -44,8 +44,8 @@ D0 <- distMat(dt[, 2:10], Ahalf, method="manhattan", dt$treated)
 ## Distance matrix for variance estimation
 DM <- distMat(dt[, 2:10], Ahalf, method="manhattan")
 ## Compute the solution path, first 50 steps will be sufficient
-op <- ATTOptPath(dt$re78, dt$treated, D0, maxsteps=50)
-ATTEffBounds(op, C=1, DM=DM)
+path <- ATTOptPath(dt$re78, dt$treated, D0, maxsteps=50)
+ATTEffBounds(path, C=1, DM=DM)
 }
 \references{
 \cite{Armstrong, T. B., and M. Kolesár (2020): Finite-Sample
